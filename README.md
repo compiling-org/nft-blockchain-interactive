@@ -13,10 +13,10 @@ Interactive NFT system with Filecoin and NEAR blockchain integration. Smart cont
 - **Testnet Deployment**: Scripts for deploying to test networks
 
 #### 🔄 **In Development**
-- **Interactive NFT Collections**: Dynamic NFT content that responds to external data
+- **Interactive NFT**: Dynamic NFT content that responds to external data
 - **Advanced Minting**: Enhanced NFT creation and management tools
 - **Cross-Chain Features**: Improved interoperability between blockchains
-- **Marketplace Integration**: NFT trading and marketplace functionality
+  
 
 #### 🚧 **Known Issues**
 - **Smart Contract Completion**: NEAR contracts need full implementation
@@ -27,15 +27,14 @@ Interactive NFT system with Filecoin and NEAR blockchain integration. Smart cont
 #### 📈 **Next Development Phase**
 1. **Complete Smart Contracts**: Finish NEAR NFT contract implementation
 2. **Interactive NFT Framework**: Implement dynamic content generation
-3. **Marketplace Features**: Add NFT trading and marketplace functionality
-4. **Cross-Chain Bridge**: Improve interoperability between blockchains
-5. **Testing & Deployment**: Complete integration testing and mainnet deployment
+3. **Cross-Chain Bridge**: Improve interoperability between blockchains
+4. **Testing & Deployment**: Complete integration testing and mainnet deployment
 
 ## Features
 
 - Filecoin/IPFS integration for NFT metadata storage
 - NEAR blockchain smart contracts for NFT minting
-- Interactive NFT collections
+- Interactive NFT 
 - Testnet deployment tools
 - Cross-chain NFT operations
 
@@ -48,7 +47,7 @@ blockchain-nft-interactive/
 ├── contracts/
 │   ├── near/                  # NEAR smart contracts
 │   │   ├── nft-contract/      # NFT contract for NEAR
-│   │   └── marketplace/       # Marketplace contract
+│   │   
 │   └── filecoin/              # Filecoin smart contracts (if applicable)
 ├── scripts/
 │   ├── deploy-near.sh         # NEAR deployment script
