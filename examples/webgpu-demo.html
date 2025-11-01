@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiling.org WebGPU Creative Engine Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        .demo-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 60px 1fr 200px;
+            height: 100vh;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background: linear-gradient(90deg, #1a1a2e, #16213e, #0f3460);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00d4ff;
+        }
+
+        .status-dot.offline {
+            background: #666;
+        }
+
+        .canvas-area {
+            background: #0d0d0d;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #shader-canvas {
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .controls-panel {
+            background: #1a1a1a;
+            border-left: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: #00d4ff;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+            margin-bottom: 5px;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00d4ff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .control-value {
+            display: block;
+            text-align: right;
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .color-control {
+            width: 100%;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 6px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: #444;
+            border-color: #00d4ff;
+            transform: translateY(-1px);
+        }
+
+        .preset-btn.active {
+            background: #00d4ff;
+            color: #000;
+            border-color: #00d4ff;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(45deg, #666, #999);
+        }
+
+        .performance-panel {
+            grid-column: 2;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .perf-metrics {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .export-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .export-btn {
+            padding: 8px 15px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 20px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #444;
+            border-color: #00d4ff;
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #00d4ff;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .demo-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 60px 1fr 150px 150px;
+            }
+
+            .controls-panel {
+                position: absolute;
+                top: 60px;
+                right: 0;
+                width: 280px;
+                height: calc(100vh - 210px);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                z-index: 100;
+            }
+
+            .controls-panel.show {
+                transform: translateX(0);
+            }
+
+            .performance-panel {
+                grid-row: 4;
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">🧠 Compiling.org WebGPU Engine</div>
+            <div class="status">
+                <div class="status-item">
+                    <div class="status-dot" id="webgpu-status"></div>
+                    <span>WebGPU</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot offline" id="wallet-status"></div>
+                    <span>Wallet</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot offline" id="ipfs-status"></div>
+                    <span>IPFS</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Canvas Area -->
+        <main class="canvas-area">
+            <canvas id="shader-canvas" width="800" height="600"></canvas>
+        </main>
+
+        <!-- Controls Panel -->
+        <aside class="controls-panel">
+            <div class="control-section">
+                <div class="section-title">
+                    <span>🎨 Shader Presets</span>
+                </div>
+                <div class="preset-grid">
+                    <button class="preset-btn active" data-preset="mandelbrot">Mandelbrot</button>
+                    <button class="preset-btn" data-preset="julia">Julia Set</button>
+                    <button class="preset-btn" data-preset="burning_ship">Burning Ship</button>
+                    <button class="preset-btn" data-preset="custom">Custom</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title">
+                    <span>⚙️ Parameters</span>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Iterations</label>
+                    <input type="range" class="control-slider" id="iterations" min="10" max="200" value="100">
+                    <span class="control-value" id="iterations-value">100</span>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Zoom</label>
+                    <input type="range" class="control-slider" id="zoom" min="0.1" max="3" step="0.1" value="1">
+                    <span class="control-value" id="zoom-value">1.0</span>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Offset X</label>
+                    <input type="range" class="control-slider" id="offset-x" min="-2" max="2" step="0.01" value="0">
+                    <span class="control-value" id="offset-x-value">0.00</span>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Offset Y</label>
+                    <input type="range" class="control-slider" id="offset-y" min="-2" max="2" step="0.01" value="0">
+                    <span class="control-value" id="offset-y-value">0.00</span>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Color 1</label>
+                    <input type="color" class="color-control" id="color1" value="#ff6b6b">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Color 2</label>
+                    <input type="color" class="color-control" id="color2" value="#4ecdc4">
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title">
+                    <span>🎭 Emotional Mapping</span>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Valence → Scale</label>
+                    <input type="range" class="control-slider" id="valence" min="0" max="1" step="0.01" value="0.5">
+                    <span class="control-value" id="valence-value">0.50</span>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Arousal → Speed</label>
+                    <input type="range" class="control-slider" id="arousal" min="0" max="1" step="0.01" value="0.7">
+                    <span class="control-value" id="arousal-value">0.70</span>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Dominance → Complexity</label>
+                    <input type="range" class="control-slider" id="dominance" min="0" max="1" step="0.01" value="0.3">
+                    <span class="control-value" id="dominance-value">0.30</span>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <button class="action-btn" onclick="connectWallet()">🔗 Connect Wallet</button>
+                <button class="action-btn secondary" onclick="mintNFT()">🎨 Mint as NFT</button>
+                <button class="action-btn secondary" onclick="savePatch()">💾 Save Patch</button>
+                <button class="action-btn secondary" onclick="startCollaboration()">👥 Collaborate</button>
+            </div>
+        </aside>
+
+        <!-- Performance Panel -->
+        <footer class="performance-panel">
+            <div class="perf-metrics">
+                <div class="metric">
+                    <div class="metric-value" id="fps">60</div>
+                    <div class="metric-label">FPS</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="render-time">16</div>
+                    <div class="metric-label">ms/frame</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="memory">45</div>
+                    <div class="metric-label">MB</div>
+                </div>
+            </div>
+
+            <div class="export-actions">
+                <button class="export-btn" onclick="exportPNG()">📷 PNG</button>
+                <button class="export-btn" onclick="exportMP4()">🎬 MP4</button>
+                <button class="export-btn" onclick="exportGLSL()">📄 GLSL</button>
+                <button class="export-btn" onclick="shareToIPFS()">☁️ IPFS</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Initializing WebGPU Engine...</div>
+    </div>
+
+    <!-- Load WASM module -->
+    <script type="module">
+        import init, {
+            ShaderEngine,
+            PerformanceMonitor,
+            BlockchainConnector,
+            generate_nft_metadata,
+            check_webgpu_support
+        } from './pkg/nft_rust_client.js';
+
+        let engine = null;
+        let monitor = null;
+        let connector = null;
+        let animationId = null;
+        let lastTime = 0;
+
+        async function initialize() {
+            try {
+                await init();
+
+                // Check WebGPU support
+                const webgpuSupported = check_webgpu_support();
+                document.getElementById('webgpu-status').classList.toggle('offline', !webgpuSupported);
+
+                // Initialize engine
+                engine = ShaderEngine.new('shader-canvas');
+                monitor = new PerformanceMonitor();
+
+                // Initialize blockchain connector
+                connector = new BlockchainConnector();
+
+                // Load default shader
+                await loadShader('mandelbrot');
+
+                // Start render loop
+                startRenderLoop();
+
+                // Hide loading
+                document.getElementById('loading').classList.remove('show');
+
+                console.log('🎨 WebGPU Creative Engine initialized successfully!');
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                document.querySelector('.loading-text').textContent = 'Failed to initialize WebGPU engine';
+            }
+        }
+
+        async function loadShader(preset) {
+            if (!engine) return;
+
+            try {
+                await engine.load_fractal_shader(preset);
+
+                // Update UI to reflect loaded preset
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.preset === preset);
+                });
+
+                console.log(`Loaded ${preset} shader`);
+            } catch (error) {
+                console.error('Failed to load shader:', error);
+            }
+        }
+
+        function startRenderLoop() {
+            function render(currentTime) {
+                if (!engine) return;
+
+                const deltaTime = currentTime - lastTime;
+                lastTime = currentTime;
+
+                try {
+                    // Update uniforms from controls
+                    updateUniforms();
+
+                    // Render frame
+                    engine.render(deltaTime / 1000);
+
+                    // Update performance metrics
+                    const fps = monitor.update();
+                    document.getElementById('fps').textContent = Math.round(fps);
+                    document.getElementById('render-time').textContent = Math.round(1000 / fps);
+
+                    // Mock memory usage
+                    document.getElementById('memory').textContent = Math.round(40 + Math.random() * 20);
+
+                } catch (error) {
+                    console.error('Render error:', error);
+                }
+
+                animationId = requestAnimationFrame(render);
+            }
+
+            animationId = requestAnimationFrame(render);
+        }
+
+        function updateUniforms() {
+            if (!engine) return;
+
+            // Update shader parameters
+            const iterations = parseInt(document.getElementById('iterations').value);
+            const zoom = parseFloat(document.getElementById('zoom').value);
+            const offsetX = parseFloat(document.getElementById('offset-x').value);
+            const offsetY = parseFloat(document.getElementById('offset-y').value);
+
+            engine.set_uniform('u_max_iter', iterations);
+            engine.set_uniform('u_zoom', zoom);
+            engine.set_uniform('u_offset', [offsetX, offsetY]);
+
+            // Update emotional parameters
+            const valence = parseFloat(document.getElementById('valence').value);
+            const arousal = parseFloat(document.getElementById('arousal').value);
+            const dominance = parseFloat(document.getElementById('dominance').value);
+
+            // Map emotional parameters to visual parameters
+            const complexity = dominance * 100 + 50;
+            const speed = arousal * 2.0;
+            const scale = valence * 2.0 + 0.5;
+
+            engine.set_uniform('u_complexity', complexity);
+            engine.set_uniform('u_speed', speed);
+            engine.set_uniform('u_scale', scale);
+        }
+
+        // Event listeners
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                loadShader(btn.dataset.preset);
+            });
+        });
+
+        document.querySelectorAll('.control-slider').forEach(slider => {
+            slider.addEventListener('input', () => {
+                const valueElement = document.getElementById(slider.id + '-value');
+                if (valueElement) {
+                    if (slider.step === '0.01') {
+                        valueElement.textContent = parseFloat(slider.value).toFixed(2);
+                    } else if (slider.step === '0.1') {
+                        valueElement.textContent = parseFloat(slider.value).toFixed(1);
+                    } else {
+                        valueElement.textContent = slider.value;
+                    }
+                }
+            });
+        });
+
+        // Action functions
+        window.connectWallet = async function() {
+            try {
+                await connector.connect_near('testnet');
+                document.getElementById('wallet-status').classList.remove('offline');
+                alert('✅ Wallet connected successfully!');
+            } catch (error) {
+                console.error('Wallet connection failed:', error);
+                alert('❌ Failed to connect wallet');
+            }
+        };
+
+        window.mintNFT = async function() {
+            if (!connector) {
+                alert('Please connect wallet first');
+                return;
+            }
+
+            try {
+                // Generate current canvas as image
+                const canvas = document.getElementById('shader-canvas');
+                const imageData = canvas.toDataURL('image/png');
+
+                // Create NFT metadata
+                const metadata = generate_nft_metadata(
+                    'WebGPU Fractal Art',
+                    'Real-time generated fractal art with emotional parameters',
+                    'QmMockImageCID123',
+                    JSON.stringify({
+                        valence: document.getElementById('valence').value,
+                        arousal: document.getElementById('arousal').value,
+                        dominance: document.getElementById('dominance').value,
+                        iterations: document.getElementById('iterations').value
+                    }),
+                    JSON.stringify({
+                        shader: 'mandelbrot',
+                        interactive: true,
+                        real_time: true
+                    })
+                );
+
+                const tokenId = await connector.mint_interactive_nft(metadata, 'QmMockImageCID123', {});
+                alert(`🎨 NFT minted successfully! Token ID: ${tokenId}`);
+            } catch (error) {
+                console.error('Minting failed:', error);
+                alert('❌ Failed to mint NFT');
+            }
+        };
+
+        window.savePatch = function() {
+            const patch = {
+                shader: 'mandelbrot',
+                parameters: {
+                    iterations: document.getElementById('iterations').value,
+                    zoom: document.getElementById('zoom').value,
+                    offsetX: document.getElementById('offset-x').value,
+                    offsetY: document.getElementById('offset-y').value,
+                    valence: document.getElementById('valence').value,
+                    arousal: document.getElementById('arousal').value,
+                    dominance: document.getElementById('dominance').value
+                },
+                timestamp: Date.now()
+            };
+
+            // Save to localStorage (in real app, would save to IPFS/blockchain)
+            localStorage.setItem('saved_patch', JSON.stringify(patch));
+            alert('💾 Patch saved to local storage!');
+        };
+
+        window.startCollaboration = async function() {
+            if (!connector) {
+                alert('Please connect wallet first');
+                return;
+            }
+
+            try {
+                const sessionId = await connector.create_session('fractal_shader', {});
+                alert(`👥 Collaboration session created! Session ID: ${sessionId}`);
+            } catch (error) {
+                console.error('Collaboration failed:', error);
+                alert('❌ Failed to start collaboration');
+            }
+        };
+
+        window.exportPNG = function() {
+            const canvas = document.getElementById('shader-canvas');
+            const link = document.createElement('a');
+            link.download = 'webgpu-fractal.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        };
+
+        window.exportMP4 = function() {
+            alert('🎬 MP4 export would record animation over time (not implemented in demo)');
+        };
+
+        window.exportGLSL = function() {
+            const glsl = `
+// WebGPU Fractal Shader Export
+// Generated by Compiling.org Creative Engine
+
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform float u_zoom;
+uniform vec2 u_offset;
+uniform int u_max_iter;
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+    vec2 c = uv * u_zoom + u_offset;
+    vec2 z = vec2(0.0);
+
+    int iter = 0;
+    for(int i = 0; i < 1000; i++) {
+        if(i >= u_max_iter) break;
+        if(dot(z, z) > 4.0) break;
+
+        float x = z.x * z.x - z.y * z.y + c.x;
+        float y = 2.0 * z.x * z.y + c.y;
+        z = vec2(x, y);
+        iter = i;
+    }
+
+    float t = float(iter) / float(u_max_iter);
+    gl_FragColor = vec4(t, t * 0.5, 1.0 - t, 1.0);
+}
+`;
+            const blob = new Blob([glsl], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.download = 'fractal-shader.glsl';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        };
+
+        window.shareToIPFS = function() {
+            alert('☁️ Would upload to IPFS and return CID (not implemented in demo)');
+        };
+
+        // Initialize on load
+        window.addEventListener('load', initialize);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (engine) {
+                const canvas = document.getElementById('shader-canvas');
+                const rect = canvas.getBoundingClientRect();
+                engine.resize(rect.width, rect.height);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiling.org Creative Marketplace - Mock Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .marketplace {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .nft-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .nft-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .nft-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 400% 400%;
+            animation: gradientShift 4s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .nft-info {
+            padding: 20px;
+        }
+
+        .nft-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .nft-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .nft-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .nft-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nft-chain {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .nft-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .create-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .create-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .create-section p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .demo-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .demo-notice strong {
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .marketplace {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🧠 Compiling.org Creative Marketplace</h1>
+            <p>Real-time creative NFTs powered by emotional AI and decentralized storage</p>
+            <div class="subtitle">Mintbase Integration • Interactive NFTs • Soulbound Identity • Cross-Chain Support</div>
+        </header>
+
+        <div class="demo-notice">
+            <strong>🎭 Mock Demo:</strong> This is a demonstration of our NFT marketplace concept.
+            All transactions are simulated for the grant proposal showcase.
+        </div>
+
+        <section class="marketplace">
+            <!-- Emotional Fractal NFT -->
+            <div class="nft-card">
+                <div class="nft-image">🌀 Emotional Fractal</div>
+                <div class="nft-info">
+                    <div class="nft-title">Emotional Fractal #001</div>
+                    <div class="nft-description">
+                        A fractal generated from real-time emotional data captured during a live performance.
+                        Valence: 0.7, Arousal: 0.8
+                    </div>
+                    <div class="nft-meta">
+                        <div class="nft-price">0.5 NEAR</div>
+                        <div class="nft-chain">NEAR</div>
+                    </div>
+                    <div class="nft-actions">
+                        <button class="btn btn-primary">Mint Now</button>
+                        <button class="btn btn-secondary">View Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Shader Performance -->
+            <div class="nft-card">
+                <div class="nft-image">🌈 Live Shader</div>
+                <div class="nft-info">
+                    <div class="nft-title">Live Shader Performance #042</div>
+                    <div class="nft-description">
+                        Interactive shader parameters captured during a 15-minute live coding session.
+                        Seed: 0xDEADBEEF, Iterations: 2500
+                    </div>
+                    <div class="nft-meta">
+                        <div class="nft-price">1.2 SOL</div>
+                        <div class="nft-chain">Solana</div>
+                    </div>
+                    <div class="nft-actions">
+                        <button class="btn btn-primary">Mint Now</button>
+                        <button class="btn btn-secondary">View Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audiovisual Composition -->
+            <div class="nft-card">
+                <div class="nft-image">🎵 Audio Visual</div>
+                <div class="nft-info">
+                    <div class="nft-title">Neuro-Sonic Landscape #089</div>
+                    <div class="nft-description">
+                        Audiovisual composition generated from EEG data and emotional state vectors.
+                        Duration: 4:23, Channels: 8
+                    </div>
+                    <div class="nft-meta">
+                        <div class="nft-price">2.1 ETH</div>
+                        <div class="nft-chain">Ethereum</div>
+                    </div>
+                    <div class="nft-actions">
+                        <button class="btn btn-primary">Mint Now</button>
+                        <button class="btn btn-secondary">View Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Soulbound NFT -->
+            <div class="nft-card">
+                <div class="nft-image">👤 Soulbound ID</div>
+                <div class="nft-info">
+                    <div class="nft-title">Creative Identity Badge</div>
+                    <div class="nft-description">
+                        Soulbound NFT representing your creative identity and emotional profile.
+                        Non-transferable, Mintbase-compatible, DAO governance enabled.
+                    </div>
+                    <div class="nft-meta">
+                        <div class="nft-price">Claim Free</div>
+                        <div class="nft-chain">NEAR/Mintbase</div>
+                    </div>
+                    <div class="nft-actions">
+                        <button class="btn btn-primary">Claim Identity</button>
+                        <button class="btn btn-secondary">View Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mintbase Series NFT -->
+            <div class="nft-card">
+                <div class="nft-image">🎨 Mintbase Series</div>
+                <div class="nft-info">
+                    <div class="nft-title">Emotional Landscapes #001</div>
+                    <div class="nft-description">
+                        Part of a Mintbase series exploring emotional states through generative art.
+                        1/1 unique piece, full commercial rights, perpetual royalties.
+                    </div>
+                    <div class="nft-meta">
+                        <div class="nft-price">3.5 NEAR</div>
+                        <div class="nft-chain">Mintbase</div>
+                    </div>
+                    <div class="nft-actions">
+                        <button class="btn btn-primary">Buy on Mintbase</button>
+                        <button class="btn btn-secondary">View Series</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="create-section">
+            <h2>🎨 Create Your Own Creative NFT</h2>
+            <p>
+                Use our NUWE creative engine to generate real-time art from your emotional state.
+                Mint unique NFTs that capture the essence of your creative moments, stored permanently
+                on IPFS and tokenized across multiple blockchains.
+            </p>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" style="font-size: 1.1rem; padding: 15px 30px;">
+                    🚀 Launch Creative Studio
+                </button>
+                <button class="btn btn-secondary" style="font-size: 1.1rem; padding: 15px 30px;">
+                    📚 Learn More
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Mock interactive functionality
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                alert('🎭 Mock Demo: This would initiate the minting process!\n\nIn a real implementation, this would:\n• Connect to your wallet\n• Generate IPFS CID\n• Mint on the selected blockchain\n• Store metadata permanently');
+            });
+        });
+
+        document.querySelectorAll('.btn-secondary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.nft-card');
+                const title = card.querySelector('.nft-title').textContent;
+                alert(`📊 ${title} Details:\n\n• Stored on IPFS/Filecoin\n• Cross-chain compatible\n• Emotional metadata included\n• Real-time generation verified\n\nThis is a mock demo for grant proposal purposes.`);
+            });
+        });
+
+        // Add some visual feedback
+        document.querySelectorAll('.nft-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
