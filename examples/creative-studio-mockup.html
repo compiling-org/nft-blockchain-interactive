@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiling.org Creative Studio - Browser-Based WASM Tools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        .studio-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 60px 1fr 200px;
+            height: 100vh;
+        }
+
+        /* Header */
+        .studio-header {
+            grid-column: 1 / -1;
+            background: linear-gradient(90deg, #1a1a2e, #16213e, #0f3460);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* Left Sidebar - Tools */
+        .tools-panel {
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .tool-category {
+            margin-bottom: 25px;
+        }
+
+        .category-title {
+            color: #00d4ff;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tool-item:hover {
+            background: #2a2a2a;
+            transform: translateX(5px);
+        }
+
+        .tool-item.active {
+            background: #00d4ff;
+            color: #000;
+        }
+
+        .tool-icon {
+            width: 20px;
+            height: 20px;
+            background: #333;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* Main Canvas Area */
+        .canvas-area {
+            background: #0d0d0d;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .canvas-mockup {
+            width: 80%;
+            height: 80%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 400% 400%;
+            animation: canvasGradient 8s ease infinite;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 0 50px rgba(0,255,212,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-mockup::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        @keyframes canvasGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .collaboration-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 212, 255, 0.9);
+            color: #000;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .collaborator-avatars {
+            display: flex;
+            margin-left: 5px;
+        }
+
+        .avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid #000;
+            margin-left: -5px;
+        }
+
+        /* Right Sidebar - Parameters */
+        .params-panel {
+            background: #1a1a1a;
+            border-left: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .param-group {
+            margin-bottom: 25px;
+        }
+
+        .param-title {
+            color: #00d4ff;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .param-control {
+            margin-bottom: 15px;
+        }
+
+        .param-label {
+            display: block;
+            font-size: 0.8rem;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00d4ff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .param-value {
+            display: block;
+            text-align: right;
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .color-picker {
+            width: 100%;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 6px 10px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: #444;
+            border-color: #00d4ff;
+        }
+
+        /* Bottom Panel - Timeline & Collaboration */
+        .timeline-panel {
+            grid-column: 2;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .timeline-container {
+            flex: 1;
+            height: 60px;
+            background: #0d0d0d;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-track {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .timeline-cursor {
+            position: absolute;
+            top: 0;
+            left: 30%;
+            width: 3px;
+            height: 100%;
+            background: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+        }
+
+        .timeline-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            color: #666;
+            font-size: 0.7rem;
+        }
+
+        .collaboration-panel {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .collab-btn {
+            padding: 8px 15px;
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .collab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .patch-indicator {
+            background: #333;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid #333;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            color: #00d4ff;
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .patch-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .patch-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .patch-info h4 {
+            color: #e0e0e0;
+            margin-bottom: 5px;
+        }
+
+        .patch-meta {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .patch-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .patch-btn {
+            padding: 5px 10px;
+            border: 1px solid #555;
+            background: #333;
+            color: #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .patch-btn:hover {
+            border-color: #00d4ff;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .studio-container {
+                grid-template-columns: 250px 1fr 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .studio-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 60px 1fr 150px 150px;
+            }
+
+            .tools-panel, .params-panel {
+                position: absolute;
+                top: 60px;
+                width: 250px;
+                height: calc(100vh - 60px);
+                z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .tools-panel.show, .params-panel.show {
+                transform: translateX(0);
+            }
+
+            .timeline-panel {
+                grid-row: 4;
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="studio-container">
+        <!-- Header -->
+        <header class="studio-header">
+            <div class="logo">🧠 Compiling.org Creative Studio</div>
+            <div class="header-actions">
+                <button class="collab-btn" onclick="showCollaborationModal()">👥 Collaborate</button>
+                <button class="collab-btn" onclick="showPatchesModal()">📦 Patches</button>
+                <button class="collab-btn" onclick="savePatch()">💾 Save</button>
+                <div class="patch-indicator">v2.1.3-beta</div>
+            </div>
+        </header>
+
+        <!-- Tools Panel -->
+        <aside class="tools-panel">
+            <div class="tool-category">
+                <div class="category-title">🎨 Visual Tools</div>
+                <div class="tool-item active" data-tool="fractal">
+                    <div class="tool-icon">🌀</div>
+                    <span>Fractal Shader</span>
+                </div>
+                <div class="tool-item" data-tool="particle">
+                    <div class="tool-icon">✨</div>
+                    <span>Particle System</span>
+                </div>
+                <div class="tool-item" data-tool="geometry">
+                    <div class="tool-icon">🔺</div>
+                    <span>Geometry Synth</span>
+                </div>
+            </div>
+
+            <div class="tool-category">
+                <div class="category-title">🎵 Audio Tools</div>
+                <div class="tool-item" data-tool="synth">
+                    <div class="tool-icon">🎹</div>
+                    <span>Modular Synth</span>
+                </div>
+                <div class="tool-item" data-tool="sampler">
+                    <div class="tool-icon">🎤</div>
+                    <span>Live Sampler</span>
+                </div>
+            </div>
+
+            <div class="tool-category">
+                <div class="category-title">🤖 AI Tools</div>
+                <div class="tool-item" data-tool="emotion">
+                    <div class="tool-icon">🧠</div>
+                    <span>Emotion Mapper</span>
+                </div>
+                <div class="tool-item" data-tool="generator">
+                    <div class="tool-icon">🎲</div>
+                    <span>Pattern Generator</span>
+                </div>
+            </div>
+
+            <div class="tool-category">
+                <div class="category-title">📦 Community Patches</div>
+                <div class="tool-item" data-tool="patch1">
+                    <div class="tool-icon">🌊</div>
+                    <span>Ocean Waves v3.2</span>
+                </div>
+                <div class="tool-item" data-tool="patch2">
+                    <div class="tool-icon">🌌</div>
+                    <span>Cosmic Strings v1.8</span>
+                </div>
+                <div class="tool-item" data-tool="patch3">
+                    <div class="tool-icon">🔥</div>
+                    <span>Fire Dance v2.1</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Canvas -->
+        <main class="canvas-area">
+            <div class="canvas-container">
+                <div class="canvas-mockup">
+                    <div>WASM Creative Engine</div>
+                    <div style="font-size: 1rem; margin-top: 10px; opacity: 0.8;">
+                        Real-time fractal rendering at 60fps
+                    </div>
+                </div>
+                <div class="collaboration-indicator">
+                    <span>🔴 LIVE</span>
+                    <div class="collaborator-avatars">
+                        <div class="avatar" style="background: #ff6b6b;"></div>
+                        <div class="avatar" style="background: #4ecdc4;"></div>
+                        <div class="avatar" style="background: #45b7d1;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Parameters Panel -->
+        <aside class="params-panel">
+            <div class="param-group">
+                <div class="param-title">
+                    <span>🎛️ Shader Parameters</span>
+                </div>
+
+                <div class="param-control">
+                    <label class="param-label">Iterations</label>
+                    <input type="range" class="param-slider" min="1" max="100" value="50" id="iterations">
+                    <span class="param-value" id="iterations-value">50</span>
+                </div>
+
+                <div class="param-control">
+                    <label class="param-label">Zoom</label>
+                    <input type="range" class="param-slider" min="0.1" max="5" step="0.1" value="1" id="zoom">
+                    <span class="param-value" id="zoom-value">1.0</span>
+                </div>
+
+                <div class="param-control">
+                    <label class="param-label">Rotation</label>
+                    <input type="range" class="param-slider" min="0" max="360" value="0" id="rotation">
+                    <span class="param-value" id="rotation-value">0°</span>
+                </div>
+
+                <div class="param-control">
+                    <label class="param-label">Color Palette</label>
+                    <input type="color" class="color-picker" value="#ff6b6b" id="color1">
+                </div>
+            </div>
+
+            <div class="param-group">
+                <div class="param-title">
+                    <span>🎭 Emotional Mapping</span>
+                </div>
+
+                <div class="param-control">
+                    <label class="param-label">Valence → Scale</label>
+                    <input type="range" class="param-slider" min="0" max="1" step="0.01" value="0.5" id="valence">
+                    <span class="param-value" id="valence-value">0.50</span>
+                </div>
+
+                <div class="param-control">
+                    <label class="param-label">Arousal → Speed</label>
+                    <input type="range" class="param-slider" min="0" max="1" step="0.01" value="0.7" id="arousal">
+                    <span class="param-value" id="arousal-value">0.70</span>
+                </div>
+
+                <div class="param-control">
+                    <label class="param-label">Dominance → Complexity</label>
+                    <input type="range" class="param-slider" min="0" max="1" step="0.01" value="0.3" id="dominance">
+                    <span class="param-value" id="dominance-value">0.30</span>
+                </div>
+            </div>
+
+            <div class="param-group">
+                <div class="param-title">
+                    <span>💾 Presets</span>
+                </div>
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadPreset('ocean')">🌊 Ocean</button>
+                    <button class="preset-btn" onclick="loadPreset('fire')">🔥 Fire</button>
+                    <button class="preset-btn" onclick="loadPreset('cosmic')">🌌 Cosmic</button>
+                    <button class="preset-btn" onclick="loadPreset('geometric')">🔺 Geometric</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Timeline & Collaboration Panel -->
+        <footer class="timeline-panel">
+            <div class="timeline-container">
+                <div class="timeline-track"></div>
+                <div class="timeline-cursor"></div>
+                <div class="timeline-markers">
+                    <span>0:00</span>
+                    <span>1:00</span>
+                    <span>2:00</span>
+                    <span>3:00</span>
+                    <span>4:00</span>
+                </div>
+            </div>
+
+            <div class="collaboration-panel">
+                <button class="collab-btn" onclick="startRecording()">⏺️ Record</button>
+                <button class="collab-btn" onclick="shareSession()">📤 Share</button>
+                <button class="collab-btn" onclick="exportPatch()">📦 Export</button>
+                <div class="patch-indicator">3 collaborators online</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Collaboration Modal -->
+    <div class="modal" id="collaboration-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">👥 Live Collaboration Session</h3>
+                <button class="modal-close" onclick="hideCollaborationModal()">&times;</button>
+            </div>
+            <div>
+                <p style="margin-bottom: 20px; color: #ccc;">
+                    Invite collaborators to join your real-time creative session. Changes sync instantly across all participants.
+                </p>
+                <div style="margin-bottom: 20px;">
+                    <input type="text" placeholder="Enter NEAR account ID" style="width: 100%; padding: 10px; background: #333; border: 1px solid #555; border-radius: 4px; color: #e0e0e0;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="collab-btn" style="flex: 1;">📤 Send Invite</button>
+                    <button class="collab-btn" style="flex: 1;" onclick="generateSessionLink()">🔗 Copy Link</button>
+                </div>
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #00d4ff; margin-bottom: 10px;">Active Collaborators</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px; background: #333; padding: 8px 12px; border-radius: 20px;">
+                            <div class="avatar" style="width: 24px; height: 24px; background: #ff6b6b;"></div>
+                            <span style="font-size: 0.8rem;">alice.near</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; background: #333; padding: 8px 12px; border-radius: 20px;">
+                            <div class="avatar" style="width: 24px; height: 24px; background: #4ecdc4;"></div>
+                            <span style="font-size: 0.8rem;">bob.near</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patches Modal -->
+    <div class="modal" id="patches-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📦 Community Patches</h3>
+                <button class="modal-close" onclick="hidePatchesModal()">&times;</button>
+            </div>
+            <div class="patch-list">
+                <div class="patch-item">
+                    <div class="patch-info">
+                        <h4>Ocean Waves v3.2</h4>
+                        <div class="patch-meta">By alice.near • 2.1K downloads • ⭐ 4.8</div>
+                    </div>
+                    <div class="patch-actions">
+                        <button class="patch-btn" onclick="loadPatch('ocean')">Load</button>
+                        <button class="patch-btn" onclick="forkPatch('ocean')">Fork</button>
+                    </div>
+                </div>
+                <div class="patch-item">
+                    <div class="patch-info">
+                        <h4>Cosmic Strings v1.8</h4>
+                        <div class="patch-meta">By bob.near • 890 downloads • ⭐ 4.6</div>
+                    </div>
+                    <div class="patch-actions">
+                        <button class="patch-btn" onclick="loadPatch('cosmic')">Load</button>
+                        <button class="patch-btn" onclick="forkPatch('cosmic')">Fork</button>
+                    </div>
+                </div>
+                <div class="patch-item">
+                    <div class="patch-info">
+                        <h4>Fire Dance v2.1</h4>
+                        <div class="patch-meta">By charlie.near • 1.5K downloads • ⭐ 4.9</div>
+                    </div>
+                    <div class="patch-actions">
+                        <button class="patch-btn" onclick="loadPatch('fire')">Load</button>
+                        <button class="patch-btn" onclick="forkPatch('fire')">Fork</button>
+                    </div>
+                </div>
+                <div class="patch-item">
+                    <div class="patch-info">
+                        <h4>Neural Networks v0.9</h4>
+                        <div class="patch-meta">By david.near • 456 downloads • ⭐ 4.2</div>
+                    </div>
+                    <div class="patch-actions">
+                        <button class="patch-btn" onclick="loadPatch('neural')">Load</button>
+                        <button class="patch-btn" onclick="forkPatch('neural')">Fork</button>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="collab-btn" onclick="publishPatch()">📤 Publish Your Patch</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Parameter controls
+        document.querySelectorAll('.param-slider').forEach(slider => {
+            const valueDisplay = document.getElementById(slider.id + '-value');
+            slider.addEventListener('input', function() {
+                if (this.id === 'rotation') {
+                    valueDisplay.textContent = this.value + '°';
+                } else if (this.id === 'zoom') {
+                    valueDisplay.textContent = parseFloat(this.value).toFixed(1);
+                } else if (['valence', 'arousal', 'dominance'].includes(this.id)) {
+                    valueDisplay.textContent = parseFloat(this.value).toFixed(2);
+                } else {
+                    valueDisplay.textContent = this.value;
+                }
+                updateCanvas();
+            });
+        });
+
+        function updateCanvas() {
+            // Mock canvas update based on parameters
+            const canvas = document.querySelector('.canvas-mockup');
+            const iterations = document.getElementById('iterations').value;
+            const zoom = document.getElementById('zoom').value;
+            const rotation = document.getElementById('rotation').value;
+
+            // Visual feedback for parameter changes
+            canvas.style.transform = `scale(${zoom}) rotate(${rotation}deg)`;
+            canvas.style.filter = `hue-rotate(${iterations * 3.6}deg)`;
+        }
+
+        // Tool selection
+        document.querySelectorAll('.tool-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.tool-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                // Mock tool switching
+                const toolType = this.dataset.tool;
+                const canvas = document.querySelector('.canvas-mockup div:first-child');
+                switch(toolType) {
+                    case 'fractal':
+                        canvas.textContent = 'Fractal Shader Engine';
+                        break;
+                    case 'particle':
+                        canvas.textContent = 'Particle System';
+                        break;
+                    case 'synth':
+                        canvas.textContent = 'Modular Synthesizer';
+                        break;
+                    case 'emotion':
+                        canvas.textContent = 'Emotion Mapper';
+                        break;
+                    default:
+                        canvas.textContent = 'Community Patch Loaded';
+                }
+            });
+        });
+
+        // Preset loading
+        function loadPreset(preset) {
+            const presets = {
+                ocean: { iterations: 75, zoom: 2.5, rotation: 45, color: '#4ecdc4' },
+                fire: { iterations: 60, zoom: 1.8, rotation: 0, color: '#ff6b6b' },
+                cosmic: { iterations: 90, zoom: 3.2, rotation: 180, color: '#45b7d1' },
+                geometric: { iterations: 45, zoom: 1.2, rotation: 90, color: '#96ceb4' }
+            };
+
+            const config = presets[preset];
+            document.getElementById('iterations').value = config.iterations;
+            document.getElementById('iterations-value').textContent = config.iterations;
+            document.getElementById('zoom').value = config.zoom;
+            document.getElementById('zoom-value').textContent = config.zoom.toFixed(1);
+            document.getElementById('rotation').value = config.rotation;
+            document.getElementById('rotation-value').textContent = config.rotation + '°';
+            document.getElementById('color1').value = config.color;
+
+            updateCanvas();
+        }
+
+        // Modal functions
+        function showCollaborationModal() {
+            document.getElementById('collaboration-modal').classList.add('show');
+        }
+
+        function hideCollaborationModal() {
+            document.getElementById('collaboration-modal').classList.remove('show');
+        }
+
+        function showPatchesModal() {
+            document.getElementById('patches-modal').classList.add('show');
+        }
+
+        function hidePatchesModal() {
+            document.getElementById('patches-modal').classList.remove('show');
+        }
+
+        // Mock functions
+        function savePatch() {
+            alert('💾 Mock: Patch saved to IPFS!\n\nCID: QmXxx...xxx\n\nStored on-chain with NEAR contract.');
+        }
+
+        function startRecording() {
+            alert('⏺️ Mock: Session recording started!\n\nAll parameter changes and collaborations will be recorded.');
+        }
+
+        function shareSession() {
+            alert('📤 Mock: Session link generated!\n\nhttps://studio.compiling.org/session/abc123\n\nShare this link with collaborators.');
+        }
+
+        function exportPatch() {
+            alert('📦 Mock: Patch exported!\n\nFormat: JSON + WASM\nSize: 2.4MB\nReady for marketplace submission.');
+        }
+
+        function generateSessionLink() {
+            navigator.clipboard.writeText('https://studio.compiling.org/session/mock-session-123');
+            alert('🔗 Mock: Session link copied to clipboard!');
+        }
+
+        function loadPatch(patchName) {
+            alert(`📦 Mock: Loading ${patchName} patch...\n\nPatch loaded successfully!`);
+            hidePatchesModal();
+        }
+
+        function forkPatch(patchName) {
+            alert(`🍴 Mock: Forking ${patchName} patch...\n\nFork created! You can now modify and publish your version.`);
+        }
+
+        function publishPatch() {
+            alert('📤 Mock: Publishing patch to marketplace...\n\nPatch submitted for review!\n\n• IPFS storage: Complete\n• NEAR contract: Updated\n• Marketplace: Listed');
+        }
+
+        // Initialize
+        updateCanvas();
+    </script>
+</body>
+</html>
