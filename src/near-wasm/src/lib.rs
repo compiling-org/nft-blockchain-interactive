@@ -7,270 +7,301 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, UnorderedMap};
 use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near_bindgen, AccountId, Balance, Promise, Timestamp};
+use near_sdk::{env, near, AccountId, Promise, Timestamp};
 use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
 use near_contract_standards::non_fungible_token::{NonFungibleToken, Token, TokenId};
-use std::collections::HashMap;
+use near_contract_standards::non_fungible_token::core::NonFungibleTokenCore;
+use near_contract_standards::non_fungible_token::enumeration::NonFungibleTokenEnumeration;
+use near_contract_standards::non_fungible_token::approval::NonFungibleTokenApproval;
 
 pub use crate::emotional::*;
 pub use crate::interactive::*;
 pub use crate::mintbase::*;
 pub use crate::soulbound::*;
+pub use crate::fractal_studio::*;
+pub use crate::wgsl_studio::*;
 
 mod emotional;
 mod interactive;
 mod mintbase;
 mod soulbound;
+mod fractal_studio;
+mod wgsl_studio;
 
 /// Main interactive NFT contract
-#[near_bindgen]
+#[near]
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct InteractiveNftContract {
     // NEAR NFT standard implementation
     tokens: NonFungibleToken,
-
-    // Mintbase-compatible metadata
-    token_metadata: LookupMap<TokenId, TokenMetadata>,
-
-    // Interactive extensions
-    interaction_history: LookupMap<TokenId, Vec<Interaction>>,
-    emotional_state: LookupMap<TokenId, EmotionalData>,
-    dynamic_metadata: LookupMap<TokenId, DynamicMetadata>,
-
-    // Soulbound tokens for identity
-    soulbound_tokens: UnorderedMap<TokenId, SoulboundToken>,
-
-    // Contract configuration
+    
+    // Owner account
     owner_id: AccountId,
-    treasury_id: AccountId,
+    
+    // Token metadata storage
+    token_metadata: UnorderedMap<TokenId, TokenMetadata>,
+    
+    // Interaction history tracking
+    interaction_history: LookupMap<TokenId, Vec<InteractionEvent>>,
+    
+    // Emotional state tracking
+    emotional_states: LookupMap<TokenId, EmotionalData>,
+    
+    // Interactive state tracking
+    interactive_states: LookupMap<TokenId, InteractiveState>,
+    
+    // Soulbound token tracking
+    soulbound_tokens: LookupMap<TokenId, SoulboundToken>,
+    
+    // Mintbase integration
+    mintbase_integration: MintbaseIntegration,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
-pub struct DynamicMetadata {
-    pub base_metadata: TokenMetadata,
-    pub interaction_count: u64,
-    pub last_interaction: Timestamp,
-    pub emotional_evolution: EmotionalVector,
-    pub current_state: near_sdk::serde_json::Value,
-    pub ipfs_cid: Option<String>,
-}
-
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
-pub struct Interaction {
-    pub timestamp: Timestamp,
-    pub interaction_type: String,
-    pub user_id: AccountId,
-    pub data: near_sdk::serde_json::Value,
-}
-
-impl Default for InteractiveNftContract {
-    fn default() -> Self {
-        Self {
-            tokens: NonFungibleToken::default(),
-            token_metadata: LookupMap::new(b"m"),
-            interaction_history: LookupMap::new(b"i"),
-            emotional_state: LookupMap::new(b"e"),
-            dynamic_metadata: LookupMap::new(b"d"),
-            soulbound_tokens: UnorderedMap::new(b"s"),
-            owner_id: env::predecessor_account_id(),
-            treasury_id: env::predecessor_account_id(),
-        }
-    }
-}
-
-#[near_bindgen]
+#[near]
 impl InteractiveNftContract {
+    /// Initialize the contract with an owner
     #[init]
-    pub fn new(owner_id: AccountId, treasury_id: AccountId) -> Self {
+    pub fn new(owner_id: AccountId) -> Self {
         Self {
             tokens: NonFungibleToken::new(
                 b"t".to_vec(),
                 owner_id.clone(),
-                Some(TokenMetadata {
-                    spec: "nft-1.0.0".to_string(),
-                    name: "Interactive Creative NFTs".to_string(),
-                    symbol: "ICNFT".to_string(),
-                    icon: None,
-                    base_uri: Some("https://ipfs.io/ipfs/".to_string()),
-                    reference: None,
-                    reference_hash: None,
-                }),
+                None,
+                None,
+                None,
             ),
-            token_metadata: LookupMap::new(b"m"),
-            interaction_history: LookupMap::new(b"i"),
-            emotional_state: LookupMap::new(b"e"),
-            dynamic_metadata: LookupMap::new(b"d"),
-            soulbound_tokens: UnorderedMap::new(b"s"),
             owner_id,
-            treasury_id,
+            token_metadata: UnorderedMap::new(b"m".to_vec()),
+            interaction_history: LookupMap::new(b"h".to_vec()),
+            emotional_states: LookupMap::new(b"e".to_vec()),
+            interactive_states: LookupMap::new(b"s".to_vec()),
+            soulbound_tokens: LookupMap::new(b"b".to_vec()),
+            mintbase_integration: MintbaseIntegration::new(),
         }
     }
 
-    /// Mint an interactive NFT
+    /// Mint a new interactive NFT
     #[payable]
     pub fn mint_interactive_nft(
         &mut self,
         token_id: TokenId,
         metadata: TokenMetadata,
         initial_emotion: EmotionalData,
-        ipfs_cid: Option<String>,
     ) -> Token {
-        // Validate payment (minimum 1 NEAR for minting)
-        let deposit = env::attached_deposit();
-        assert!(deposit >= 1_000_000_000_000_000_000_000_000, "Minimum deposit: 1 NEAR");
-
-        // Create dynamic metadata
-        let dynamic_metadata = DynamicMetadata {
-            base_metadata: metadata.clone(),
-            interaction_count: 0,
-            last_interaction: env::block_timestamp(),
-            emotional_evolution: initial_emotion.emotional_vector.clone(),
-            current_state: near_sdk::serde_json::json!({
-                "mood": "creation",
-                "energy": initial_emotion.emotional_vector.arousal,
-                "creativity": initial_emotion.confidence
-            }),
-            ipfs_cid: ipfs_cid.clone(),
-        };
-
-        // Store metadata
+        // Mint the NFT using standard NFT functionality
+        let token = self.tokens.mint(token_id.clone(), env::predecessor_account_id(), Some(metadata.clone()));
+        
+        // Store the metadata
         self.token_metadata.insert(&token_id, &metadata);
-        self.emotional_state.insert(&token_id, &initial_emotion);
-        self.dynamic_metadata.insert(&token_id, &dynamic_metadata);
-        self.interaction_history.insert(&token_id, &Vec::new());
-
-        // Mint the token
-        self.tokens.internal_mint(token_id.clone(), env::predecessor_account_id(), Some(metadata.clone()));
-
-        // Return the token
-        Token {
-            token_id,
-            owner_id: env::predecessor_account_id(),
-            metadata: Some(metadata),
-            approved_account_ids: None,
-        }
+        
+        // Initialize emotional state
+        self.emotional_states.insert(&token_id, &initial_emotion);
+        
+        // Initialize interactive state
+        self.interactive_states.insert(&token_id, &InteractiveState::default());
+        
+        // Initialize interaction history
+        self.interaction_history.insert(&token_id, &vec![]);
+        
+        token
     }
 
-    /// Record an interaction with an NFT
+    /// Record a user interaction with an NFT
     pub fn record_interaction(
         &mut self,
         token_id: TokenId,
-        interaction_type: String,
-        interaction_data: near_sdk::serde_json::Value,
+        event_type: String,
+        data: near_sdk::serde_json::Value,
+        intensity: f32,
     ) {
-        // Verify token ownership
-        let token = self.tokens.nft_token(token_id.clone()).expect("Token not found");
-        assert_eq!(token.owner_id, env::predecessor_account_id(), "Not token owner");
-
-        // Create interaction record
-        let interaction = Interaction {
+        // Create interaction event
+        let interaction = InteractionEvent {
+            event_type,
             timestamp: env::block_timestamp(),
-            interaction_type: interaction_type.clone(),
             user_id: env::predecessor_account_id(),
-            data: interaction_data.clone(),
+            data,
+            intensity,
         };
 
         // Update interaction history
-        let mut history = self.interaction_history.get(&token_id).unwrap_or_default();
+        let mut history = self.interaction_history.get(&token_id).unwrap_or_else(|| vec![]);
         history.push(interaction);
         self.interaction_history.insert(&token_id, &history);
 
-        // Update dynamic metadata based on interaction
-        if let Some(mut dynamic_meta) = self.dynamic_metadata.get(&token_id) {
-            dynamic_meta.interaction_count += 1;
-            dynamic_meta.last_interaction = env::block_timestamp();
+        // Update interactive state
+        let mut state = self.interactive_states.get(&token_id).unwrap_or_else(|| InteractiveState::default());
+        state.interaction_streak += 1;
+        state.last_activity = env::block_timestamp();
+        state.creativity_index = (state.creativity_index + intensity) / 2.0;
+        self.interactive_states.insert(&token_id, &state);
 
-            // Update emotional state based on interaction type
-            match interaction_type.as_str() {
-                "love" => {
-                    dynamic_meta.emotional_evolution.valence += 0.1;
-                    dynamic_meta.current_state["mood"] = "loved".into();
-                }
-                "share" => {
-                    dynamic_meta.emotional_evolution.arousal += 0.05;
-                    dynamic_meta.current_state["mood"] = "shared".into();
-                }
-                "view" => {
-                    dynamic_meta.emotional_evolution.dominance += 0.02;
-                    dynamic_meta.current_state["energy"] = (dynamic_meta.emotional_evolution.arousal + 0.01).into();
-                }
-                _ => {}
-            }
-
-            // Clamp emotional values
-            dynamic_meta.emotional_evolution.valence = dynamic_meta.emotional_evolution.valence.clamp(-1.0, 1.0);
-            dynamic_meta.emotional_evolution.arousal = dynamic_meta.emotional_evolution.arousal.clamp(0.0, 1.0);
-            dynamic_meta.emotional_evolution.dominance = dynamic_meta.emotional_evolution.dominance.clamp(0.0, 1.0);
-
-            self.dynamic_metadata.insert(&token_id, &dynamic_meta);
-        }
+        // Update emotional state based on interaction
+        let mut emotion = self.emotional_states.get(&token_id).unwrap_or_else(|| EmotionalData::new());
+        emotion.timestamp = env::block_timestamp();
+        emotion.valence = (emotion.valence + intensity - 0.5) / 2.0;
+        emotion.arousal = (emotion.arousal + intensity) / 2.0;
+        self.emotional_states.insert(&token_id, &emotion);
     }
 
-    /// Get dynamic metadata for an NFT
-    pub fn get_dynamic_metadata(&self, token_id: TokenId) -> Option<DynamicMetadata> {
-        self.dynamic_metadata.get(&token_id)
+    /// Get the current emotional state of an NFT
+    pub fn get_emotional_state(&self, token_id: TokenId) -> Option<EmotionalData> {
+        self.emotional_states.get(&token_id)
+    }
+
+    /// Get the current interactive state of an NFT
+    pub fn get_interactive_state(&self, token_id: TokenId) -> Option<InteractiveState> {
+        self.interactive_states.get(&token_id)
     }
 
     /// Get interaction history for an NFT
-    pub fn get_interaction_history(&self, token_id: TokenId) -> Vec<Interaction> {
-        self.interaction_history.get(&token_id).unwrap_or_default()
+    pub fn get_interaction_history(&self, token_id: TokenId) -> Option<Vec<InteractionEvent>> {
+        self.interaction_history.get(&token_id)
     }
 
-    /// Mint a soulbound token for creative identity
-    #[payable]
-    pub fn mint_soulbound_identity(
+    /// Mint a soulbound token
+    pub fn mint_soulbound_token(
         &mut self,
         token_id: TokenId,
         metadata: TokenMetadata,
         identity_data: IdentityData,
-    ) -> SoulboundToken {
-        // Soulbound tokens are non-transferable
-        let soulbound = SoulboundToken {
+    ) -> Token {
+        // Mint the NFT
+        let token = self.tokens.mint(token_id.clone(), env::predecessor_account_id(), Some(metadata.clone()));
+        
+        // Create soulbound token
+        let soulbound_token = SoulboundToken {
             token_id: token_id.clone(),
             owner_id: env::predecessor_account_id(),
-            metadata: metadata.clone(),
+            metadata,
             identity_data,
             minted_at: env::block_timestamp(),
             soulbound: true,
         };
-
-        self.soulbound_tokens.insert(&token_id, &soulbound);
-
-        // Also create as regular NFT (but mark as soulbound)
-        self.tokens.internal_mint(token_id.clone(), env::predecessor_account_id(), Some(metadata));
-
-        soulbound
+        
+        // Store soulbound token
+        self.soulbound_tokens.insert(&token_id, &soulbound_token);
+        
+        token
     }
 
-    /// Get soulbound token info
+    /// Get soulbound token information
     pub fn get_soulbound_token(&self, token_id: TokenId) -> Option<SoulboundToken> {
         self.soulbound_tokens.get(&token_id)
     }
 
-    /// Override transfer to prevent soulbound token transfers
-    pub fn nft_transfer(
+    /// Update Mintbase integration
+    pub fn update_mintbase_integration(&mut self, config: MintbaseConfig) {
+        assert_eq!(env::predecessor_account_id(), self.owner_id, "Only owner can update Mintbase integration");
+        self.mintbase_integration.update_config(config);
+    }
+}
+
+// Implement NEAR NFT standard methods
+#[near]
+impl NonFungibleTokenCore for InteractiveNftContract {
+    fn nft_transfer(
         &mut self,
         receiver_id: AccountId,
         token_id: TokenId,
         approval_id: Option<u64>,
         memo: Option<String>,
     ) {
-        // Check if this is a soulbound token
-        if self.soulbound_tokens.get(&token_id).is_some() {
-            env::panic_str("Soulbound tokens cannot be transferred");
+        // For soulbound tokens, prevent transfer
+        if let Some(soulbound) = self.soulbound_tokens.get(&token_id) {
+            if soulbound.soulbound {
+                env::panic_str("Cannot transfer soulbound tokens");
+            }
         }
+        self.tokens.nft_transfer(receiver_id, token_id, approval_id, memo)
+    }
 
-        // Normal transfer for regular NFTs
-        self.tokens.nft_transfer(receiver_id, token_id, approval_id, memo);
+    fn nft_transfer_call(
+        &mut self,
+        receiver_id: AccountId,
+        token_id: TokenId,
+        approval_id: Option<u64>,
+        memo: Option<String>,
+        msg: String,
+    ) -> Promise {
+        // For soulbound tokens, prevent transfer
+        if let Some(soulbound) = self.soulbound_tokens.get(&token_id) {
+            if soulbound.soulbound {
+                env::panic_str("Cannot transfer soulbound tokens");
+            }
+        }
+        self.tokens.nft_transfer_call(receiver_id, token_id, approval_id, memo, msg)
+    }
+
+    fn nft_token(&self, token_id: TokenId) -> Option<Token> {
+        self.tokens.nft_token(token_id)
     }
 }
 
-// NFT Standard Implementation
-near_contract_standards::impl_non_fungible_token_core!(InteractiveNftContract, tokens);
-near_contract_standards::impl_non_fungible_token_approval!(InteractiveNftContract, tokens);
-near_contract_standards::impl_non_fungible_token_enumeration!(InteractiveNftContract, tokens);
+#[near]
+impl NonFungibleTokenEnumeration for InteractiveNftContract {
+    fn nft_total_supply(&self) -> U128 {
+        self.tokens.nft_total_supply()
+    }
+
+    fn nft_tokens(&self, from_index: Option<U128>, limit: Option<u64>) -> Vec<Token> {
+        self.tokens.nft_tokens(from_index, limit)
+    }
+
+    fn nft_supply_for_owner(&self, account_id: AccountId) -> U128 {
+        self.tokens.nft_supply_for_owner(account_id)
+    }
+
+    fn nft_tokens_for_owner(
+        &self,
+        account_id: AccountId,
+        from_index: Option<U128>,
+        limit: Option<u64>,
+    ) -> Vec<Token> {
+        self.tokens.nft_tokens_for_owner(account_id, from_index, limit)
+    }
+}
+
+#[near]
+impl NonFungibleTokenApproval for InteractiveNftContract {
+    fn nft_approve(
+        &mut self,
+        token_id: TokenId,
+        account_id: AccountId,
+        msg: Option<String>,
+    ) -> Option<Promise> {
+        // For soulbound tokens, prevent approval
+        if let Some(soulbound) = self.soulbound_tokens.get(&token_id) {
+            if soulbound.soulbound {
+                env::panic_str("Cannot approve soulbound tokens");
+            }
+        }
+        self.tokens.nft_approve(token_id, account_id, msg)
+    }
+
+    fn nft_revoke(&mut self, token_id: TokenId, account_id: AccountId) {
+        self.tokens.nft_revoke(token_id, account_id)
+    }
+
+    fn nft_revoke_all(&mut self, token_id: TokenId) {
+        self.tokens.nft_revoke_all(token_id)
+    }
+
+    fn nft_is_approved(
+        &self,
+        token_id: TokenId,
+        approved_account_id: AccountId,
+        approval_id: Option<u64>,
+    ) -> bool {
+        self.tokens.nft_is_approved(token_id, approved_account_id, approval_id)
+    }
+}
+
+// Default implementation for contract initialization
+impl Default for InteractiveNftContract {
+    fn default() -> Self {
+        Self::new(env::current_account_id())
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -287,18 +318,28 @@ mod tests {
     }
 
     #[test]
-    fn test_mint_interactive_nft() {
+    fn test_new_contract() {
         let context = get_context().build();
         testing_env!(context);
+        
+        let contract = InteractiveNftContract::new("owner.testnet".parse().unwrap());
+        assert_eq!(contract.nft_total_supply(), U128(0));
+    }
 
-        let mut contract = InteractiveNftContract::default();
-
+    #[test]
+    fn test_mint_interactive_nft() {
+        let mut context = get_context();
+        context.predecessor_account_id("user.testnet".parse().unwrap());
+        testing_env!(context.build());
+        
+        let mut contract = InteractiveNftContract::new("owner.testnet".parse().unwrap());
+        
         let metadata = TokenMetadata {
             title: Some("Test NFT".to_string()),
-            description: Some("Interactive test NFT".to_string()),
-            media: Some("ipfs://test".to_string()),
+            description: Some("A test interactive NFT".to_string()),
+            media: None,
             media_hash: None,
-            copies: Some(1),
+            copies: None,
             issued_at: None,
             expires_at: None,
             starts_at: None,
@@ -307,28 +348,16 @@ mod tests {
             reference: None,
             reference_hash: None,
         };
-
-        let emotion = EmotionalData {
-            timestamp: 0,
-            valence: 0.5,
-            arousal: 0.7,
-            dominance: 0.3,
-            confidence: 0.8,
-            raw_vector: vec![0.1, 0.2, 0.3],
-            emotional_vector: EmotionalVector {
-                valence: 0.5,
-                arousal: 0.7,
-                dominance: 0.3,
-            },
-        };
-
+        
+        let emotion = EmotionalData::new();
+        
         let token = contract.mint_interactive_nft(
-            "test_token".to_string(),
+            "token1".to_string(),
             metadata,
             emotion,
-            Some("ipfs_cid".to_string()),
         );
-
-        assert_eq!(token.token_id, "test_token");
+        
+        assert_eq!(token.token_id, "token1");
+        assert_eq!(token.owner_id, "user.testnet".parse().unwrap());
     }
 }

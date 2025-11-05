@@ -1,6 +1,6 @@
 //! Emotional data structures for interactive NFTs
 
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::Timestamp;
 
@@ -25,78 +25,42 @@ pub struct EmotionalVector {
 }
 
 impl EmotionalData {
-    pub fn new(raw_vector: Vec<f32>) -> Self {
+    pub fn new() -> Self {
+        Self {
+            timestamp: near_sdk::env::block_timestamp(),
+            valence: 0.0,
+            arousal: 0.5,
+            dominance: 0.5,
+            confidence: 0.8,
+            raw_vector: vec![],
+            emotional_vector: EmotionalVector {
+                valence: 0.0,
+                arousal: 0.5,
+                dominance: 0.5,
+            },
+        }
+    }
+    
+    pub fn from_vector(raw_vector: Vec<f32>) -> Self {
         // Simple emotion detection from raw vector
-        // In practice, this would use ML models
-        let valence = raw_vector.get(0).copied().unwrap_or(0.0).clamp(-1.0, 1.0);
-        let arousal = raw_vector.get(1).copied().unwrap_or(0.0).clamp(0.0, 1.0);
-        let dominance = raw_vector.get(2).copied().unwrap_or(0.0).clamp(0.0, 1.0);
-
+        // In practice, this would use a more sophisticated model
+        let valence = if raw_vector.len() > 0 { raw_vector[0].clamp(-1.0, 1.0) } else { 0.0 };
+        let arousal = if raw_vector.len() > 1 { raw_vector[1].clamp(0.0, 1.0) } else { 0.5 };
+        let dominance = if raw_vector.len() > 2 { raw_vector[2].clamp(0.0, 1.0) } else { 0.5 };
+        
         Self {
             timestamp: near_sdk::env::block_timestamp(),
             valence,
             arousal,
             dominance,
-            confidence: 0.8, // Default confidence
-            raw_vector: raw_vector.clone(),
+            confidence: 0.8,
+            raw_vector,
             emotional_vector: EmotionalVector {
                 valence,
                 arousal,
                 dominance,
             },
         }
-    }
-
-    pub fn update_from_interaction(&mut self, interaction_type: &str, intensity: f32) {
-        match interaction_type {
-            "love" | "favorite" => {
-                self.valence += intensity * 0.1;
-                self.arousal += intensity * 0.05;
-            }
-            "anger" | "dislike" => {
-                self.valence -= intensity * 0.1;
-                self.arousal += intensity * 0.08;
-            }
-            "calm" | "soothe" => {
-                self.arousal -= intensity * 0.05;
-                self.dominance += intensity * 0.03;
-            }
-            "excite" | "energize" => {
-                self.arousal += intensity * 0.1;
-                self.dominance += intensity * 0.05;
-            }
-            _ => {}
-        }
-
-        // Clamp values
-        self.valence = self.valence.clamp(-1.0, 1.0);
-        self.arousal = self.arousal.clamp(0.0, 1.0);
-        self.dominance = self.dominance.clamp(0.0, 1.0);
-        self.emotional_vector = EmotionalVector {
-            valence: self.valence,
-            arousal: self.arousal,
-            dominance: self.dominance,
-        };
-    }
-
-    pub fn get_mood_description(&self) -> String {
-        match (self.valence, self.arousal, self.dominance) {
-            (v, a, d) if v > 0.5 && a > 0.7 => "ecstatic",
-            (v, a, d) if v > 0.3 && a > 0.5 => "happy",
-            (v, a, d) if v < -0.3 && a > 0.5 => "angry",
-            (v, a, d) if v < -0.5 && a < 0.3 => "sad",
-            (v, a, d) if a < 0.3 => "calm",
-            _ => "neutral",
-        }.to_string()
-    }
-
-    pub fn get_creativity_index(&self) -> f32 {
-        // Creativity correlates with moderate arousal and positive valence
-        let arousal_factor = if self.arousal > 0.3 && self.arousal < 0.8 { 1.0 } else { 0.5 };
-        let valence_factor = (self.valence + 1.0) / 2.0; // Convert to 0-1 range
-        let dominance_factor = self.dominance;
-
-        (arousal_factor * valence_factor * dominance_factor).clamp(0.0, 1.0)
     }
 }
 
@@ -106,40 +70,31 @@ mod tests {
 
     #[test]
     fn test_emotional_data_creation() {
-        let raw_vector = vec![0.5, 0.7, 0.3];
-        let emotion = EmotionalData::new(raw_vector.clone());
+        let emotion = EmotionalData::new();
+        assert_eq!(emotion.valence, 0.0);
+        assert_eq!(emotion.arousal, 0.5);
+        assert_eq!(emotion.dominance, 0.5);
+    }
 
-        assert_eq!(emotion.valence, 0.5);
-        assert_eq!(emotion.arousal, 0.7);
-        assert_eq!(emotion.dominance, 0.3);
+    #[test]
+    fn test_emotional_data_from_vector() {
+        let raw_vector = vec![0.8, 0.9, 0.5];
+        let emotion = EmotionalData::from_vector(raw_vector.clone());
         assert_eq!(emotion.raw_vector, raw_vector);
+        assert_eq!(emotion.valence, 0.8);
+        assert_eq!(emotion.arousal, 0.9);
+        assert_eq!(emotion.dominance, 0.5);
     }
 
     #[test]
-    fn test_emotion_update() {
-        let mut emotion = EmotionalData::new(vec![0.0, 0.5, 0.5]);
-
-        emotion.update_from_interaction("love", 1.0);
-
-        assert!(emotion.valence > 0.0);
-        assert!(emotion.arousal > 0.5);
-    }
-
-    #[test]
-    fn test_mood_description() {
-        let happy_emotion = EmotionalData::new(vec![0.8, 0.9, 0.5]);
-        let mood = happy_emotion.get_mood_description();
-        assert_eq!(mood, "ecstatic");
-
-        let calm_emotion = EmotionalData::new(vec![0.0, 0.1, 0.5]);
-        let mood = calm_emotion.get_mood_description();
-        assert_eq!(mood, "calm");
-    }
-
-    #[test]
-    fn test_creativity_index() {
-        let creative_emotion = EmotionalData::new(vec![0.5, 0.6, 0.7]);
-        let creativity = creative_emotion.get_creativity_index();
-        assert!(creativity > 0.0 && creativity <= 1.0);
+    fn test_emotional_vector_creation() {
+        let vector = EmotionalVector {
+            valence: 0.5,
+            arousal: 0.6,
+            dominance: 0.7,
+        };
+        assert_eq!(vector.valence, 0.5);
+        assert_eq!(vector.arousal, 0.6);
+        assert_eq!(vector.dominance, 0.7);
     }
 }

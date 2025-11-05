@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiling.org Creative Marketplace - Test Environment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover, .tab.active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .marketplace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .nft-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .nft-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .nft-image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 400% 400%;
+            animation: gradientShift 4s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .nft-info {
+            padding: 20px;
+        }
+
+        .nft-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .nft-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .nft-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .nft-price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .nft-chain {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .nft-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f, #a8e063);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(86, 171, 47, 0.4);
+        }
+
+        .create-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+        }
+
+        .create-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .create-section p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .test-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .test-notice strong {
+            color: #856404;
+        }
+
+        .dao-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+        }
+
+        .dao-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .proposals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .proposal-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .proposal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .proposal-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .proposal-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .proposal-votes {
+            display: flex;
+            gap: 15px;
+        }
+
+        .vote-count {
+            font-weight: bold;
+        }
+
+        .vote-for {
+            color: #28a745;
+        }
+
+        .vote-against {
+            color: #dc3545;
+        }
+
+        .wallet-info {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .marketplace-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .proposals-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🧠 Compiling.org Creative Marketplace</h1>
+            <p>Real-time creative NFTs powered by emotional AI and decentralized storage</p>
+            <div class="subtitle">Test Environment • Mintbase Integration • Interactive NFTs • Soulbound Identity • Cross-Chain Support</div>
+        </header>
+
+        <div class="wallet-info">
+             wallet: test-user.testnet • Balance: 100 NEAR
+        </div>
+
+        <div class="test-notice">
+            <strong>🧪 Test Environment:</strong> This is our development marketplace for testing all grant features.
+            All transactions are simulated for development and testing purposes.
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('marketplace')">🛒 Marketplace</button>
+            <button class="tab" onclick="switchTab('create')">🎨 Create NFT</button>
+            <button class="tab" onclick="switchTab('dao')">🏛️ DAO Governance</button>
+            <button class="tab" onclick="switchTab('soulbound')">👤 Soulbound Tokens</button>
+            <button class="tab" onclick="switchTab('crosschain')">🔗 Cross-Chain</button>
+        </div>
+
+        <section id="marketplace-tab" class="tab-content">
+            <div class="marketplace-grid">
+                <!-- Emotional Fractal NFT -->
+                <div class="nft-card">
+                    <div class="nft-image">🌀 Emotional Fractal</div>
+                    <div class="nft-info">
+                        <div class="nft-title">Emotional Fractal #001</div>
+                        <div class="nft-description">
+                            A fractal generated from real-time emotional data captured during a live performance.
+                            Valence: 0.7, Arousal: 0.8, Dominance: 0.6
+                        </div>
+                        <div class="nft-meta">
+                            <div class="nft-price">0.5 NEAR</div>
+                            <div class="nft-chain">NEAR</div>
+                        </div>
+                        <div class="nft-actions">
+                            <button class="btn btn-primary" onclick="buyNFT('Emotional Fractal #001')">Buy Now</button>
+                            <button class="btn btn-secondary" onclick="viewDetails('Emotional Fractal #001')">Details</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Shader Performance -->
+                <div class="nft-card">
+                    <div class="nft-image">🌈 Live Shader</div>
+                    <div class="nft-info">
+                        <div class="nft-title">Live Shader Performance #042</div>
+                        <div class="nft-description">
+                            Interactive shader parameters captured during a 15-minute live coding session.
+                            Seed: 0xDEADBEEF, Iterations: 2500, Complexity: High
+                        </div>
+                        <div class="nft-meta">
+                            <div class="nft-price">1.2 SOL</div>
+                            <div class="nft-chain">Solana</div>
+                        </div>
+                        <div class="nft-actions">
+                            <button class="btn btn-primary" onclick="buyNFT('Live Shader Performance #042')">Buy Now</button>
+                            <button class="btn btn-secondary" onclick="viewDetails('Live Shader Performance #042')">Details</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audiovisual Composition -->
+                <div class="nft-card">
+                    <div class="nft-image">🎵 Audio Visual</div>
+                    <div class="nft-info">
+                        <div class="nft-title">Neuro-Sonic Landscape #089</div>
+                        <div class="nft-description">
+                            Audiovisual composition generated from EEG data and emotional state vectors.
+                            Duration: 4:23, Channels: 8, Emotional Resonance: 0.85
+                        </div>
+                        <div class="nft-meta">
+                            <div class="nft-price">2.1 ETH</div>
+                            <div class="nft-chain">Ethereum</div>
+                        </div>
+                        <div class="nft-actions">
+                            <button class="btn btn-primary" onclick="buyNFT('Neuro-Sonic Landscape #089')">Buy Now</button>
+                            <button class="btn btn-secondary" onclick="viewDetails('Neuro-Sonic Landscape #089')">Details</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Soulbound NFT -->
+                <div class="nft-card">
+                    <div class="nft-image">👤 Soulbound ID</div>
+                    <div class="nft-info">
+                        <div class="nft-title">Creative Identity Badge</div>
+                        <div class="nft-description">
+                            Soulbound NFT representing your creative identity and emotional profile.
+                            Non-transferable, Mintbase-compatible, DAO governance enabled.
+                        </div>
+                        <div class="nft-meta">
+                            <div class="nft-price">Claim Free</div>
+                            <div class="nft-chain">NEAR/Mintbase</div>
+                        </div>
+                        <div class="nft-actions">
+                            <button class="btn btn-success" onclick="claimSoulbound()">Claim Identity</button>
+                            <button class="btn btn-secondary" onclick="viewDetails('Creative Identity Badge')">View Details</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mintbase Series NFT -->
+                <div class="nft-card">
+                    <div class="nft-image">🎨 Mintbase Series</div>
+                    <div class="nft-info">
+                        <div class="nft-title">Emotional Landscapes #001</div>
+                        <div class="nft-description">
+                            Part of a Mintbase series exploring emotional states through generative art.
+                            1/1 unique piece, full commercial rights, perpetual royalties.
+                        </div>
+                        <div class="nft-meta">
+                            <div class="nft-price">3.5 NEAR</div>
+                            <div class="nft-chain">Mintbase</div>
+                        </div>
+                        <div class="nft-actions">
+                            <button class="btn btn-primary" onclick="buyNFT('Emotional Landscapes #001')">Buy on Mintbase</button>
+                            <button class="btn btn-secondary" onclick="viewDetails('Emotional Landscapes #001')">View Series</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cross-Chain Interactive NFT -->
+                <div class="nft-card">
+                    <div class="nft-image">🌐 Cross-Chain</div>
+                    <div class="nft-info">
+                        <div class="nft-title">Multi-Chain Emotion #077</div>
+                        <div class="nft-description">
+                            Interactive NFT that evolves across multiple blockchains.
+                            Currently on NEAR, can be bridged to Solana and Ethereum.
+                        </div>
+                        <div class="nft-meta">
+                            <div class="nft-price">5.0 NEAR</div>
+                            <div class="nft-chain">Multi-Chain</div>
+                        </div>
+                        <div class="nft-actions">
+                            <button class="btn btn-primary" onclick="buyNFT('Multi-Chain Emotion #077')">Buy Now</button>
+                            <button class="btn btn-secondary" onclick="bridgeNFT('Multi-Chain Emotion #077')">Bridge</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="create-tab" class="tab-content" style="display: none;">
+            <div class="create-section">
+                <h2>🎨 Create Your Own Creative NFT</h2>
+                <p>
+                    Use our NUWE creative engine to generate real-time art from your emotional state.
+                    Mint unique NFTs that capture the essence of your creative moments, stored permanently
+                    on IPFS and tokenized across multiple blockchains.
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" style="font-size: 1.1rem; padding: 15px 30px;" onclick="launchCreativeStudio()">
+                        🚀 Launch Creative Studio
+                    </button>
+                    <button class="btn btn-secondary" style="font-size: 1.1rem; padding: 15px 30px;" onclick="showTemplates()">
+                        📚 Template Gallery
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="dao-tab" class="tab-content" style="display: none;">
+            <div class="dao-section">
+                <h2>🏛️ DAO Governance</h2>
+                <p>Participate in platform governance and decision-making</p>
+                
+                <div class="proposals-grid">
+                    <div class="proposal-card">
+                        <div class="proposal-title">Add 2% Marketplace Fee</div>
+                        <div class="proposal-description">
+                            Proposal to introduce a 2% fee on all marketplace transactions to fund platform development and community initiatives.
+                        </div>
+                        <div class="proposal-meta">
+                            <span>Proposed by: governance.testnet</span>
+                            <span>Ends in: 3 days</span>
+                        </div>
+                        <div class="proposal-votes">
+                            <span class="vote-count vote-for">👍 For: 42</span>
+                            <span class="vote-count vote-against">👎 Against: 18</span>
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="btn btn-success" style="flex: 1;" onclick="voteProposal(1, true)">Vote For</button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="voteProposal(1, false)">Vote Against</button>
+                        </div>
+                    </div>
+
+                    <div class="proposal-card">
+                        <div class="proposal-title">Add Solana Integration</div>
+                        <div class="proposal-description">
+                            Proposal to expand our cross-chain support to include Solana integration for high-throughput creative metadata.
+                        </div>
+                        <div class="proposal-meta">
+                            <span>Proposed by: dev-team.testnet</span>
+                            <span>Ends in: 5 days</span>
+                        </div>
+                        <div class="proposal-votes">
+                            <span class="vote-count vote-for">👍 For: 67</span>
+                            <span class="vote-count vote-against">👎 Against: 8</span>
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="btn btn-success" style="flex: 1;" onclick="voteProposal(2, true)">Vote For</button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="voteProposal(2, false)">Vote Against</button>
+                        </div>
+                    </div>
+
+                    <div class="proposal-card">
+                        <div class="proposal-title">Increase Quorum to 60%</div>
+                        <div class="proposal-description">
+                            Proposal to increase the required quorum for DAO decisions from 51% to 60% to ensure broader community consensus.
+                        </div>
+                        <div class="proposal-meta">
+                            <span>Proposed by: community.testnet</span>
+                            <span>Ends in: 7 days</span>
+                        </div>
+                        <div class="proposal-votes">
+                            <span class="vote-count vote-for">👍 For: 23</span>
+                            <span class="vote-count vote-against">👎 Against: 31</span>
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="btn btn-success" style="flex: 1;" onclick="voteProposal(3, true)">Vote For</button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="voteProposal(3, false)">Vote Against</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="createProposal()">➕ Create New Proposal</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="soulbound-tab" class="tab-content" style="display: none;">
+            <div class="create-section">
+                <h2>👤 Soulbound Token Management</h2>
+                <p>Manage your non-transferable creative identity tokens</p>
+                
+                <div class="marketplace-grid">
+                    <div class="nft-card">
+                        <div class="nft-image">🎓 Creator Badge</div>
+                        <div class="nft-info">
+                            <div class="nft-title">Verified Creator</div>
+                            <div class="nft-description">
+                                Soulbound token proving your status as a verified creator on our platform.
+                                Non-transferable and permanently linked to your account.
+                            </div>
+                            <div class="nft-meta">
+                                <div class="nft-price">Minted</div>
+                                <div class="nft-chain">Soulbound</div>
+                            </div>
+                            <div class="nft-actions">
+                                <button class="btn btn-secondary" onclick="viewSoulboundDetails('Verified Creator')">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nft-card">
+                        <div class="nft-image">🏆 Achievement</div>
+                        <div class="nft-info">
+                            <div class="nft-title">First NFT Minted</div>
+                            <div class="nft-description">
+                                Soulbound achievement token for minting your first creative NFT on our platform.
+                                Celebrates your entry into the creative NFT ecosystem.
+                            </div>
+                            <div class="nft-meta">
+                                <div class="nft-price">Minted</div>
+                                <div class="nft-chain">Soulbound</div>
+                            </div>
+                            <div class="nft-actions">
+                                <button class="btn btn-secondary" onclick="viewSoulboundDetails('First NFT Minted')">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nft-card">
+                        <div class="nft-image">🤝 Community</div>
+                        <div class="nft-info">
+                            <div class="nft-title">Community Contributor</div>
+                            <div class="nft-description">
+                                Soulbound token for active participation in our community discussions and governance.
+                                Shows your commitment to platform development.
+                            </div>
+                            <div class="nft-meta">
+                                <div class="nft-price">Minted</div>
+                                <div class="nft-chain">Soulbound</div>
+                            </div>
+                            <div class="nft-actions">
+                                <button class="btn btn-secondary" onclick="viewSoulboundDetails('Community Contributor')">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="claimNewSoulbound()">🎁 Claim New Soulbound Token</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="crosschain-tab" class="tab-content" style="display: none;">
+            <div class="create-section">
+                <h2>🔗 Cross-Chain Bridge</h2>
+                <p>Bridge your NFTs between different blockchain networks</p>
+                
+                <div class="marketplace-grid">
+                    <div class="nft-card">
+                        <div class="nft-image">🌉 Bridge</div>
+                        <div class="nft-info">
+                            <div class="nft-title">NEAR to Solana Bridge</div>
+                            <div class="nft-description">
+                                Bridge your NEAR-based NFTs to Solana for high-throughput metadata recording.
+                                Maintains all interactive features and emotional data.
+                            </div>
+                            <div class="nft-meta">
+                                <div class="nft-price">0.01 NEAR</div>
+                                <div class="nft-chain">Bridge Fee</div>
+                            </div>
+                            <div class="nft-actions">
+                                <button class="btn btn-primary" onclick="initiateBridge('NEAR', 'Solana')">Bridge Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nft-card">
+                        <div class="nft-image">🌉 Bridge</div>
+                        <div class="nft-info">
+                            <div class="nft-title">Solana to Ethereum Bridge</div>
+                            <div class="nft-description">
+                                Bridge your Solana-based NFTs to Ethereum for maximum market liquidity.
+                                Supports all standard NFT marketplaces.
+                            </div>
+                            <div class="nft-meta">
+                                <div class="nft-price">0.005 SOL</div>
+                                <div class="nft-chain">Bridge Fee</div>
+                            </div>
+                            <div class="nft-actions">
+                                <button class="btn btn-primary" onclick="initiateBridge('Solana', 'Ethereum')">Bridge Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nft-card">
+                        <div class="nft-image">🌉 Bridge</div>
+                        <div class="nft-info">
+                            <div class="nft-title">Ethereum to NEAR Bridge</div>
+                            <div class="nft-description">
+                                Bridge your Ethereum-based NFTs to NEAR for interactive features and low-cost transactions.
+                                Perfect for frequent interactions and updates.
+                            </div>
+                            <div class="nft-meta">
+                                <div class="nft-price">0.001 ETH</div>
+                                <div class="nft-chain">Bridge Fee</div>
+                            </div>
+                            <div class="nft-actions">
+                                <button class="btn btn-primary" onclick="initiateBridge('Ethereum', 'NEAR')">Bridge Now</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h3>Bridge Status</h3>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 15px;">
+                        <p><strong>Current Bridge Operations:</strong> 12 active bridges</p>
+                        <p><strong>Total Bridged NFTs:</strong> 1,247</p>
+                        <p><strong>Bridge Success Rate:</strong> 99.8%</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            
+            // Add active class to selected tab
+            event.target.classList.add('active');
+        }
+
+        // Mock interactive functionality
+        function buyNFT(nftName) {
+            alert(`🎭 Test Environment: Buying ${nftName}!
+
+In a real implementation, this would:
+• Connect to your wallet
+• Verify funds
+• Execute smart contract call
+• Transfer NFT ownership
+• Update marketplace listing`);
+        }
+
+        function viewDetails(nftName) {
+            alert(`📊 ${nftName} Details:
+
+• Stored on IPFS/Filecoin
+• Cross-chain compatible
+• Emotional metadata included
+• Real-time generation verified
+
+This is a test environment for grant proposal purposes.`);
+        }
+
+        function claimSoulbound() {
+            alert(`👤 Claiming Soulbound Identity Token!
+
+In a real implementation, this would:
+• Verify your account
+• Mint non-transferable SBT
+• Link to your creative profile
+• Enable DAO governance participation`);
+        }
+
+        function bridgeNFT(nftName) {
+            alert(`🔗 Bridging ${nftName}!
+
+In a real implementation, this would:
+• Lock NFT on source chain
+• Verify ownership
+• Mint equivalent on target chain
+• Maintain all metadata and interactive features`);
+        }
+
+        function launchCreativeStudio() {
+            alert(`🚀 Launching Creative Studio!
+
+In a real implementation, this would:
+• Open NUWE creative engine
+• Connect emotional AI interface
+• Enable real-time parameter manipulation
+• Allow NFT minting from generated art`);
+        }
+
+        function showTemplates() {
+            alert(`📚 Showing Template Gallery!
+
+In a real implementation, this would:
+• Display various creative templates
+• Show example emotional mappings
+• Provide starting points for new creators
+• Enable quick NFT creation`);
+        }
+
+        function voteProposal(proposalId, vote) {
+            const voteText = vote ? "For" : "Against";
+            alert(`🏛️ Voting ${voteText} on Proposal #${proposalId}!
+
+In a real implementation, this would:
+• Verify DAO membership
+• Record your vote on-chain
+• Update proposal tally
+• Check for quorum completion`);
+        }
+
+        function createProposal() {
+            alert(`➕ Creating New Proposal!
+
+In a real implementation, this would:
+• Open proposal creation form
+• Require DAO member authentication
+• Submit proposal to governance contract
+• Begin voting period`);
+        }
+
+        function viewSoulboundDetails(tokenName) {
+            alert(`👤 ${tokenName} Soulbound Token:
+
+• Non-transferable and permanent
+• Linked to your account identity
+• Cannot be sold or traded
+• Provides special platform privileges
+
+This is a test environment.`);
+        }
+
+        function claimNewSoulbound() {
+            alert(`🎁 Claiming New Soulbound Token!
+
+In a real implementation, this would:
+• Check eligibility criteria
+• Mint new SBT to your account
+• Update your identity profile
+• Enable new platform features`);
+        }
+
+        function initiateBridge(fromChain, toChain) {
+            alert(`🔗 Initiating Bridge from ${fromChain} to ${toChain}!
+
+In a real implementation, this would:
+• Verify NFT ownership
+• Lock token on source chain
+• Generate bridge proof
+• Mint on target chain
+• Maintain all interactive features`);
+        }
+
+        // Add some visual feedback
+        document.querySelectorAll('.nft-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

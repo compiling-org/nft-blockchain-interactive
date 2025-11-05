@@ -169,6 +169,8 @@ impl ShaderEngine {
             "mandelbrot" => (VERTEX_SHADER, MANDELBROT_FRAGMENT),
             "julia" => (VERTEX_SHADER, JULIA_FRAGMENT),
             "burning_ship" => (VERTEX_SHADER, BURNING_SHIP_FRAGMENT),
+            "newton" => (VERTEX_SHADER, NEWTON_FRAGMENT),
+            "phoenix" => (VERTEX_SHADER, PHOENIX_FRAGMENT),
             _ => return Err(JsValue::from_str("Unknown preset"))
         };
 
@@ -361,6 +363,57 @@ void main() {
     float t = float(iter) / float(u_max_iter);
     vec3 color = mix(u_color1, u_color2, t);
     gl_FragColor = vec4(color, 1.0);
+}
+"#;
+
+const NEWTON_FRAGMENT: &str = r#"
+precision highp float;
+
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform float u_zoom;
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+    vec2 z = uv * u_zoom;
+    
+    for(int i = 0; i < 50; i++) {
+        vec2 z2 = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y);
+        vec2 z3 = vec2(z2.x * z.x - z2.y * z.y, z2.x * z.y + z2.y * z.x);
+        vec2 dz = 3.0 * z2;
+        z = z - vec2((z3.x - 1.0) / dz.x, z3.y / dz.y);
+    }
+    
+    gl_FragColor = vec4(abs(z.x), abs(z.y), 0.5, 1.0);
+}
+"#;
+
+const PHOENIX_FRAGMENT: &str = r#"
+precision highp float;
+
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform float u_zoom;
+uniform int u_max_iter;
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+    vec2 z = uv * u_zoom;
+    vec2 p = vec2(0.0);
+    
+    int iter = 0;
+    for(int i = 0; i < 1000; i++) {
+        if(i >= u_max_iter) break;
+        if(length(z) > 4.0) break;
+        
+        vec2 zn = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + vec2(0.56667, -0.5) + p * 0.5;
+        p = z;
+        z = zn;
+        iter = i;
+    }
+    
+    float color = length(z) / 4.0;
+    gl_FragColor = vec4(vec3(color), 1.0);
 }
 "#;
 

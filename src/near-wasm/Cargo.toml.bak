@@ -12,8 +12,25 @@ homepage = "https://compiling-org.netlify.app"
 crate-type = ["cdylib"]
 
 [dependencies]
-near-sdk = "5.1.0"
-near-contract-standards = "5.1.0"
+wasm-bindgen = "0.2"
+js-sys = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-borsh = "1.0"
+near-sdk = "4.0"
+near-contract-standards = "4.0"
+borsh = "0.10"
+wee_alloc = "0.4"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "console",
+  "Window",
+  "Document",
+  "Element",
+  "HtmlElement",
+  "Node",
+  "Performance",
+  "WebGlRenderingContext",
+  "WebGl2RenderingContext",
+]
