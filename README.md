@@ -2,6 +2,77 @@
 
 Multi-chain framework for generating real-time creative data and persisting/tokenizing on decentralized networks.
 
+## 🎯 Modular Architecture - 6 Independent Grants
+
+This project is designed as **ONE unified platform** that can be deployed **either together or as separate modules**. Each of the 6 foundation grants can be built and deployed independently.
+
+### Quick Start - Individual Grants
+
+```bash
+# Build only NEAR grant (Fractal Studio)
+./build-near-grant.sh
+
+# Build only Mintbase grant (Marketplace)
+./build-mintbase-grant.sh
+
+# Build only Solana grant (Neuroemotive AI)
+./build-solana-grant.sh
+
+# Build only Filecoin grant (Storage)
+./build-filecoin-grant.sh
+
+# Build only Rust grant (Core Engine)
+./build-rust-grant.sh
+
+# Build only Polkadot grant (Cross-Chain)
+./build-polkadot-grant.sh
+
+# Build ALL grants together
+./BUILD_AND_TEST_ALL.sh
+```
+
+### 🧪 Test Environment
+
+**Live Testing Site with Real Wallet Connections:**
+
+```bash
+cd test-website
+node server.js
+# Open http://localhost:8080/
+```
+
+**Features:**
+- ✅ Rust WASM engine (23KB compiled)
+- ✅ Real wallet connections (NEAR, Solana, MetaMask, Polkadot)
+- ✅ Testnet integration for all 5 blockchains
+- ✅ IPFS/Filecoin storage testing
+- ✅ Live fractal rendering in browser
+- ✅ Blockchain activity logging
+- ✅ 9 interactive testing modules
+
+### Deployment to Testnets
+
+```bash
+# Install CLI tools
+./install-cli-tools.sh
+
+# Deploy to testnets
+./deploy-to-testnets.sh
+
+# Package for production
+./package-for-deployment.sh
+```
+
+### Module Independence
+
+✅ **Each grant is standalone** - Can be deployed without others
+✅ **Shared dependencies** - Core libraries used across grants (optional)
+✅ **Integration points** - Grants work better together but aren't required
+✅ **Separate contracts** - Each grant has its own smart contracts
+✅ **Independent frontends** - Each grant has dedicated UI components
+
+See `GRANT_MODULES.json` for complete module mapping and dependencies.
+
 ## Overview
 
 This project implements a comprehensive ecosystem for interactive creative NFTs across multiple blockchain platforms. The system enables real-time creative expression, emotional AI integration, and cross-chain interoperability for digital art and creative works.

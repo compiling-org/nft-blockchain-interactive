@@ -8,6 +8,9 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
+// WASM bindings
+use wasm_bindgen::prelude::*;
+
 // Re-export modules for WASM usage
 pub mod webgpu_engine;
 pub mod blockchain_integration;
@@ -15,6 +18,39 @@ pub mod blockchain_integration;
 // Re-export for convenience
 pub use webgpu_engine::*;
 pub use blockchain_integration::*;
+
+// WASM initialization
+#[wasm_bindgen(start)]
+pub fn wasm_init() {
+    #[cfg(target_arch = "wasm32")]
+    {
+        console_error_panic_hook::set_once();
+        web_sys::console::log_1(&"Rust WASM module initialized!".into());
+    }
+}
+
+// WASM-exposed functions
+#[wasm_bindgen]
+pub fn generate_fractal_metadata(fractal_type: &str, zoom: f32, iterations: u32) -> String {
+    let metadata = serde_json::json!({
+        "type": "fractal",
+        "fractal_type": fractal_type,
+        "zoom": zoom,
+        "iterations": iterations,
+        "timestamp": Utc::now().to_rfc3339(),
+    });
+    metadata.to_string()
+}
+
+#[wasm_bindgen]
+pub fn compress_emotional_data(valence: f32, arousal: f32, dominance: f32) -> Vec<u8> {
+    // 8-bit quantization for compression
+    vec![
+        ((valence + 1.0) * 127.5) as u8,  // -1 to 1 -> 0 to 255
+        (arousal * 255.0) as u8,           // 0 to 1 -> 0 to 255
+        (dominance * 255.0) as u8,         // 0 to 1 -> 0 to 255
+    ]
+}
 
 /// Creative data types that can be tokenized
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -78,6 +114,7 @@ pub struct PerformanceParameter {
 }
 
 /// Creative session manager
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreativeSession {
     session_id: Uuid,
     start_time: DateTime<Utc>,
@@ -123,7 +160,9 @@ impl CreativeSession {
     /// Export session data for IPFS/Filecoin storage
     pub fn export_for_storage(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let export_data = serde_json::json!({
-            "session": self,
+            "session_id": self.session_id.to_string(),
+            "start_time": self.start_time.to_rfc3339(),
+            "data_points_count": self.data_points.len(),
             "export_timestamp": Utc::now().to_rfc3339(),
         });
 
