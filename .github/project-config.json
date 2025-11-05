@@ -1,0 +1,13 @@
+{
+  "projectUrl": "https://github.com/compiling-org/nft-blockchain-interactive/projects/7",
+  "projectId": "7",
+  "organization": "compiling-org",
+  "repo": "nft-blockchain-interactive",
+  "autoAddToProject": true,
+  "defaultLabels": ["automated-task"],
+  "statusMapping": {
+    "To Do": "Todo",
+    "In Progress": "In Progress",
+    "Done": "Done"
+  }
+}
