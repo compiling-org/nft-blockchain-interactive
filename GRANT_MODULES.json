@@ -1,0 +1,188 @@
+{
+  "project": "Blockchain NFT Interactive - 6 Foundation Grants",
+  "repository": "https://github.com/compiling-org/nft-blockchain-interactive",
+  "grants": {
+    "near": {
+      "name": "NEAR Grant - Fractal Studio & WGSL Studio",
+      "description": "Web versions of NUWE/Immersive VJ System for real-time fractal and shader generation",
+      "blockchain": "NEAR Protocol",
+      "smart_contracts": [
+        "src/near-wasm/src/fractal_studio.rs",
+        "src/near-wasm/src/wgsl_studio.rs"
+      ],
+      "frontend": [
+        "test-website/index.html (Fractal Studio tab)",
+        "marketplace-frontend/index.html (Fractal Studio tab)"
+      ],
+      "dependencies": [
+        "src/rust-client/src/webgpu_engine.rs",
+        "src/rust-client/src/creative_metadata.rs"
+      ],
+      "build_commands": [
+        "cd src/near-wasm && cargo build --target wasm32-unknown-unknown --release",
+        "cd src/near-wasm && ./build.sh"
+      ],
+      "deployable": true,
+      "standalone": true
+    },
+    "mintbase": {
+      "name": "Mintbase Grant - Marketplace & DAO",
+      "description": "NFT marketplace for NUWE sessions and MODURUST tools with DAO governance",
+      "blockchain": "NEAR Protocol + Mintbase",
+      "smart_contracts": [
+        "src/marketplace/src/lib.rs",
+        "src/marketplace/src/nuwe_marketplace.rs",
+        "src/marketplace/src/modurust_marketplace.rs",
+        "src/marketplace/src/dao_advanced.rs"
+      ],
+      "frontend": [
+        "marketplace-frontend/index.html",
+        "test-website/mintbase-integration.js",
+        "test-website/blockchain.js"
+      ],
+      "dependencies": [
+        "mintbase-js (external)",
+        "@near-wallet-selector/core (external)"
+      ],
+      "build_commands": [
+        "cd src/marketplace && cargo build --target wasm32-unknown-unknown --release"
+      ],
+      "deployable": true,
+      "standalone": true
+    },
+    "solana": {
+      "name": "Solana Grant - Neuroemotive AI & Stream Diffusion",
+      "description": "Emotional data tracking with 90%+ compression and stream diffusion",
+      "blockchain": "Solana",
+      "smart_contracts": [
+        "src/solana-client/src/neuroemotive.rs",
+        "src/solana-client/src/stream_diffusion.rs",
+        "src/solana-client/src/storage_advanced.rs"
+      ],
+      "frontend": [
+        "test-website/index.html (Neuroemotive AI tab)"
+      ],
+      "dependencies": [
+        "src/rust-client/src/emotional_ai.rs"
+      ],
+      "build_commands": [
+        "cd src/solana-client && anchor build"
+      ],
+      "deployable": true,
+      "standalone": true
+    },
+    "filecoin": {
+      "name": "Filecoin Grant - Universal Storage",
+      "description": "IPFS/Filecoin storage for all 3 projects (NUWE, MODURUST, Neuroemotive AI)",
+      "blockchain": "Filecoin/IPFS",
+      "smart_contracts": [
+        "src/ipfs-integration/src/lib.rs",
+        "src/ipfs-integration/src/ipfs_client.rs",
+        "src/ipfs-integration/src/nuwe_storage.rs",
+        "src/ipfs-integration/src/modurust_storage.rs",
+        "src/ipfs-integration/src/neuroemotive_storage.rs"
+      ],
+      "frontend": [
+        "test-website/index.html (Storage tab)",
+        "test-website/blockchain.js (IPFS functions)"
+      ],
+      "dependencies": [
+        "ipfs-api (external)",
+        "web3.storage (external)"
+      ],
+      "build_commands": [
+        "cd src/ipfs-integration && cargo build --release"
+      ],
+      "deployable": true,
+      "standalone": true,
+      "note": "Used by all other grants for decentralized storage"
+    },
+    "rust": {
+      "name": "Rust Foundation Grant - NUWE Stripped",
+      "description": "Lightweight core engine - basic version of Immersive VJ System/NUWE",
+      "blockchain": "None (Core Library)",
+      "smart_contracts": [],
+      "core_library": [
+        "src/rust-client/src/lib.rs",
+        "src/rust-client/src/webgpu_engine.rs",
+        "src/rust-client/src/creative_metadata.rs",
+        "src/rust-client/src/emotional_ai.rs"
+      ],
+      "frontend": [],
+      "dependencies": [
+        "wgpu",
+        "wasm-bindgen"
+      ],
+      "build_commands": [
+        "cd src/rust-client && cargo build --release",
+        "cd src/rust-client && wasm-pack build --target web --out-dir ../../test-website/wasm"
+      ],
+      "deployable": false,
+      "standalone": true,
+      "note": "Core library used by all other grants"
+    },
+    "polkadot": {
+      "name": "Polkadot/Web3 Grant - Cross-Chain & Soulbound",
+      "description": "Cross-chain bridge for emotional data and soulbound tokens",
+      "blockchain": "Polkadot/Substrate",
+      "smart_contracts": [
+        "src/polkadot-pallets/src/soulbound.rs",
+        "src/polkadot-pallets/src/emotional_bridge.rs"
+      ],
+      "frontend": [
+        "test-website/index.html (Soulbound tab)",
+        "test-website/index.html (Cross-Chain tab)"
+      ],
+      "dependencies": [
+        "substrate-node-template (external)",
+        "polkadot-js/api (external)"
+      ],
+      "build_commands": [
+        "cd src/polkadot-pallets && cargo build --release"
+      ],
+      "deployable": true,
+      "standalone": true,
+      "note": "Connects all grants via cross-chain bridge"
+    }
+  },
+  "shared_components": {
+    "description": "Components used across multiple grants",
+    "files": [
+      "src/rust-client/src/lib.rs (Core engine - used by all)",
+      "src/ipfs-integration/src/lib.rs (Storage - used by all)",
+      "test-website/blockchain.js (Frontend integration - all grants)",
+      "test-website/mintbase-integration.js (Mintbase specific)"
+    ]
+  },
+  "separation_notes": {
+    "standalone_deployment": "Each grant can be deployed independently",
+    "shared_dependencies": "Grants may share core libraries (rust-client, ipfs-integration)",
+    "frontend_separation": "Each grant has dedicated tabs in test-website/index.html",
+    "smart_contract_separation": "Each grant has its own smart contract modules in separate directories",
+    "build_independence": "Each grant has independent build commands",
+    "integration_points": [
+      "Filecoin provides storage for NEAR, Mintbase, and Solana grants",
+      "Polkadot bridges emotional data between Solana and other chains",
+      "Rust core library is foundation for NEAR fractal generation",
+      "Mintbase marketplace can list NFTs from all grants"
+    ]
+  },
+  "deployment_scenarios": {
+    "all_grants_together": {
+      "description": "Deploy all 6 grants as unified platform",
+      "command": "./BUILD_AND_TEST_ALL.sh",
+      "benefits": "Full feature set, cross-grant functionality"
+    },
+    "individual_grant": {
+      "description": "Deploy single grant independently",
+      "example": "Deploy only Mintbase marketplace without other grants",
+      "benefits": "Focused deployment, reduced complexity",
+      "limitation": "May lose some cross-grant features"
+    },
+    "custom_combination": {
+      "description": "Deploy subset of grants",
+      "example": "Deploy NEAR + Mintbase + Filecoin only",
+      "benefits": "Targeted feature set, manageable scope"
+    }
+  }
+}
