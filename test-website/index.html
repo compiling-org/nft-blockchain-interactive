@@ -1004,6 +1004,8 @@
     <script src="blockchain.js"></script>
     <script src="mintbase-integration.js"></script>
     <script src="wallet-connections.js"></script>
+    <script src="filecoin-storage.js"></script>
+    <script src="interactive-nft.js"></script>
     <script type="module">
         // Import WASM module
         import init, { FractalEngine, health_check, generate_nft_metadata } from './wasm/wasm_fractal.js';
@@ -1113,23 +1115,54 @@ In a real implementation, this would:
 
         function voteProposal(proposalId, vote) {
             const voteText = vote ? "For" : "Against";
-            alert(`🏛️ Voting ${voteText} on Proposal #${proposalId}!
+            
+            // Get current emotional state from neuroemotive tab
+            const emotionalState = {
+                valence: parseFloat(document.getElementById('valence')?.value || 0),
+                arousal: parseFloat(document.getElementById('arousal')?.value || 0.5),
+                dominance: parseFloat(document.getElementById('dominance')?.value || 0.5)
+            };
+            
+            // Use interactive DAO system
+            if (window.interactiveNFT?.dao) {
+                interactiveNFT.dao.voteOnProposal(proposalId, vote ? 'for' : 'against', emotionalState);
+                
+                // Check proposal status
+                const status = interactiveNFT.dao.checkProposalStatus(proposalId);
+                if (status) {
+                    blockchain.log(`🏛️ Proposal Status:`, 'info');
+                    blockchain.log(`  For: ${status.forVotes}, Against: ${status.againstVotes}`, 'info');
+                    blockchain.log(`  Emotional Consensus: ${(status.emotionalConsensus * 100).toFixed(0)}%`, 'info');
+                }
+            } else {
+                alert(`🏛️ Voting ${voteText} on Proposal #${proposalId}!
 
 In a real implementation, this would:
 • Verify DAO membership
 • Record your vote on-chain
 • Update proposal tally
 • Check for quorum completion`);
+            }
         }
 
         function createProposal() {
-            alert(`➕ Creating New Proposal!
+            if (window.interactiveNFT?.dao) {
+                const title = prompt('Proposal Title:');
+                const description = prompt('Proposal Description:');
+                
+                if (title && description) {
+                    const proposalId = interactiveNFT.dao.createProposal(title, description, 0.5);
+                    blockchain.log(`✅ Proposal #${proposalId} created!`, 'success');
+                }
+            } else {
+                alert(`➕ Creating New Proposal!
 
 In a real implementation, this would:
 • Open proposal creation form
 • Require DAO member authentication
 • Submit proposal to governance contract
 • Begin voting period`);
+            }
         }
 
         function viewSoulboundDetails(tokenName) {
@@ -1297,6 +1330,7 @@ In a real implementation, this would:
             }
             
             const sessionData = {
+                session_id: Date.now(),
                 name: metadata.title,
                 fractalType: fractalType,
                 zoom: zoom,
@@ -1306,10 +1340,17 @@ In a real implementation, this would:
                 metadata: metadata
             };
             
+            // Upload to Filecoin
+            if (window.filecoinStorage) {
+                const cid = await filecoinStorage.uploadNUWESession(sessionData);
+                sessionData.ipfsCid = cid;
+            }
+            
+            // Mint on blockchain
             if (window.blockchain) {
                 await blockchain.saveFractalSession(sessionData);
             } else {
-                alert('✅ Fractal saved as NFT!\nMetadata: ' + JSON.stringify(metadata, null, 2));
+                alert('✅ Fractal saved as NFT!\nIPFS: ' + (sessionData.ipfsCid || 'simulated') + '\nMetadata: ' + JSON.stringify(metadata, null, 2));
             }
         }
         
@@ -1353,9 +1394,45 @@ In a real implementation, this would:
             
             const alpha = parseFloat(document.getElementById('eeg-alpha')?.value || 0.5);
             const beta = parseFloat(document.getElementById('eeg-beta')?.value || 0.6);
+            const theta = parseFloat(document.getElementById('eeg-theta')?.value || 0.4);
+            const delta = parseFloat(document.getElementById('eeg-delta')?.value || 0.2);
+            const gamma = parseFloat(document.getElementById('eeg-gamma')?.value || 0.7);
             const heartRate = parseInt(document.getElementById('heart-rate')?.value || 75);
             
-            // Update stats
+            // Calculate emotional state from EEG if WASM available
+            let emotionalState = { valence: 0, arousal: 0.5, dominance: 0.5 };
+            
+            if (window.EEGProcessor) {
+                const processor = new window.EEGProcessor(256);
+                const state = processor.calculate_emotional_state(alpha, beta, theta, delta, gamma);
+                emotionalState = {
+                    valence: state[0],
+                    arousal: state[1],
+                    dominance: state[2]
+                };
+                
+                blockchain.log('🧠 EEG emotional state calculated via WASM', 'success');
+            }
+            
+            // Update interactive NFT
+            if (!window.currentBiometricNFT) {
+                window.currentBiometricNFT = interactiveNFT.createInteractiveNFT({
+                    name: 'Biometric Interactive NFT',
+                    type: 'interactive'
+                });
+            }
+            
+            const nft = interactiveNFT.getNFT(window.currentBiometricNFT);
+            if (nft) {
+                nft.applyEmotionalState(emotionalState);
+                nft.applyBiometricData({
+                    eeg: { alpha, beta, theta, delta, gamma },
+                    heartRate
+                });
+                nft.render(biometricCanvas);
+            }
+            
+            // Update stats display
             const colorIntensity = Math.round((alpha + beta) / 2 * 100);
             const animSpeed = (beta * 2).toFixed(1);
             const morphRate = alpha.toFixed(2);
@@ -1368,34 +1445,6 @@ In a real implementation, this would:
             }
             if (document.getElementById('nft-morph')) {
                 document.getElementById('nft-morph').textContent = morphRate;
-            }
-            
-            // Render interactive visual
-            const width = biometricCanvas.width;
-            const height = biometricCanvas.height;
-            
-            biometricCtx.fillStyle = 'rgb(0, 0, 0)';
-            biometricCtx.fillRect(0, 0, width, height);
-            
-            const time = Date.now() / 1000;
-            for (let i = 0; i < 50; i++) {
-                const angle = (i / 50) * Math.PI * 2 + time * beta;
-                const radius = 100 + alpha * 50 + Math.sin(time * 2) * 20;
-                const x = width / 2 + Math.cos(angle) * radius;
-                const y = height / 2 + Math.sin(angle) * radius;
-                
-                const r = Math.floor(alpha * 255);
-                const g = Math.floor(beta * 255);
-                const b = Math.floor((heartRate / 180) * 255);
-                
-                biometricCtx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.8)`;
-                biometricCtx.beginPath();
-                biometricCtx.arc(x, y, 5, 0, Math.PI * 2);
-                biometricCtx.fill();
-            }
-            
-            if (window.blockchain) {
-                blockchain.log('Biometric NFT updated', 'info');
             }
         }
         
