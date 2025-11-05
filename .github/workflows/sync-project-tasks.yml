@@ -1,0 +1,57 @@
+name: Sync Project Tasks
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'PROJECT_TASKS.csv'
+      - 'PROJECT_TASKS.md'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'PROJECT_TASKS.csv'
+      - 'PROJECT_TASKS.md'
+  workflow_dispatch:
+
+jobs:
+  sync-tasks:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install GitHub CLI
+      run: |
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt update
+        sudo apt install gh
+
+    - name: Configure GitHub CLI
+      run: |
+        gh config set prompt disabled
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create issues from tasks
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        echo "Running task sync for repository: $GITHUB_REPOSITORY"
+        node .github/scripts/sync-tasks.js
+
+    - name: Commit and push any changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "Sync project tasks" || echo "No changes to commit"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

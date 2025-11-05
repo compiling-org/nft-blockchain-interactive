@@ -97,6 +97,21 @@ Licensed under MIT/Apache 2.0 Dual License - see [LICENSE](LICENSE) for details.
 - **GitHub**: [github.com/compiling-org](https://github.com/compiling-org)
 - **Documentation**: [docs/](docs/)
 
----
+## 🔄 Project Automation
 
+This repository includes automated project management features:
+
+- **Task Sync**: Automatically creates GitHub Issues from [PROJECT_TASKS.csv](PROJECT_TASKS.csv)
+- **Project Board Integration**: Syncs tasks with GitHub Project boards
+- **Label Management**: Automatically applies category, phase, and module labels
+
+To manually trigger the sync process:
+```bash
+# Run the sync script
+node .github/scripts/sync-tasks.js
+```
+
+The automation workflow runs automatically when [PROJECT_TASKS.csv](PROJECT_TASKS.csv) is updated.
+
+---
 *This repository contains the core framework for our $10K micro-grant applications to Filecoin, NEAR, Rust, Solana, and Web3 Foundations.*
