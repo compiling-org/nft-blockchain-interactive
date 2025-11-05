@@ -1,8 +1,8 @@
 [package]
-name = "nft-near-wasm"
+name = "creative-marketplace"
 version = "0.1.0"
 edition = "2021"
-description = "NEAR WASM bindings for interactive creative NFTs and Mintbase integration"
+description = "Test marketplace for creative NFTs with cross-chain support"
 authors = ["Dr. Kapil Bambardekar <kapil.bambardekar@gmail.com>", "Grigori Korotkikh <vdmo@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/compiling-org/nft-blockchain-interactive"

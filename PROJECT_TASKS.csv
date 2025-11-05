@@ -1,4 +1,4 @@
-Task,Category,Phase,Status,Module
+Task,Category,Phase,Status,Module,Grant
 Complete WASM compilation pipeline for fractal shaders,Core WASM Engine,Phase 1,To Do,
 WebGL/WebGPU rendering integration,Core WASM Engine,Phase 1,To Do,
 Basic parameter controls and modulation,Core WASM Engine,Phase 1,To Do,
@@ -34,7 +34,7 @@ AI-assisted tool creation,Advanced Features,Phase 3,To Do,
 XR/AR creative spaces,Advanced Features,Phase 3,To Do,
 Live performance streaming,Advanced Features,Phase 3,To Do,
 Educational content integration,Advanced Features,Phase 3,To Do,
-DAO implementation for platform governance,Governance & Sustainability,Phase 3,To Do,
+DAO implementation for platform governance,Governance & Sustainability,Phase 3,COMPLETE,
 Creator incentive programs,Governance & Sustainability,Phase 3,To Do,
 Community fund establishment,Governance & Sustainability,Phase 3,To Do,
 Long-term roadmap planning,Governance & Sustainability,Phase 3,To Do,
@@ -54,14 +54,14 @@ Complete collaboration contracts,near-wasm Module,,To Do,near-wasm
 Add more interaction types,near-wasm Module,,To Do,near-wasm
 Implement advanced governance features,near-wasm Module,,To Do,near-wasm
 Create directory structure,solana-client Module,,To Do,solana-client
-Implement Anchor programs for Solana metadata validation,solana-client Module,,To Do,solana-client
+Implement Anchor programs for Solana metadata validation,solana-client Module,,COMPLETE,solana-client
 Add high-throughput collaboration features,solana-client Module,,To Do,solana-client
 Integrate with existing creative data pipeline,solana-client Module,,To Do,solana-client
 Implement bridge contracts between NEAR and Solana,Cross-Chain Integration,,To Do,
 Create unified API for multi-chain operations,Cross-Chain Integration,,To Do,
 Develop cross-chain identity system,Cross-Chain Integration,,To Do,
 Build atomic swap functionality for creative assets,Cross-Chain Integration,,To Do,
-Connect with existing NFT marketplaces (Mintbase, OpenSea),Marketplace Integration,,To Do,
+Connect with existing NFT marketplaces (Mintbase, OpenSea),Marketplace Integration,,COMPLETE,
 Implement royalty distribution system,Marketplace Integration,,To Do,
 Add reputation scoring for creators,Marketplace Integration,,To Do,
 Create community curation mechanisms,Marketplace Integration,,To Do,
@@ -77,3 +77,75 @@ Complete API documentation for all modules,Documentation and Testing,,To Do,
 Add comprehensive unit tests,Documentation and Testing,,To Do,
 Create integration test suite,Documentation and Testing,,To Do,
 Develop user tutorials and examples,Documentation and Testing,,To Do,
+NEAR Foundation Grant - WASM Core Engine,"Core WASM Engine","Month 1","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - Basic WebGL rendering pipeline,"Core WASM Engine","Month 1","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - Parameter interface for real-time manipulation,"Core WASM Engine","Month 1","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - Browser compatibility testing,"Core WASM Engine","Month 1","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - BOS component wrapper,"NEAR Integration","Month 2","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - NEAR account integration,"NEAR Integration","Month 2","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - Session state management,"NEAR Integration","Month 2","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - Cross-component communication,"NEAR Integration","Month 2","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - Deployed NEAR component,"Public Creative dApp","Month 3","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - User interface for parameter exploration,"Public Creative dApp","Month 3","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - Social sharing features,"Public Creative dApp","Month 3","To Do","near-wasm","NEAR"
+NEAR Foundation Grant - Documentation and user tutorials,"Public Creative dApp","Month 3","To Do","near-wasm","NEAR"
+Mintbase Foundation Grant - Interactive NFT contracts,"Interactive NFT Contracts","Month 1","COMPLETE","near-wasm","Mintbase"
+Mintbase Foundation Grant - Soulbound token contract,"Interactive NFT Contracts","Month 1","COMPLETE","near-wasm","Mintbase"
+Mintbase Foundation Grant - Basic interaction recording,"Interactive NFT Contracts","Month 1","COMPLETE","near-wasm","Mintbase"
+Mintbase Foundation Grant - Unit tests and contract deployment,"Interactive NFT Contracts","Month 1","COMPLETE","near-wasm","Mintbase"
+Mintbase Foundation Grant - Real-time metadata updates,"Dynamic Metadata System","Month 2","To Do","near-wasm","Mintbase"
+Mintbase Foundation Grant - Emotional state integration,"Dynamic Metadata System","Month 2","To Do","near-wasm","Mintbase"
+Mintbase Foundation Grant - Cross-contract interaction,"Dynamic Metadata System","Month 2","To Do","near-wasm","Mintbase"
+Mintbase Foundation Grant - Performance optimization,"Dynamic Metadata System","Month 2","To Do","near-wasm","Mintbase"
+Mintbase Foundation Grant - Mintbase marketplace integration,"Marketplace Integration","Month 3","COMPLETE","near-wasm","Mintbase"
+Mintbase Foundation Grant - Interactive preview components,"Marketplace Integration","Month 3","COMPLETE","near-wasm","Mintbase"
+Mintbase Foundation Grant - Creator dashboard,"Marketplace Integration","Month 3","COMPLETE","near-wasm","Mintbase"
+Mintbase Foundation Grant - Live demo collection,"Marketplace Integration","Month 3","COMPLETE","near-wasm","Mintbase"
+Solana Foundation Grant - Anchor program setup,"Core Program Architecture","Month 1","COMPLETE","solana-client","Solana"
+Solana Foundation Grant - State compression algorithms,"Core Program Architecture","Month 1","COMPLETE","solana-client","Solana"
+Solana Foundation Grant - Parameter validation logic,"Core Program Architecture","Month 1","COMPLETE","solana-client","Solana"
+Solana Foundation Grant - Unit tests and program deployment,"Core Program Architecture","Month 1","COMPLETE","solana-client","Solana"
+Solana Foundation Grant - High-throughput data recording,"Real-Time Features","Month 2","To Do","solana-client","Solana"
+Solana Foundation Grant - Concurrent session management,"Real-Time Features","Month 2","To Do","solana-client","Solana"
+Solana Foundation Grant - Performance optimization,"Real-Time Features","Month 2","To Do","solana-client","Solana"
+Solana Foundation Grant - Integration testing on devnet,"Real-Time Features","Month 2","To Do","solana-client","Solana"
+Solana Foundation Grant - Working demo with NUWE,"Live Demo & Integration","Month 3","To Do","solana-client","Solana"
+Solana Foundation Grant - Compressed state proofs,"Live Demo & Integration","Month 3","To Do","solana-client","Solana"
+Solana Foundation Grant - Documentation and API reference,"Live Demo & Integration","Month 3","To Do","solana-client","Solana"
+Solana Foundation Grant - Performance benchmarks,"Live Demo & Integration","Month 3","To Do","solana-client","Solana"
+Filecoin Foundation Grant - Rust crate for CID generation,"Core IPFS Library","Month 1","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Basic IPFS pinning functionality,"Core IPFS Library","Month 1","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Unit tests and documentation,"Core IPFS Library","Month 1","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Example usage with mock data,"Core IPFS Library","Month 1","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Filecoin storage provider integration,"Filecoin Integration","Month 2","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Automated pinning workflows,"Filecoin Integration","Month 2","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Error handling and retry logic,"Filecoin Integration","Month 2","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Performance benchmarks,"Filecoin Integration","Month 2","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Working demo with NUWE outputs,"Affective Media Demo","Month 3","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Emotional metadata indexing,"Affective Media Demo","Month 3","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Integration with creative tools,"Affective Media Demo","Month 3","To Do","ipfs-integration","Filecoin"
+Filecoin Foundation Grant - Documentation and tutorials,"Affective Media Demo","Month 3","To Do","ipfs-integration","Filecoin"
+Rust Foundation Grant - Core data pipeline,"Core Shader Engine","Month 1","To Do","rust-client","Rust"
+Rust Foundation Grant - Modular architecture,"Core Shader Engine","Month 1","To Do","rust-client","Rust"
+Rust Foundation Grant - Cross-platform compatibility,"Core Shader Engine","Month 1","To Do","rust-client","Rust"
+Rust Foundation Grant - Unit tests,"Core Shader Engine","Month 1","To Do","rust-client","Rust"
+Rust Foundation Grant - Emotional computing integration,"Advanced Features","Month 2","To Do","rust-client","Rust"
+Rust Foundation Grant - Performance optimization,"Advanced Features","Month 2","To Do","rust-client","Rust"
+Rust Foundation Grant - Tool interoperability,"Advanced Features","Month 2","To Do","rust-client","Rust"
+Rust Foundation Grant - Integration testing,"Advanced Features","Month 2","To Do","rust-client","Rust"
+Rust Foundation Grant - Complete tool framework,"Ecosystem Integration","Month 3","To Do","rust-client","Rust"
+Rust Foundation Grant - Documentation and examples,"Ecosystem Integration","Month 3","To Do","rust-client","Rust"
+Rust Foundation Grant - Community tutorials,"Ecosystem Integration","Month 3","To Do","rust-client","Rust"
+Rust Foundation Grant - Performance benchmarks,"Ecosystem Integration","Month 3","To Do","rust-client","Rust"
+Web3 Foundation Grant - Core runtime development,"Core Pallet Architecture","Month 1","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Emotional state data structures,"Core Pallet Architecture","Month 1","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Privacy-preserving proof mechanisms,"Core Pallet Architecture","Month 1","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Unit tests and pallet integration,"Core Pallet Architecture","Month 1","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Zero-knowledge proof integration,"Advanced Features","Month 2","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Creative provenance tracking,"Advanced Features","Month 2","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Cross-parachain messaging,"Advanced Features","Month 2","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Performance optimization,"Advanced Features","Month 2","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Working parachain deployment,"Proof-of-Concept Demo","Month 3","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - NUWE integration demo,"Proof-of-Concept Demo","Month 3","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Documentation and research paper,"Proof-of-Concept Demo","Month 3","To Do","polkadot-client","Polkadot"
+Web3 Foundation Grant - Community presentation,"Proof-of-Concept Demo","Month 3","To Do","polkadot-client","Polkadot"

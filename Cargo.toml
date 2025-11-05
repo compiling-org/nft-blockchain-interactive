@@ -14,8 +14,12 @@ categories = ["cryptography", "web-programming", "api-bindings", "multimedia", "
 members = [
     "src/rust-client",
     "src/ipfs-integration",
+    "src/polkadot-client",
+]
+exclude = [
     "src/near-wasm",
     "src/solana-client",
+    "src/marketplace",
 ]
 
 [dependencies]
@@ -25,34 +29,36 @@ thiserror = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.0", features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
 
-# Blockchain integrations
-near-sdk = { version = "4.0", optional = true }
-solana-program = { version = "1.14", optional = true }
-web3 = { version = "0.18", optional = true }
+# Web and graphics
+wgpu = "0.19"
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = "0.3"
 
-# IPFS/Filecoin
-ipfs-api = { version = "0.17", optional = true }
+# IPFS and storage
+cid = "0.10"
+multihash = "0.19"
+ipfs-api = "0.15"
 
-# WASM compilation
-wasm-bindgen = { version = "0.2", optional = true }
-js-sys = { version = "0.3", optional = true }
-
-# GPU computing for creative processing
-wgpu = { version = "0.15", optional = true }
+# Polkadot/Substrate
+subxt = "0.28"
 
 [features]
 default = ["rust-client"]
 rust-client = []
-ipfs-integration = ["ipfs-api"]
-near-wasm = ["wasm-bindgen", "js-sys", "near-sdk"]
-solana-client = ["solana-program"]
-web3-integration = ["web3"]
-gpu-acceleration = ["wgpu"]
-full = ["rust-client", "ipfs-integration", "near-wasm", "solana-client", "web3-integration", "gpu-acceleration"]
+ipfs-integration = []
+near-wasm = []
+solana-client = []
+polkadot-client = []
+marketplace = []
 
 [profile.release]
-opt-level = 3
-lto = true
+overflow-checks = true
+lto = "fat"
 codegen-units = 1
-panic = "abort"
+
+[profile.dev]
+overflow-checks = true

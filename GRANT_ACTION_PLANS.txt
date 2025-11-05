@@ -1,0 +1,424 @@
+================================================================================
+6 GRANT ACTION PLANS - 3-6 Month Timelines ($10K each)
+================================================================================
+
+===============================================================================
+GRANT 1: NEAR FOUNDATION - Fractal Studio & WGSL Studio (NUWE/IVJ System)
+===============================================================================
+Budget: $10K | Timeline: 3-6 months | Module: src/near-wasm/
+Project: Basic web version of Fractal Studio and WGSL Studio from NUWE
+         (NUWE Stripped = basic version of Immersive VJ System/NUWE)
+
+MONTH 1-2: WASM Core Engine for Fractal/WGSL Studios
+-----------
+Goals:
+- Port Fractal Studio shader engine to WASM for NEAR BOS
+- Port WGSL Studio functionality to browser
+- WebGL/WebGPU rendering integration
+- Real-time fractal generation and manipulation
+- Basic VJ performance controls
+- NEAR BOS component wrapper for both studios
+
+Deliverables:
+- Fractal Studio WASM module working in browser
+- WGSL Studio basic implementation
+- WebGL/WebGPU rendering pipeline
+- Real-time parameter controls for live performances
+- Browser compatibility testing (Chrome, Firefox, Safari)
+
+MONTH 3-4: NEAR Integration
+-----------
+Goals:
+- Deploy WASM engine to NEAR BOS platform
+- NEAR account integration and wallet connection
+- Session state management on-chain
+- Cross-component communication protocols
+
+Deliverables:
+- Deployed NEAR BOS component
+- NEAR wallet integration working
+- State persistence on NEAR blockchain
+- Documentation for developers
+
+MONTH 5-6: Public Creative dApp
+-----------
+Goals:
+- Polish user interface for parameter exploration
+- Social sharing features
+- Performance optimization
+- User tutorials and documentation
+
+Deliverables:
+- Live public NEAR BOS dApp
+- User onboarding flow
+- Example creative sessions
+- Complete technical documentation
+
+
+===============================================================================
+GRANT 2: MINTBASE FOUNDATION - NUWE + MODURUST Marketplace & DAO
+===============================================================================
+Budget: $10K | Timeline: 3-6 months | Module: src/marketplace/
+Project: Marketplace for NUWE creative sessions + MODURUST modular tools
+         DAO governance for creative community
+
+MONTH 1-2: Interactive NFT Contracts for Creative Tools
+-----------
+Goals:
+- NFT contracts for NUWE creative sessions and performances
+- NFT contracts for MODURUST modular tool ownership
+- Dynamic metadata tracking tool usage and performance data
+- Soulbound tokens for creator identity and reputation
+- Basic interaction recording for community engagement
+- Unit tests and contract deployment
+
+Deliverables:
+- Working NFT contracts for NUWE sessions on NEAR
+- MODURUST tool ownership NFTs
+- Soulbound token implementation for creators
+- Test suite for all contracts
+- Testnet deployment
+
+MONTH 3-4: Dynamic Metadata + DAO
+-----------
+Goals:
+- Real-time metadata updates based on user interactions
+- DAO governance smart contract implementation
+- Proposal and voting system
+- Cross-contract interaction capabilities
+- Performance optimization
+
+Deliverables:
+- Dynamic NFT metadata system working
+- DAO contract with voting mechanism
+- Governance dashboard prototype
+- Integration tests
+
+MONTH 5-6: Marketplace Integration
+-----------
+Goals:
+- Mintbase marketplace integration and compatibility
+- Interactive preview components for NFTs
+- Creator dashboard for managing dynamic NFTs
+- Live demo collection of interactive NFTs
+
+Deliverables:
+- Full marketplace integration with Mintbase
+- Creator tools and dashboard
+- Live demo NFT collection
+- User documentation
+
+
+===============================================================================
+GRANT 3: SOLANA FOUNDATION - Neuroemotive AI + Stream Diffusion
+===============================================================================
+Budget: $10K | Timeline: 3-6 months | Module: src/solana-client/
+Project: High-performance metadata for Neuroemotive AI emotional data
+         + Stream Diffusion real-time generation tracking
+
+MONTH 1-2: Core Program Architecture for AI Metadata
+-----------
+Goals:
+- Anchor program setup for Neuroemotive AI data
+- State compression for emotional state vectors (valence, arousal, dominance)
+- Real-time tracking for Stream Diffusion generation parameters
+- High-throughput recording (1000+ TPS) for AI inference data
+- Parameter validation for emotional data integrity
+- Unit tests and program deployment to devnet
+
+Deliverables:
+- Working Anchor program on Solana devnet
+- State compression implementation
+- Basic validation logic
+- Test suite
+
+MONTH 3-4: Real-Time Features
+-----------
+Goals:
+- High-throughput data recording (targeting 1000+ TPS)
+- Concurrent session management
+- Performance optimization
+- Integration testing on devnet
+
+Deliverables:
+- High-performance data recording working
+- Session management system
+- Performance benchmarks documented
+- Integration tests passing
+
+MONTH 5-6: Live Demo & Integration
+-----------
+Goals:
+- Working demo with NUWE performance system
+- Compressed state proofs implementation
+- Documentation and API reference
+- Performance benchmarks and optimization
+
+Deliverables:
+- Live demo on Solana devnet
+- Complete API documentation
+- Performance reports (TPS, latency)
+- Integration examples
+
+
+===============================================================================
+GRANT 4: FILECOIN FOUNDATION - Universal Creative Asset Storage
+===============================================================================
+Budget: $10K | Timeline: 3-6 months | Module: src/ipfs-integration/
+Project: IPFS/Filecoin storage for ALL 3 ecosystems:
+         - NUWE/IVJ (fractal sessions, VJ performances)
+         - Neuroemotive AI (emotional data, model outputs)
+         - MODURUST (modular tool assets, patches)
+
+MONTH 1-2: Core IPFS Library for Multi-Project Storage
+-----------
+Goals:
+- Rust crate for CID generation from:
+  * NUWE fractal/shader outputs and VJ sessions
+  * Neuroemotive AI emotional vectors and model outputs
+  * MODURUST tool assets and configuration patches
+- IPFS pinning for all creative asset types
+- Metadata schemas for each project type
+- Unit tests covering all 3 ecosystems
+- Example usage with real data from each project
+
+Deliverables:
+- Working Rust IPFS library
+- CID generation from creative data
+- Basic pinning to IPFS nodes
+- Test coverage and examples
+
+MONTH 3-4: Filecoin Integration
+-----------
+Goals:
+- Filecoin storage provider integration
+- Automated pinning workflows
+- Error handling and retry logic
+- Performance benchmarks
+
+Deliverables:
+- Filecoin storage working
+- Automated workflows for persistence
+- Robust error handling
+- Performance documentation
+
+MONTH 5-6: Affective Media Demo
+-----------
+Goals:
+- Working demo with NUWE shader outputs
+- Emotional metadata indexing and retrieval
+- Integration with existing creative tools
+- Documentation and tutorials
+
+Deliverables:
+- Live demo storing creative sessions
+- Emotional metadata system working
+- Tool integration examples
+- Complete user documentation
+
+
+===============================================================================
+GRANT 5: RUST FOUNDATION - NUWE Stripped (Core Creative Engine)
+===============================================================================
+Budget: $10K | Timeline: 3-6 months | Module: src/rust-client/
+Project: NUWE Stripped = Lightweight, open-source version of NUWE/IVJ System
+         Core fractal/shader engine without full Immersive VJ features
+
+MONTH 1-2: Core NUWE Stripped Engine
+-----------
+Goals:
+- Core NUWE fractal generation engine (stripped version)
+- Shader composition system from Fractal Studio
+- Essential fractal algorithms (Mandelbrot, Julia, Burning Ship, etc.)
+- GPU acceleration with wgpu (no full IVJ features)
+- Modular architecture for extensibility
+- Cross-platform compatibility (Linux, Windows, macOS)
+- Unit tests for core algorithms
+
+Deliverables:
+- Working Rust creative engine library
+- Modular architecture for shaders
+- Cross-platform builds (Linux, Windows, macOS)
+- Test suite
+
+MONTH 3-4: Advanced Features
+-----------
+Goals:
+- GPU acceleration integration (wgpu)
+- Emotional computing integration
+- Real-time parameter modulation
+- Performance optimization
+- Tool interoperability
+- Integration testing
+
+Deliverables:
+- GPU-accelerated shader rendering
+- Emotional parameter mapping working
+- Performance benchmarks
+- Integration with NUWE system
+
+MONTH 5-6: Ecosystem Integration
+-----------
+Goals:
+- Complete tool framework and plugin system
+- Documentation and examples
+- Community tutorials and workshops
+- Performance benchmarks and optimization
+
+Deliverables:
+- Complete creative tool framework
+- Comprehensive API documentation
+- Example projects and tutorials
+- Community onboarding materials
+
+
+===============================================================================
+GRANT 6: WEB3 FOUNDATION (POLKADOT) - Cross-Chain Neuroemotive Bridge
+===============================================================================
+Budget: $10K | Timeline: 3-6 months | Module: src/polkadot-client/
+Project: Cross-chain bridge for ALL grants, specifically:
+         - Neuroemotive AI emotional data cross-chain proofs
+         - Soulbound tokens for creator identity across chains
+         - Bridge between NEAR (NUWE), Solana (AI), and Filecoin
+
+MONTH 1-2: Core Pallet for Neuroemotive Data
+-----------
+Goals:
+- Substrate pallet for Neuroemotive AI emotional data
+- Data structures for emotional vectors (valence, arousal, dominance)
+- Soulbound token pallet for cross-chain creator identity
+- Privacy-preserving ZK proofs for emotional states
+- Cross-chain messaging to NEAR and Solana
+- Unit tests and pallet integration
+
+Deliverables:
+- Working Substrate pallet
+- Emotional state data types defined
+- Basic privacy mechanisms
+- Test coverage
+
+MONTH 3-4: Advanced Features
+-----------
+Goals:
+- Zero-knowledge proof integration for emotional privacy
+- Creative provenance tracking system
+- Cross-parachain messaging protocols
+- Performance optimization
+
+Deliverables:
+- ZK proof system for emotional states
+- Provenance tracking working
+- Cross-chain messaging functional
+- Performance benchmarks
+
+MONTH 5-6: Proof-of-Concept Demo
+-----------
+Goals:
+- Working parachain deployment (testnet)
+- NUWE integration demo
+- Documentation and research paper
+- Community presentation
+
+Deliverables:
+- Live parachain testnet deployment
+- Working integration with NUWE
+- Technical documentation
+- Research paper on emotional state proofs
+
+
+===============================================================================
+CROSS-PROJECT DEPENDENCIES & INTEGRATION POINTS
+===============================================================================
+
+Real Project Connections:
+
+1. NUWE/Immersive VJ System Ecosystem:
+   - NEAR: Fractal Studio + WGSL Studio (web versions)
+   - Rust: NUWE Stripped (core engine)
+   - Mintbase: Marketplace for NUWE sessions
+   - Filecoin: Storage for VJ performances
+
+2. Neuroemotive AI:
+   - Solana: High-speed emotional data + Stream Diffusion tracking
+   - Polkadot: Cross-chain emotional proofs
+   - Filecoin: AI model outputs and emotional vectors
+
+3. MODURUST:
+   - Mintbase: Modular tool ownership NFTs
+   - Filecoin: Tool asset storage
+
+4. Soulbound Tokens:
+   - Polkadot: Cross-chain creator identity
+   - Mintbase: Creator reputation and DAO membership
+
+Integration Timeline:
+- Month 3: NUWE Stripped + Fractal Studio integration
+- Month 4: Neuroemotive AI + Solana data pipeline
+- Month 5: IPFS storage working for all 3 projects
+- Month 6: Cross-chain bridge connecting everything
+
+Shared Components:
+- Emotional data structures (Neuroemotive AI → Polkadot → Solana)
+- NUWE creative session format (NEAR → Rust → Mintbase)
+- IPFS CID generation (all projects)
+- Soulbound token standard (Polkadot → Mintbase)
+
+
+===============================================================================
+BUDGET ALLOCATION (per grant)
+===============================================================================
+
+Each $10K grant allocated as:
+- 60% Development: Core implementation and coding ($6K)
+- 20% Deployment: Gas fees, testnet resources, storage ($2K)
+- 10% Documentation: Technical docs, tutorials ($1K)
+- 10% Contingency: Unexpected costs, optimizations ($1K)
+
+
+===============================================================================
+SUCCESS METRICS (per grant)
+===============================================================================
+
+Technical Metrics:
+- Code coverage > 80%
+- Performance targets met (60fps for WASM, 1000 TPS for Solana, etc.)
+- All unit and integration tests passing
+- Deployed to respective testnets/mainnets
+
+Delivery Metrics:
+- All milestones delivered on schedule
+- Complete documentation published
+- Live demos functioning
+- Community feedback incorporated
+
+
+===============================================================================
+RISK MITIGATION
+===============================================================================
+
+Technical Risks:
+- Blockchain SDK version conflicts → Use separate build environments
+- Performance bottlenecks → Early benchmarking and optimization
+- Cross-chain compatibility → Standardized data formats
+
+Timeline Risks:
+- Scope creep → Strict milestone adherence
+- Dependency delays → Parallel development where possible
+- Testing delays → Continuous integration from day 1
+
+Budget Risks:
+- Gas fee volatility → Use testnets extensively
+- Tool costs → Leverage open-source solutions
+- Unexpected features → 10% contingency buffer
+
+
+===============================================================================
+NOTES
+===============================================================================
+
+- All 6 grants run in PARALLEL (not sequential!)
+- Each grant is independent but shares core components
+- Regular integration testing ensures cross-compatibility
+- Monthly progress reviews to stay on track
+- Marketplace/DAO (Mintbase) is completely separate from NEAR grant
+- Each module will eventually be split into separate repos post-funding

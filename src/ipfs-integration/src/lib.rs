@@ -1,16 +1,27 @@
 //! # NFT IPFS Integration
 //!
 //! Module for calculating content-addressed hash (CID) and pinning/retrieving data from IPFS/Filecoin.
+//! Supports storage for NUWE, MODURUST, and Neuroemotive AI projects.
 
 use cid::Cid;
-use ipfs_api::IpfsClient;
+use ipfs_api::IpfsClient as IpfsApiClient;
 use multihash::{Code, MultihashDigest};
 use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 
+mod ipfs_client;
+mod nuwe_storage;
+mod modurust_storage;
+mod neuroemotive_storage;
+
+pub use ipfs_client::*;
+pub use nuwe_storage::*;
+pub use modurust_storage::*;
+pub use neuroemotive_storage::*;
+
 /// IPFS persistence layer for creative data
 pub struct IpfsPersistenceLayer {
-    client: IpfsClient,
+    client: IpfsApiClient,
     gateway_url: String,
 }
 
