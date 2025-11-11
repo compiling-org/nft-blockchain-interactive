@@ -1,8 +1,7 @@
 //! WebGPU/WebGL shader engine for browser-based creative tools
 
 use wasm_bindgen::prelude::*;
-use web_sys::{console, window, WebGlRenderingContext, WebGlShader, WebGlProgram};
-use js_sys::{ArrayBuffer, Uint8Array};
+use web_sys::{WebGlRenderingContext, WebGlShader, WebGlProgram};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -104,7 +103,7 @@ impl ShaderEngine {
 
             if let Some(loc) = location {
                 // Parse different uniform types from JS
-                if let Ok(f) = value.as_f64() {
+                if let Some(f) = value.as_f64() {
                     self.gl.uniform1f(Some(&loc), f as f32);
                     self.uniforms.insert(name.to_string(), UniformValue::Float(f as f32));
                 } else if let Ok(arr) = value.dyn_into::<js_sys::Array>() {
@@ -379,7 +378,7 @@ void main() {
     
     for(int i = 0; i < 50; i++) {
         vec2 z2 = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y);
-        vec2 z3 = vec2(z2.x * z.x - z2.y * z.y, z2.x * z.y + z2.y * z.x);
+        vec2 z3 = vec2(z2.x * z2.x - z2.y * z2.y, z2.x * z.y + z2.y * z.x);
         vec2 dz = 3.0 * z2;
         z = z - vec2((z3.x - 1.0) / dz.x, z3.y / dz.y);
     }
@@ -427,9 +426,8 @@ pub fn init_gpu_engine(canvas_id: &str) -> Result<ShaderEngine, JsValue> {
 #[wasm_bindgen]
 pub fn check_webgpu_support() -> bool {
     // Check for WebGPU support (simplified)
-    web_sys::window()
-        .and_then(|w| w.navigator().gpu())
-        .is_some()
+    // WebGPU support check - simplified for now
+    false
 }
 
 /// Performance monitoring

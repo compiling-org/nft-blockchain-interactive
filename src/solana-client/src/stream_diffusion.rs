@@ -2,9 +2,6 @@
 //! 
 //! High-performance tracking for Stream Diffusion model generations
 
-use anchor_lang::prelude::*;
-use crate::neuroemotive::EmotionalVector;
-
 /// Stream Diffusion configuration
 #[account]
 #[derive(Default)]

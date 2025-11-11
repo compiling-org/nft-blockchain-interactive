@@ -1,8 +1,6 @@
-//! Neuroemotive AI - Emotional data structures and Stream Diffusion tracking
-//! 
-//! High-performance emotional state recording for Solana
-
-use anchor_lang::prelude::*;
+//! Neuroemotive Creative Data Accounts
+//!
+//! Emotionally-aware creative metadata storage with fractal encoding.
 
 /// Emotional state vector (Valence-Arousal-Dominance model)
 #[account]

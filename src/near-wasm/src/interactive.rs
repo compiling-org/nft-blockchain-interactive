@@ -10,7 +10,7 @@ pub struct InteractionEvent {
     pub event_type: String,
     pub timestamp: Timestamp,
     pub user_id: AccountId,
-    pub data: near_sdk::serde_json::Value,
+    pub data: String, // Changed from serde_json::Value to String for Borsh compatibility
     pub intensity: f32,
 }
 

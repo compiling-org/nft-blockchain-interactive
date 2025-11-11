@@ -360,6 +360,7 @@
             <button class="tab" onclick="switchTab('soulbound')">👤 Soulbound Tokens</button>
             <button class="tab" onclick="switchTab('crosschain')">🔗 Cross-Chain</button>
             <button class="tab" onclick="switchTab('fractal')">🌀 Fractal Studio</button>
+            <button class="tab" onclick="switchTab('wgsl')">🎨 WGSL Studio</button>
             <button class="tab" onclick="switchTab('neuroemotive')">🧠 Neuroemotive AI</button>
             <button class="tab" onclick="switchTab('biometric')">💓 Biometric Test</button>
         </div>
@@ -753,6 +754,88 @@
             </div>
         </section>
 
+        <!-- WGSL Studio Tab -->
+        <section id="wgsl-tab" class="tab-content" style="display: none;">
+            <div class="dao-section">
+                <h2>🎨 WGSL Studio (NEAR Grant)</h2>
+                <p>Real-time WebGPU shader editing with emotional modulation - Browser version of NUWE/Immersive VJ System</p>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px;">
+                    <div>
+                        <canvas id="wgsl-canvas" width="600" height="400" style="width: 100%; border-radius: 10px; background: #000;"></canvas>
+                        <div style="margin-top: 10px; color: white; text-align: center;">
+                            FPS: <span id="wgsl-fps-counter">60</span>
+                        </div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                        <h3 style="margin-bottom: 15px;">Shader Editor</h3>
+                        
+                        <label>Shader Type:</label>
+                        <select id="shader-type" style="width: 100%; padding: 8px; margin-bottom: 15px;">
+                            <option value="audio-reactive">Audio Reactive</option>
+                            <option value="fractal">Fractal Generator</option>
+                            <option value="particle-system">Particle System</option>
+                            <option value="wave-simulation">Wave Simulation</option>
+                        </select>
+                        
+                        <label>Time Speed: <span id="time-speed-value">1.0</span>x</label>
+                        <input type="range" id="time-speed" min="0.1" max="5" step="0.1" value="1" style="width: 100%; margin-bottom: 15px;">
+                        
+                        <label>Complexity: <span id="complexity-value">50</span></label>
+                        <input type="range" id="complexity" min="10" max="100" step="5" value="50" style="width: 100%; margin-bottom: 20px;">
+                        
+                        <button class="btn btn-primary" onclick="saveShaderAsNFT()" style="width: 100%; margin-bottom: 10px;">Save as NFT</button>
+                        <button class="btn btn-secondary" onclick="renderShader()" style="width: 100%;">Re-render</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                    <h3>WGSL Code Editor</h3>
+                    <textarea id="wgsl-editor" style="width: 100%; height: 200px; font-family: monospace; font-size: 12px; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+// Audio-reactive shader template
+@group(0) @binding(0) var<uniform> time: f32;
+@group(0) @binding(1) var<uniform> resolution: vec2<f32>;
+@group(0) @binding(2) var<uniform> audio_bass: f32;
+@group(0) @binding(3) var<uniform> audio_mid: f32;
+@group(0) @binding(4) var<uniform> audio_high: f32;
+
+@fragment
+fn fs_main(@builtin(position) pos: vec4<f32>) -> @location(0) vec4<f32> {
+    let uv = pos.xy / resolution;
+    
+    // Audio-reactive visualization
+    let bass_pulse = audio_bass * sin(time * 2.0 + uv.y * 10.0);
+    let mid_wave = audio_mid * cos(time + uv.x * 15.0);
+    let high_sparkle = audio_high * sin(time * 4.0);
+    
+    let color = vec3<f32>(
+        0.5 + 0.5 * bass_pulse,
+        0.5 + 0.5 * mid_wave,
+        0.5 + 0.5 * high_sparkle
+    );
+    
+    return vec4<f32>(color, 1.0);
+}
+                    </textarea>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="compileShader()">Compile Shader</button>
+                        <button class="btn btn-secondary" onclick="resetShader()">Reset to Template</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                    <h3>Visual Node Editor</h3>
+                    <div id="node-editor-container" style="width: 100%; height: 300px; background: #fff; border: 1px solid #ddd; border-radius: 5px; position: relative;">
+                        <!-- Node editor will be initialized here -->
+                    </div>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="generateShaderFromNodes()">Generate Shader</button>
+                        <button class="btn btn-secondary" onclick="clearNodes()">Clear Nodes</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Neuroemotive AI Tab -->
         <section id="neuroemotive-tab" class="tab-content" style="display: none;">
             <div class="dao-section">
@@ -840,6 +923,7 @@
     </div>
 
     <script src="blockchain.js"></script>
+    <script src="app.js"></script>
     <script>
         // Tab switching functionality
         function switchTab(tabName) {
@@ -1207,5 +1291,7 @@ In a real implementation, this would:
             }, 500);
         });
     </script>
+    <script src="wgsl-node-editor.js"></script>
+    <script src="modurust-tools.js"></script>
 </body>
 </html>

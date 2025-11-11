@@ -1006,6 +1006,7 @@
     <script src="wallet-connections.js"></script>
     <script src="filecoin-storage.js"></script>
     <script src="interactive-nft.js"></script>
+    <script src="modurust-tools.js"></script>
     <script type="module">
         // Import WASM module
         import init, { FractalEngine, health_check, generate_nft_metadata } from './wasm/wasm_fractal.js';
@@ -1572,6 +1573,39 @@ In a real implementation, this would:
                 blockchain.log('Polkadot Grant: Cross-chain bridge active', 'success');
             }
         }
+        
+        // MODURUST Tool Examples
+        function createModurustToolExample() {
+            if (window.modurustLibrary) {
+                // Create a custom tool
+                const customTool = new ModurustTool('Custom Audio Visualizer', 'AudioProcessor');
+                customTool.addParameter('sensitivity', 'float', 1.0, 0.1, 3.0, 'Audio sensitivity')
+                          .addParameter('colorMode', 'enum', 'rainbow', null, null, 'Color visualization mode')
+                          .addInput('audioStream', 'Audio', 'Input audio stream')
+                          .addOutput('visualOutput', 'Video', 'Visual output')
+                          .setCode('// Custom audio visualization shader code would go here');
+                
+                const toolId = modurustLibrary.addTool(customTool);
+                
+                if (window.blockchain) {
+                    blockchain.log(`🔧 Created MODURUST tool: ${customTool.name}`, 'success');
+                    blockchain.log(`   Tool ID: ${toolId}`, 'info');
+                    blockchain.log(`   Type: ${customTool.type}`, 'info');
+                    blockchain.log(`   Parameters: ${customTool.parameters.length}`, 'info');
+                }
+                
+                return toolId;
+            }
+        }
+        
+        // Initialize MODURUST example when library is available
+        if (window.modurustLibrary) {
+            setTimeout(() => {
+                createModurustToolExample();
+            }, 1000);
+        }
     </script>
+    <script src="webgpu-engine.js"></script>
+    <script src="webgpu-verify.js"></script>
 </body>
 </html>

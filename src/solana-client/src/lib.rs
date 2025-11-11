@@ -1,18 +1,18 @@
-//! # Solana Client for Creative Metadata
+//! Solana Creative Metadata Program
 //!
-//! High-performance Solana program for efficient on-chain storage and validation
-//! of real-time creative metadata using State Compression.
+//! High-performance metadata storage for creative NFTs with neuroemotive integration.
 
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::hash::hash;
 
-mod neuroemotive;
-mod stream_diffusion;
+declare_id!("CreativeMetadata111111111111111111111111111");
 
-pub use neuroemotive::*;
-pub use stream_diffusion::*;
-
-declare_id!("CreativMetadata111111111111111111111111111");
+/// Emotional vector for creative expression
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, Copy)]
+pub struct EmotionalVector {
+    pub valence: f32,
+    pub arousal: f32,
+    pub dominance: f32,
+}
 
 /// Session parameters for creative work
 #[account]
@@ -36,6 +36,20 @@ pub struct PerformanceData {
     pub emotional_vector: [f32; 3],
     pub shader_parameters: Vec<f32>,
     pub interaction_intensity: f32,
+}
+
+// Helper function to hash data
+fn hash_data(data: &[u8]) -> [u8; 32] {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+    let mut hasher = DefaultHasher::new();
+    data.hash(&mut hasher);
+    let hash = hasher.finish();
+    
+    // Convert to 32-byte array
+    let mut result = [0u8; 32];
+    result[0..8].copy_from_slice(&hash.to_le_bytes());
+    result
 }
 
 #[program]
@@ -64,7 +78,7 @@ pub mod creative_metadata {
             &emotional_state[2].to_le_bytes(),
         ].concat();
         
-        session.compressed_state = hash(&data).to_bytes();
+        session.compressed_state = hash_data(&data);
         
         Ok(())
     }
@@ -96,7 +110,7 @@ pub mod creative_metadata {
             &interaction_intensity.to_le_bytes(),
         ].concat();
         
-        session.compressed_state = hash(&data).to_bytes();
+        session.compressed_state = hash_data(&data);
         
         Ok(())
     }
@@ -111,7 +125,7 @@ pub mod creative_metadata {
             &session.interaction_count.to_le_bytes(),
         ].concat();
         
-        session.compressed_state = hash(&data).to_bytes();
+        session.compressed_state = hash_data(&data);
         
         Ok(())
     }

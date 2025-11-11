@@ -4,10 +4,9 @@
 //! Supports storage for NUWE, MODURUST, and Neuroemotive AI projects.
 
 use cid::Cid;
-use ipfs_api::IpfsClient as IpfsApiClient;
 use multihash::{Code, MultihashDigest};
 use serde::{Deserialize, Serialize};
-use std::io::Cursor;
+use chrono::Utc;
 
 mod ipfs_client;
 mod nuwe_storage;
@@ -20,8 +19,9 @@ pub use modurust_storage::*;
 pub use neuroemotive_storage::*;
 
 /// IPFS persistence layer for creative data
+#[derive(Clone)]
 pub struct IpfsPersistenceLayer {
-    client: IpfsApiClient,
+    client: IpfsClient,
     gateway_url: String,
 }
 
@@ -32,7 +32,7 @@ pub struct PinResponse {
     pub timestamp: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreativeAsset {
     pub name: String,
     pub description: String,
@@ -45,7 +45,7 @@ impl IpfsPersistenceLayer {
     /// Create a new IPFS persistence layer
     pub fn new(host: &str, port: u16) -> Self {
         Self {
-            client: IpfsClient::from_host_and_port(host, port).unwrap(),
+            client: IpfsClient::new(host.to_string(), port),
             gateway_url: format!("http://{}:{}", host, port),
         }
     }
@@ -62,41 +62,35 @@ impl IpfsPersistenceLayer {
     }
 
     /// Add data to IPFS and return CID
-    pub async fn add_to_ipfs(&self, data: &[u8]) -> Result<Cid, Box<dyn std::error::Error>> {
-        let cursor = Cursor::new(data);
-        let response = self.client.add(cursor).await?;
-
-        // Parse the CID from response
-        let cid = Cid::try_from(response.hash.as_str())?;
-
+    pub async fn add_to_ipfs(&self, data: Vec<u8>) -> Result<String, Box<dyn std::error::Error>> {
+        let cid = self.client.add_bytes(&data).await?;
         Ok(cid)
     }
 
     /// Pin content to IPFS
-    pub async fn pin_content(&self, cid: &Cid) -> Result<PinResponse, Box<dyn std::error::Error>> {
-        let pin_response = self.client.pin_add(cid.to_string().as_str(), true).await?;
+    pub async fn pin_content(&self, cid: &str) -> Result<PinResponse, Box<dyn std::error::Error>> {
+        self.client.pin(cid).await?;
 
         Ok(PinResponse {
-            cid: pin_response.pins[0].clone(),
+            cid: cid.to_string(),
             size: 0, // Would need to get actual size
-            timestamp: chrono::Utc::now().to_rfc3339(),
+            timestamp: Utc::now().to_rfc3339(),
         })
     }
 
     /// Retrieve data from IPFS by CID
-    pub async fn get_from_ipfs(&self, cid: &Cid) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let data = self.client.cat(cid.to_string().as_str()).await?;
-        let bytes = data.collect::<Vec<_>>().await;
-        Ok(bytes)
+    pub async fn get_from_ipfs(&self, cid: &str) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let data = self.client.get(cid).await?;
+        Ok(data)
     }
 
     /// Create and upload creative asset
-    pub async fn upload_creative_asset(&self, asset: CreativeAsset) -> Result<(Cid, PinResponse), Box<dyn std::error::Error>> {
+    pub async fn upload_creative_asset(&self, asset: CreativeAsset) -> Result<(String, PinResponse), Box<dyn std::error::Error>> {
         // Serialize asset data
         let asset_json = serde_json::to_vec(&asset)?;
 
         // Add to IPFS
-        let cid = self.add_to_ipfs(&asset_json).await?;
+        let cid = self.add_to_ipfs(asset_json).await?;
 
         // Pin the content
         let pin_response = self.pin_content(&cid).await?;
@@ -105,7 +99,7 @@ impl IpfsPersistenceLayer {
     }
 
     /// Generate metadata for NFT
-    pub fn generate_nft_metadata(&self, cid: &Cid, name: &str, description: &str) -> serde_json::Value {
+    pub fn generate_nft_metadata(&self, cid: &str, name: &str, description: &str) -> serde_json::Value {
         serde_json::json!({
             "name": name,
             "description": description,
@@ -146,7 +140,7 @@ pub fn create_creative_asset(
 pub async fn batch_upload_assets(
     layer: &IpfsPersistenceLayer,
     assets: Vec<CreativeAsset>
-) -> Result<Vec<(String, Cid, PinResponse)>, Box<dyn std::error::Error>> {
+) -> Result<Vec<(String, String, PinResponse)>, Box<dyn std::error::Error>> {
     let mut results = Vec::new();
 
     for asset in assets {
@@ -186,9 +180,9 @@ mod tests {
     #[test]
     fn test_nft_metadata_generation() {
         let layer = IpfsPersistenceLayer::new("localhost", 5001);
-        let cid = Cid::try_from("bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi").unwrap();
+        let cid = "QmTestCid123";
 
-        let metadata = layer.generate_nft_metadata(&cid, "Test NFT", "A test NFT");
+        let metadata = layer.generate_nft_metadata(cid, "Test NFT", "A test NFT");
 
         assert_eq!(metadata["name"], "Test NFT");
         assert!(metadata["image"].as_str().unwrap().starts_with("ipfs://"));

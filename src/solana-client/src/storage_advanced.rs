@@ -3,9 +3,6 @@
 //! Revolutionary storage system with state compression, delta encoding,
 //! and efficient biometric data management
 
-use anchor_lang::prelude::*;
-use std::collections::HashMap;
-
 /// Advanced storage account for biometric and creative data
 #[account]
 pub struct AdvancedStorage {
