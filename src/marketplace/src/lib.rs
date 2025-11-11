@@ -8,7 +8,7 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, UnorderedMap, UnorderedSet};
 use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near, AccountId, Balance, Promise, Timestamp};
+use near_sdk::{env, near, AccountId, Promise, Timestamp, NearToken};
 use near_contract_standards::non_fungible_token::TokenId;
 
 mod nuwe_marketplace;
@@ -18,8 +18,7 @@ pub use nuwe_marketplace::*;
 pub use modurust_marketplace::*;
 
 /// Marketplace contract
-#[near]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
 pub struct CreativeMarketplace {
     // Owner account
     pub owner_id: AccountId,
@@ -28,7 +27,7 @@ pub struct CreativeMarketplace {
     pub listings: UnorderedMap<ListingId, NFTListing>,
     
     // User balances
-    pub user_balances: LookupMap<AccountId, Balance>,
+    pub user_balances: LookupMap<AccountId, NearToken>,
     
     // DAO governance
     pub dao: DAO,
@@ -53,7 +52,7 @@ pub struct NFTListing {
     pub listing_id: ListingId,
     pub token_id: TokenId,
     pub seller: AccountId,
-    pub price: Balance,
+    pub price: NearToken,
     pub chain: ChainInfo,
     pub metadata: ListingMetadata,
     pub created_at: Timestamp,
@@ -97,8 +96,7 @@ pub struct NFTAttribute {
 }
 
 /// DAO governance structure
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
+#[derive(BorshDeserialize, BorshSerialize)]
 pub struct DAO {
     pub proposals: UnorderedMap<ProposalId, Proposal>,
     pub members: UnorderedSet<AccountId>,
@@ -138,13 +136,38 @@ pub enum ProposalType {
 }
 
 /// Proposal status
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(crate = "near_sdk::serde")]
 pub enum ProposalStatus {
     Active,
     Passed,
     Rejected,
     Executed,
+}
+
+/// Tool subscription model
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct ToolSubscription {
+    pub tool_id: String,
+    pub subscriber: AccountId,
+    pub start_time: Timestamp,
+    pub end_time: Timestamp,
+    pub price_per_month: NearToken,
+    pub auto_renew: bool,
+}
+
+/// Tool marketplace listing with royalties
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct ToolListing {
+    pub listing_id: u64,
+    pub tool_nft: ModurustToolNFT,
+    pub price: NearToken,
+    pub royalty_percentage: u32, // Basis points (e.g., 500 = 5%)
+    pub creator_royalty: AccountId,
+    pub subscription_available: bool,
+    pub subscription_price: Option<NearToken>,
 }
 
 #[near]
@@ -191,7 +214,7 @@ impl CreativeMarketplace {
             listing_id,
             token_id,
             seller: env::predecessor_account_id(),
-            price: price.into(),
+            price: NearToken::from_yoctonear(price.into()),
             chain: chain_info,
             metadata,
             created_at: env::block_timestamp(),
@@ -205,28 +228,22 @@ impl CreativeMarketplace {
     /// Buy an NFT
     #[payable]
     pub fn buy_nft(&mut self, listing_id: ListingId) -> Promise {
-        let listing = self.listings.get(&listing_id)
-            .expect("Listing not found");
-            
+        let mut listing = self.listings.get(&listing_id).expect("Listing not found");
+        
         if !listing.is_active {
             env::panic_str("Listing is not active");
         }
         
-        let price: U128 = listing.price.into();
         if env::attached_deposit() < listing.price {
             env::panic_str("Insufficient funds to buy NFT");
         }
         
-        // Transfer funds to seller
-        let seller_payment = Promise::new(listing.seller.clone())
-            .transfer(listing.price);
-            
-        // Mark listing as inactive
-        let mut updated_listing = listing.clone();
-        updated_listing.is_active = false;
-        self.listings.insert(&listing_id, &updated_listing);
+        listing.is_active = false;
+        self.listings.insert(&listing_id, &listing);
         
-        seller_payment
+        // Transfer funds to seller
+        Promise::new(listing.seller)
+            .transfer(listing.price)
     }
 
     /// Cancel a listing

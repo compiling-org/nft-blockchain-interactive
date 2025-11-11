@@ -4,7 +4,8 @@
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, AccountId, Balance, Timestamp};
+use near_sdk::{env, AccountId, Timestamp};
+use near_contract_standards::fungible_token::Balance;
 use near_contract_standards::non_fungible_token::TokenId;
 
 /// MODURUST tool ownership NFT
@@ -131,7 +132,7 @@ impl ModurustToolNFT {
     }
 
     /// Update usage statistics
-    pub fn record_usage(&mut self, user: &AccountId) {
+    pub fn record_usage(&mut self, _user: &AccountId) {
         self.usage_stats.total_uses += 1;
         // In real implementation, would track unique users properly
     }

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Test Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        canvas {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success { color: #2e7d32; }
+        .error { color: #c62828; }
+        .info { color: #1565c0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 WebGPU Test Demo</h1>
+        <p>Testing WebGPU functionality with emotional modulation</p>
+        
+        <canvas id="test-canvas" width="800" height="400"></canvas>
+        
+        <div>
+            <button onclick="startTest()">Start WebGPU Test</button>
+            <button onclick="stopTest()">Stop Test</button>
+            <button onclick="testCustomShader()">Test Custom Shader</button>
+        </div>
+        
+        <div class="log" id="log-container">
+            <div class="info">[00:00:00] WebGPU Test Demo Loaded</div>
+        </div>
+    </div>
+
+    <script src="webgpu-engine.js"></script>
+    <script src="webgpu-test.js"></script>
+    <script>
+        let webgpuEngine = null;
+        let animationId = null;
+        let startTime = Date.now();
+        
+        // Log function
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 20 entries
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        // Start WebGPU test
+        async function startTest() {
+            log('Initializing WebGPU engine...', 'info');
+            
+            const canvas = document.getElementById('test-canvas');
+            webgpuEngine = new WebGPUEngine(canvas);
+            
+            try {
+                const supported = await webgpuEngine.initialize();
+                if (supported) {
+                    log('WebGPU engine initialized successfully!', 'success');
+                    startRenderLoop();
+                } else {
+                    log('WebGPU not supported in this browser', 'error');
+                }
+            } catch (error) {
+                log(`WebGPU initialization failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Start render loop
+        function startRenderLoop() {
+            function render() {
+                if (webgpuEngine && webgpuEngine.isWebGPUSupported()) {
+                    // Update uniforms with current values
+                    const time = (Date.now() - startTime) * 0.001;
+                    webgpuEngine.updateUniforms({
+                        time: time,
+                        resolution: [800, 400],
+                        zoom: 1.0 + Math.sin(time * 0.5) * 0.5,
+                        iterations: 100,
+                        valence: Math.sin(time * 0.3) * 0.8,
+                        arousal: 0.5 + Math.sin(time * 0.7) * 0.3,
+                        dominance: 0.5 + Math.cos(time * 0.4) * 0.3
+                    });
+                    
+                    webgpuEngine.render();
+                }
+                
+                animationId = requestAnimationFrame(render);
+            }
+            
+            animationId = requestAnimationFrame(render);
+        }
+        
+        // Stop test
+        function stopTest() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+                log('WebGPU test stopped', 'info');
+            }
+        }
+        
+        // Test custom shader
+        async function testCustomShader() {
+            if (!webgpuEngine || !webgpuEngine.isWebGPUSupported()) {
+                log('WebGPU not initialized', 'error');
+                return;
+            }
+            
+            log('Testing custom shader...', 'info');
+            
+            // Custom vertex shader
+            const vertexShader = `
+                struct VertexOutput {
+                    @builtin(position) position: vec4<f32>,
+                    @location(0) uv: vec2<f32>,
+                };
+
+                @vertex
+                fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
+                    var out: VertexOutput;
+                    if (vertex_index == 0) {
+                        out.position = vec4<f32>(-1.0, -1.0, 0.0, 1.0);
+                        out.uv = vec2<f32>(0.0, 0.0);
+                    } else if (vertex_index == 1) {
+                        out.position = vec4<f32>(3.0, -1.0, 0.0, 1.0);
+                        out.uv = vec2<f32>(2.0, 0.0);
+                    } else {
+                        out.position = vec4<f32>(-1.0, 3.0, 0.0, 1.0);
+                        out.uv = vec2<f32>(0.0, 2.0);
+                    }
+                    return out;
+                }
+            `;
+            
+            // Custom fragment shader with more complex effects
+            const fragmentShader = `
+                struct Uniforms {
+                    time: f32,
+                    resolution: vec2<f32>,
+                    valence: f32,
+                    arousal: f32,
+                    dominance: f32,
+                };
+
+                @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+
+                struct VertexOutput {
+                    @builtin(position) position: vec4<f32>,
+                    @location(0) uv: vec2<f32>,
+                };
+
+                @fragment
+                fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+                    let uv = in.uv;
+                    
+                    // Create multiple animated patterns
+                    let pattern1 = sin(uv.x * 20.0 + uniforms.time * 2.0) * cos(uv.y * 15.0 + uniforms.time * 1.5);
+                    let pattern2 = cos(uv.x * 12.0 + uniforms.time * 1.7) * sin(uv.y * 18.0 + uniforms.time * 2.3);
+                    let pattern3 = sin((uv.x + uv.y) * 10.0 + uniforms.time * 0.8);
+                    
+                    // Combine patterns with emotional modulation
+                    let combined = (pattern1 + pattern2 + pattern3) / 3.0;
+                    let modulated = combined * (1.0 + uniforms.arousal * 0.5);
+                    
+                    // Color based on emotional state and patterns
+                    let color = vec3<f32>(
+                        0.5 + modulated * uniforms.valence,
+                        0.5 + modulated * uniforms.arousal,
+                        0.5 + modulated * uniforms.dominance
+                    );
+                    
+                    // Add some sparkle effect
+                    let sparkle = sin(uniforms.time * 10.0 + uv.x * 50.0) * sin(uniforms.time * 7.0 + uv.y * 30.0);
+                    let final_color = color + vec3<f32>(sparkle * 0.2);
+                    
+                    return vec4<f32>(final_color, 1.0);
+                }
+            `;
+            
+            try {
+                const success = await webgpuEngine.createPipeline(vertexShader, fragmentShader);
+                if (success) {
+                    log('Custom shader created successfully!', 'success');
+                } else {
+                    log('Failed to create custom shader', 'error');
+                }
+            } catch (error) {
+                log(`Custom shader creation failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopTest();
+        });
+    </script>
+</body>
+</html>

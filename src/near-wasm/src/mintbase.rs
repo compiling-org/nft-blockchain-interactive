@@ -3,7 +3,7 @@
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near, AccountId, Balance};
+use near_sdk::{env, AccountId};
 
 /// Mintbase-compatible NFT contract structure
 #[derive(BorshDeserialize, BorshSerialize)]

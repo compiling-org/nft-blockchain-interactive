@@ -3,6 +3,7 @@
 use std::error::Error;
 
 /// Simplified IPFS client for adding JSON data
+#[derive(Clone)]
 pub struct IpfsClient {
     pub host: String,
     pub port: u16,
@@ -29,13 +30,13 @@ impl IpfsClient {
     }
 
     /// Pin content by CID
-    pub async fn pin(&self, cid: &str) -> Result<(), Box<dyn Error>> {
+    pub async fn pin(&self, _cid: &str) -> Result<(), Box<dyn Error>> {
         // Mock implementation
         Ok(())
     }
 
     /// Get content by CID
-    pub async fn get(&self, cid: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+    pub async fn get(&self, _cid: &str) -> Result<Vec<u8>, Box<dyn Error>> {
         // Mock implementation
         Ok(Vec::new())
     }

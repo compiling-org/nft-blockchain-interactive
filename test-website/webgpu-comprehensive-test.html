@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Comprehensive Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        canvas {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        button {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .log {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        .warning { color: #fbbf24; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status-supported {
+            background: #22c55e;
+        }
+        .status-unsupported {
+            background: #ef4444;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .slider-value {
+            text-align: right;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 WebGPU Comprehensive Test</h1>
+        <p>Testing WebGPU functionality with emotional modulation and custom shaders</p>
+        
+        <div class="test-section">
+            <h2>WebGPU Status</h2>
+            <div id="webgpu-status">
+                <span class="status-indicator status-unsupported"></span>
+                <span>WebGPU Support: <strong>Checking...</strong></span>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Basic Rendering Test</h2>
+            <canvas id="basic-canvas" width="800" height="300"></canvas>
+            <div class="controls">
+                <button onclick="startBasicTest()" id="start-basic-btn">Start Basic Test</button>
+                <button onclick="stopBasicTest()" id="stop-basic-btn" disabled>Stop Test</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Custom Shader Test</h2>
+            <canvas id="custom-canvas" width="800" height="300"></canvas>
+            <div class="controls">
+                <div class="control-group">
+                    <label>Emotional Valence (-1 to 1)</label>
+                    <input type="range" id="valence" min="-1" max="1" step="0.1" value="0">
+                    <div class="slider-value" id="valence-value">0.0</div>
+                </div>
+                <div class="control-group">
+                    <label>Emotional Arousal (0 to 1)</label>
+                    <input type="range" id="arousal" min="0" max="1" step="0.1" value="0.5">
+                    <div class="slider-value" id="arousal-value">0.5</div>
+                </div>
+                <div class="control-group">
+                    <label>Emotional Dominance (0 to 1)</label>
+                    <input type="range" id="dominance" min="0" max="1" step="0.1" value="0.5">
+                    <div class="slider-value" id="dominance-value">0.5</div>
+                </div>
+            </div>
+            <div class="controls">
+                <button onclick="startCustomTest()" id="start-custom-btn">Start Custom Shader Test</button>
+                <button onclick="stopCustomTest()" id="stop-custom-btn" disabled>Stop Test</button>
+                <button onclick="testAdvancedShader()" id="advanced-shader-btn">Test Advanced Shader</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test Log</h2>
+            <div class="log" id="log-container">
+                <div class="info">[00:00:00] WebGPU Comprehensive Test Loaded</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="webgpu-engine.js"></script>
+    <script>
+        // Global variables
+        let basicEngine = null;
+        let customEngine = null;
+        let basicAnimationId = null;
+        let customAnimationId = null;
+        let startTime = Date.now();
+        
+        // Set up event listeners when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            checkWebGPUSupport();
+        });
+        
+        // Set up event listeners for controls
+        function setupEventListeners() {
+            // Emotional sliders
+            const valenceSlider = document.getElementById('valence');
+            valenceSlider.addEventListener('input', () => {
+                document.getElementById('valence-value').textContent = valenceSlider.value;
+            });
+            
+            const arousalSlider = document.getElementById('arousal');
+            arousalSlider.addEventListener('input', () => {
+                document.getElementById('arousal-value').textContent = arousalSlider.value;
+            });
+            
+            const dominanceSlider = document.getElementById('dominance');
+            dominanceSlider.addEventListener('input', () => {
+                document.getElementById('dominance-value').textContent = dominanceSlider.value;
+            });
+        }
+        
+        // Check WebGPU support
+        async function checkWebGPUSupport() {
+            const statusElement = document.getElementById('webgpu-status');
+            
+            if (!navigator.gpu) {
+                statusElement.innerHTML = '<span class="status-indicator status-unsupported"></span><span>WebGPU Support: <strong>Not Supported</strong></span>';
+                log('WebGPU is not supported in this browser', 'error');
+                return false;
+            }
+            
+            try {
+                const adapter = await navigator.gpu.requestAdapter();
+                if (!adapter) {
+                    statusElement.innerHTML = '<span class="status-indicator status-unsupported"></span><span>WebGPU Support: <strong>No Adapter Available</strong></span>';
+                    log('No WebGPU adapter available', 'warning');
+                    return false;
+                }
+                
+                const device = await adapter.requestDevice();
+                if (!device) {
+                    statusElement.innerHTML = '<span class="status-indicator status-unsupported"></span><span>WebGPU Support: <strong>Device Creation Failed</strong></span>';
+                    log('Failed to create WebGPU device', 'error');
+                    return false;
+                }
+                
+                statusElement.innerHTML = '<span class="status-indicator status-supported"></span><span>WebGPU Support: <strong>Supported</strong></span>';
+                log('WebGPU is supported in this browser', 'success');
+                return true;
+            } catch (error) {
+                statusElement.innerHTML = '<span class="status-indicator status-unsupported"></span><span>WebGPU Support: <strong>Error</strong></span>';
+                log(`WebGPU support check failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Log function
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 30 entries
+            while (logContainer.children.length > 30) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        // Start basic WebGPU test
+        async function startBasicTest() {
+            log('Initializing basic WebGPU engine...', 'info');
+            
+            const canvas = document.getElementById('basic-canvas');
+            basicEngine = new WebGPUEngine(canvas);
+            
+            try {
+                const supported = await basicEngine.initialize();
+                if (supported) {
+                    log('Basic WebGPU engine initialized successfully!', 'success');
+                    document.getElementById('start-basic-btn').disabled = true;
+                    document.getElementById('stop-basic-btn').disabled = false;
+                    startBasicRenderLoop();
+                } else {
+                    log('WebGPU not supported for basic test', 'error');
+                }
+            } catch (error) {
+                log(`Basic WebGPU initialization failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Start basic render loop
+        function startBasicRenderLoop() {
+            function render() {
+                if (basicEngine && basicEngine.isWebGPUSupported()) {
+                    // Update uniforms with current values
+                    const time = (Date.now() - startTime) * 0.001;
+                    basicEngine.updateUniforms({
+                        time: time,
+                        resolution: [800, 300],
+                        zoom: 1.0 + Math.sin(time * 0.5) * 0.3,
+                        iterations: 100,
+                        valence: Math.sin(time * 0.3) * 0.5,
+                        arousal: 0.5 + Math.sin(time * 0.7) * 0.2,
+                        dominance: 0.5 + Math.cos(time * 0.4) * 0.2
+                    });
+                    
+                    basicEngine.render();
+                }
+                
+                basicAnimationId = requestAnimationFrame(render);
+            }
+            
+            basicAnimationId = requestAnimationFrame(render);
+        }
+        
+        // Stop basic test
+        function stopBasicTest() {
+            if (basicAnimationId) {
+                cancelAnimationFrame(basicAnimationId);
+                basicAnimationId = null;
+                log('Basic WebGPU test stopped', 'info');
+                document.getElementById('start-basic-btn').disabled = false;
+                document.getElementById('stop-basic-btn').disabled = true;
+            }
+        }
+        
+        // Start custom shader test
+        async function startCustomTest() {
+            log('Initializing custom shader WebGPU engine...', 'info');
+            
+            const canvas = document.getElementById('custom-canvas');
+            customEngine = new WebGPUEngine(canvas);
+            
+            try {
+                const supported = await customEngine.initialize();
+                if (supported) {
+                    log('Custom shader WebGPU engine initialized successfully!', 'success');
+                    document.getElementById('start-custom-btn').disabled = true;
+                    document.getElementById('stop-custom-btn').disabled = false;
+                    startCustomRenderLoop();
+                } else {
+                    log('WebGPU not supported for custom shader test', 'error');
+                }
+            } catch (error) {
+                log(`Custom shader WebGPU initialization failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Start custom render loop
+        function startCustomRenderLoop() {
+            function render() {
+                if (customEngine && customEngine.isWebGPUSupported()) {
+                    // Get emotional parameters
+                    const valence = parseFloat(document.getElementById('valence').value);
+                    const arousal = parseFloat(document.getElementById('arousal').value);
+                    const dominance = parseFloat(document.getElementById('dominance').value);
+                    
+                    // Update uniforms with current values
+                    const time = (Date.now() - startTime) * 0.001;
+                    customEngine.updateUniforms({
+                        time: time,
+                        resolution: [800, 300],
+                        zoom: 1.0,
+                        iterations: 100,
+                        valence: valence,
+                        arousal: arousal,
+                        dominance: dominance
+                    });
+                    
+                    customEngine.render();
+                }
+                
+                customAnimationId = requestAnimationFrame(render);
+            }
+            
+            customAnimationId = requestAnimationFrame(render);
+        }
+        
+        // Stop custom test
+        function stopCustomTest() {
+            if (customAnimationId) {
+                cancelAnimationFrame(customAnimationId);
+                customAnimationId = null;
+                log('Custom shader WebGPU test stopped', 'info');
+                document.getElementById('start-custom-btn').disabled = false;
+                document.getElementById('stop-custom-btn').disabled = true;
+            }
+        }
+        
+        // Test advanced custom shader
+        async function testAdvancedShader() {
+            if (!customEngine || !customEngine.isWebGPUSupported()) {
+                log('Custom WebGPU engine not initialized', 'error');
+                return;
+            }
+            
+            log('Testing advanced custom shader...', 'info');
+            
+            // Advanced vertex shader with more complex geometry
+            const vertexShader = `
+                struct VertexOutput {
+                    @builtin(position) position: vec4<f32>,
+                    @location(0) uv: vec2<f32>,
+                };
+
+                @vertex
+                fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
+                    var out: VertexOutput;
+                    if (vertex_index == 0) {
+                        out.position = vec4<f32>(-1.0, -1.0, 0.0, 1.0);
+                        out.uv = vec2<f32>(0.0, 0.0);
+                    } else if (vertex_index == 1) {
+                        out.position = vec4<f32>(3.0, -1.0, 0.0, 1.0);
+                        out.uv = vec2<f32>(2.0, 0.0);
+                    } else {
+                        out.position = vec4<f32>(-1.0, 3.0, 0.0, 1.0);
+                        out.uv = vec2<f32>(0.0, 2.0);
+                    }
+                    return out;
+                }
+            `;
+            
+            // Advanced fragment shader with complex effects
+            const fragmentShader = `
+                struct Uniforms {
+                    time: f32,
+                    resolution: vec2<f32>,
+                    valence: f32,
+                    arousal: f32,
+                    dominance: f32,
+                };
+
+                @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+
+                struct VertexOutput {
+                    @builtin(position) position: vec4<f32>,
+                    @location(0) uv: vec2<f32>,
+                };
+
+                @fragment
+                fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+                    let uv = in.uv;
+                    
+                    // Create multiple animated patterns with emotional modulation
+                    let pattern1 = sin(uv.x * 20.0 + uniforms.time * 2.0 + uniforms.valence * 3.0) * 
+                                  cos(uv.y * 15.0 + uniforms.time * 1.5 + uniforms.arousal * 2.0);
+                    let pattern2 = cos(uv.x * 12.0 + uniforms.time * 1.7 + uniforms.dominance * 2.5) * 
+                                  sin(uv.y * 18.0 + uniforms.time * 2.3 + uniforms.valence * 1.5);
+                    let pattern3 = sin((uv.x + uv.y) * 10.0 + uniforms.time * 0.8 + uniforms.arousal * 3.0);
+                    
+                    // Combine patterns with emotional modulation
+                    let combined = (pattern1 + pattern2 + pattern3) / 3.0;
+                    let modulated = combined * (1.0 + uniforms.arousal * 0.8);
+                    
+                    // Color based on emotional state and patterns
+                    let r = 0.5 + modulated * uniforms.valence + sin(uniforms.time * 0.5) * 0.2;
+                    let g = 0.5 + modulated * uniforms.arousal + cos(uniforms.time * 0.7) * 0.2;
+                    let b = 0.5 + modulated * uniforms.dominance + sin(uniforms.time * 0.3) * 0.2;
+                    
+                    // Add some sparkle effect based on emotional intensity
+                    let sparkle = sin(uniforms.time * 10.0 + uv.x * 50.0) * 
+                                 sin(uniforms.time * 7.0 + uv.y * 30.0);
+                    let final_r = r + sparkle * uniforms.arousal * 0.3;
+                    let final_g = g + sparkle * uniforms.dominance * 0.3;
+                    let final_b = b + sparkle * uniforms.valence * 0.3;
+                    
+                    return vec4<f32>(final_r, final_g, final_b, 1.0);
+                }
+            `;
+            
+            try {
+                const success = await customEngine.createPipeline(vertexShader, fragmentShader);
+                if (success) {
+                    log('Advanced custom shader created successfully!', 'success');
+                } else {
+                    log('Failed to create advanced custom shader', 'error');
+                }
+            } catch (error) {
+                log(`Advanced custom shader creation failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopBasicTest();
+            stopCustomTest();
+        });
+    </script>
+</body>
+</html>

@@ -6,19 +6,18 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, UnorderedMap};
 use near_sdk::json_types::U128;
-use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near, AccountId, Promise, Timestamp};
+use near_sdk::{env, near, AccountId, Promise};
 use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
 use near_contract_standards::non_fungible_token::{NonFungibleToken, Token, TokenId};
 use near_contract_standards::non_fungible_token::core::NonFungibleTokenCore;
 use near_contract_standards::non_fungible_token::enumeration::NonFungibleTokenEnumeration;
 use near_contract_standards::non_fungible_token::approval::NonFungibleTokenApproval;
+use near_sdk::PromiseOrValue;
 
 pub use crate::emotional::*;
 pub use crate::interactive::*;
 pub use crate::mintbase::*;
 pub use crate::soulbound::*;
-pub use crate::fractal_studio::*;
 pub use crate::wgsl_studio::*;
 
 mod emotional;
@@ -29,8 +28,7 @@ mod fractal_studio;
 mod wgsl_studio;
 
 /// Main interactive NFT contract
-#[near]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
 pub struct InteractiveNftContract {
     // NEAR NFT standard implementation
     tokens: NonFungibleToken,
@@ -66,9 +64,9 @@ impl InteractiveNftContract {
             tokens: NonFungibleToken::new(
                 b"t".to_vec(),
                 owner_id.clone(),
-                None,
-                None,
-                None,
+                Some(b"o".to_vec()),
+                Some(b"e".to_vec()),
+                Some(b"s".to_vec()),
             ),
             owner_id,
             token_metadata: UnorderedMap::new(b"m".to_vec()),
@@ -89,7 +87,7 @@ impl InteractiveNftContract {
         initial_emotion: EmotionalData,
     ) -> Token {
         // Mint the NFT using standard NFT functionality
-        let token = self.tokens.mint(token_id.clone(), env::predecessor_account_id(), Some(metadata.clone()));
+        let token = self.tokens.internal_mint(token_id.clone(), env::predecessor_account_id(), Some(metadata.clone()));
         
         // Store the metadata
         self.token_metadata.insert(&token_id, &metadata);
@@ -119,7 +117,7 @@ impl InteractiveNftContract {
             event_type,
             timestamp: env::block_timestamp(),
             user_id: env::predecessor_account_id(),
-            data,
+            data: data.to_string(), // Convert Value to String
             intensity,
         };
 
@@ -166,7 +164,7 @@ impl InteractiveNftContract {
         identity_data: IdentityData,
     ) -> Token {
         // Mint the NFT
-        let token = self.tokens.mint(token_id.clone(), env::predecessor_account_id(), Some(metadata.clone()));
+        let token = self.tokens.internal_mint(token_id.clone(), env::predecessor_account_id(), Some(metadata.clone()));
         
         // Create soulbound token
         let soulbound_token = SoulboundToken {
@@ -197,7 +195,6 @@ impl InteractiveNftContract {
 }
 
 // Implement NEAR NFT standard methods
-#[near]
 impl NonFungibleTokenCore for InteractiveNftContract {
     fn nft_transfer(
         &mut self,
@@ -222,14 +219,14 @@ impl NonFungibleTokenCore for InteractiveNftContract {
         approval_id: Option<u64>,
         memo: Option<String>,
         msg: String,
-    ) -> Promise {
+    ) -> PromiseOrValue<bool> {
         // For soulbound tokens, prevent transfer
         if let Some(soulbound) = self.soulbound_tokens.get(&token_id) {
             if soulbound.soulbound {
                 env::panic_str("Cannot transfer soulbound tokens");
             }
         }
-        self.tokens.nft_transfer_call(receiver_id, token_id, approval_id, memo, msg)
+        self.tokens.nft_transfer_call(receiver_id, token_id, approval_id, memo, msg).into()
     }
 
     fn nft_token(&self, token_id: TokenId) -> Option<Token> {
@@ -237,7 +234,6 @@ impl NonFungibleTokenCore for InteractiveNftContract {
     }
 }
 
-#[near]
 impl NonFungibleTokenEnumeration for InteractiveNftContract {
     fn nft_total_supply(&self) -> U128 {
         self.tokens.nft_total_supply()
@@ -261,7 +257,6 @@ impl NonFungibleTokenEnumeration for InteractiveNftContract {
     }
 }
 
-#[near]
 impl NonFungibleTokenApproval for InteractiveNftContract {
     fn nft_approve(
         &mut self,
