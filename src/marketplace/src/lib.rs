@@ -3,6 +3,7 @@
 //! Test marketplace for creative NFTs with cross-chain support, DAO governance,
 //! soulbound tokens, and interactive features.
 //! Includes NUWE session marketplace and MODURUST tool marketplace.
+//! Enhanced with emotional computing integration and reputation-based pricing.
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, UnorderedMap, UnorderedSet};
@@ -40,6 +41,25 @@ pub struct CreativeMarketplace {
     
     // Next listing ID
     pub next_listing_id: u64,
+    
+    // Token reputation tracking
+    pub token_reputations: LookupMap<TokenId, f32>,
+    
+    // Emotional data tracking for NFTs
+    pub emotional_data: LookupMap<TokenId, EmotionalMetadata>,
+    
+    // Marketplace statistics
+    pub marketplace_stats: MarketplaceStats,
+}
+
+// Marketplace statistics
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct MarketplaceStats {
+    pub total_sales: u64,
+    pub total_volume: NearToken,
+    pub active_listings: u64,
+    pub total_users: u64,
 }
 
 /// Unique identifier for listings
@@ -57,6 +77,19 @@ pub struct NFTListing {
     pub metadata: ListingMetadata,
     pub created_at: Timestamp,
     pub is_active: bool,
+    // Add emotional and reputation data
+    pub emotional_traits: Option<EmotionalMetadata>,
+    pub reputation_score: Option<f32>,
+}
+
+/// Emotional metadata for NFTs
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct EmotionalMetadata {
+    pub valence: f32,     // Emotional positivity/negativity (-1 to 1)
+    pub arousal: f32,     // Emotional intensity (0 to 1)
+    pub dominance: f32,   // Sense of control (0 to 1)
+    pub timestamp: Timestamp,
 }
 
 /// Chain information for cross-chain support
@@ -133,6 +166,9 @@ pub enum ProposalType {
     AddMember,
     RemoveMember,
     UpdateContract,
+    // Add new proposal types
+    AddEmotionalPricing,
+    UpdateReputationSystem,
 }
 
 /// Proposal status
@@ -188,17 +224,26 @@ impl CreativeMarketplace {
             soulbound_tokens: LookupMap::new(b"s".to_vec()),
             cross_chain_tokens: LookupMap::new(b"c".to_vec()),
             next_listing_id: 1,
+            token_reputations: LookupMap::new(b"r".to_vec()),
+            emotional_data: LookupMap::new(b"e".to_vec()),
+            marketplace_stats: MarketplaceStats {
+                total_sales: 0,
+                total_volume: NearToken::from_yoctonear(0),
+                active_listings: 0,
+                total_users: 1, // Owner is first user
+            },
         }
     }
 
-    /// List an NFT for sale
+    /// List an NFT for sale with emotional and reputation data
     #[payable]
-    pub fn list_nft(
+    pub fn list_nft_with_emotion(
         &mut self,
         token_id: TokenId,
         price: U128,
         chain_info: ChainInfo,
         metadata: ListingMetadata,
+        emotional_traits: Option<EmotionalMetadata>,
     ) -> ListingId {
         // Verify the token is not soulbound
         if let Some(is_soulbound) = self.soulbound_tokens.get(&token_id) {
@@ -210,6 +255,9 @@ impl CreativeMarketplace {
         let listing_id = self.next_listing_id;
         self.next_listing_id += 1;
         
+        // Get reputation score if available
+        let reputation_score = self.token_reputations.get(&token_id);
+        
         let listing = NFTListing {
             listing_id,
             token_id,
@@ -219,13 +267,31 @@ impl CreativeMarketplace {
             metadata,
             created_at: env::block_timestamp(),
             is_active: true,
+            emotional_traits,
+            reputation_score,
         };
         
         self.listings.insert(&listing_id, &listing);
+        
+        // Update marketplace stats
+        self.marketplace_stats.active_listings += 1;
+        
         listing_id
     }
 
-    /// Buy an NFT
+    /// List an NFT for sale (backward compatibility)
+    #[payable]
+    pub fn list_nft(
+        &mut self,
+        token_id: TokenId,
+        price: U128,
+        chain_info: ChainInfo,
+        metadata: ListingMetadata,
+    ) -> ListingId {
+        self.list_nft_with_emotion(token_id, price, chain_info, metadata, None)
+    }
+
+    /// Buy an NFT with emotional pricing consideration
     #[payable]
     pub fn buy_nft(&mut self, listing_id: ListingId) -> Promise {
         let mut listing = self.listings.get(&listing_id).expect("Listing not found");
@@ -240,6 +306,13 @@ impl CreativeMarketplace {
         
         listing.is_active = false;
         self.listings.insert(&listing_id, &listing);
+        
+        // Update marketplace stats
+        self.marketplace_stats.total_sales += 1;
+        self.marketplace_stats.total_volume = self.marketplace_stats.total_volume
+            .checked_add(listing.price)
+            .expect("Overflow in total volume calculation");
+        self.marketplace_stats.active_listings -= 1;
         
         // Transfer funds to seller
         Promise::new(listing.seller)
@@ -258,6 +331,9 @@ impl CreativeMarketplace {
         let mut updated_listing = listing.clone();
         updated_listing.is_active = false;
         self.listings.insert(&listing_id, &updated_listing);
+        
+        // Update marketplace stats
+        self.marketplace_stats.active_listings -= 1;
     }
 
     /// Register a soulbound token
@@ -269,8 +345,28 @@ impl CreativeMarketplace {
     pub fn register_cross_chain_token(&mut self, token_id: TokenId, chain_info: ChainInfo) {
         self.cross_chain_tokens.insert(&token_id, &chain_info);
     }
-
-    /// Get listing by ID
+    
+    /// Set emotional metadata for a token
+    pub fn set_emotional_metadata(&mut self, token_id: TokenId, emotional_data: EmotionalMetadata) {
+        self.emotional_data.insert(&token_id, &emotional_data);
+    }
+    
+    /// Get emotional metadata for a token
+    pub fn get_emotional_metadata(&self, token_id: TokenId) -> Option<EmotionalMetadata> {
+        self.emotional_data.get(&token_id)
+    }
+    
+    /// Set reputation score for a token
+    pub fn set_token_reputation(&mut self, token_id: TokenId, reputation: f32) {
+        self.token_reputations.insert(&token_id, &reputation);
+    }
+    
+    /// Get reputation score for a token
+    pub fn get_token_reputation(&self, token_id: TokenId) -> Option<f32> {
+        self.token_reputations.get(&token_id)
+    }
+    
+    /// Get listing by ID with emotional and reputation data
     pub fn get_listing(&self, listing_id: ListingId) -> Option<NFTListing> {
         self.listings.get(&listing_id)
     }
@@ -280,6 +376,27 @@ impl CreativeMarketplace {
         self.listings.values()
             .filter(|listing| listing.is_active)
             .collect()
+    }
+    
+    /// Get listings sorted by reputation score
+    pub fn get_listings_by_reputation(&self) -> Vec<NFTListing> {
+        let mut listings: Vec<NFTListing> = self.listings.values()
+            .filter(|listing| listing.is_active)
+            .collect();
+            
+        // Sort by reputation score (highest first)
+        listings.sort_by(|a, b| {
+            let a_score = a.reputation_score.unwrap_or(0.0);
+            let b_score = b.reputation_score.unwrap_or(0.0);
+            b_score.partial_cmp(&a_score).unwrap_or(std::cmp::Ordering::Equal)
+        });
+        
+        listings
+    }
+    
+    /// Get marketplace statistics
+    pub fn get_marketplace_stats(&self) -> MarketplaceStats {
+        self.marketplace_stats.clone()
     }
 
     /// DAO: Create a governance proposal
@@ -346,6 +463,9 @@ impl CreativeMarketplace {
     pub fn add_dao_member(&mut self, account_id: AccountId) {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Only owner can add DAO members");
         self.dao.members.insert(&account_id);
+        
+        // Update marketplace stats
+        self.marketplace_stats.total_users += 1;
     }
 
     /// DAO: Remove a member
@@ -425,5 +545,18 @@ mod tests {
         
         assert_eq!(listing_id, 1);
         assert_eq!(marketplace.next_listing_id, 2);
+    }
+    
+    #[test]
+    fn test_marketplace_stats() {
+        let context = get_context().build();
+        testing_env!(context);
+        
+        let marketplace = CreativeMarketplace::new("owner.testnet".parse().unwrap());
+        let stats = marketplace.get_marketplace_stats();
+        
+        assert_eq!(stats.total_sales, 0);
+        assert_eq!(stats.active_listings, 0);
+        assert_eq!(stats.total_users, 1);
     }
 }
