@@ -1,9 +1,12 @@
 //! WebGPU/WebGL shader engine for browser-based creative tools
+//!
+//! Enhanced with emotional computing integration and advanced rendering capabilities.
 
 use wasm_bindgen::prelude::*;
 use web_sys::{WebGlRenderingContext, WebGlShader, WebGlProgram};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use chrono::{DateTime, Utc};
 
 /// WebGPU/WebGL shader engine for real-time creative rendering
 #[wasm_bindgen]
@@ -15,6 +18,123 @@ pub struct ShaderEngine {
     uniforms: HashMap<String, UniformValue>,
     time: f32,
     resolution: [f32; 2],
+    // Add emotional computing integration
+    emotional_state: Option<EmotionalVector>,
+    emotional_modulation_enabled: bool,
+    // Enhanced fields
+    emotional_history: Vec<EmotionalVector>,
+    emotional_complexity: f32,
+    creativity_index: f32,
+}
+
+/// Enhanced emotional vector for creative modulation
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EmotionalVector {
+    pub valence: f32,     // -1.0 to 1.0 (negative to positive emotions)
+    pub arousal: f32,     // 0.0 to 1.0 (calm to excited)
+    pub dominance: f32,   // 0.0 to 1.0 (submissive to dominant)
+    pub confidence: f32,  // Confidence in emotional assessment (0 to 1)
+    pub timestamp: DateTime<Utc>,   // When emotional data was captured
+    // Enhanced fields
+    pub emotional_category: String, // Human-readable emotional category
+    pub emotional_trajectory: Vec<EmotionalPoint>, // Historical emotional path
+    pub predicted_emotion: Option<Box<EmotionalVector>>, // Predicted next emotional state
+    pub emotional_complexity: f32, // Complexity of emotional journey
+}
+
+/// Point in emotional trajectory
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EmotionalPoint {
+    pub valence: f32,
+    pub arousal: f32,
+    pub timestamp: DateTime<Utc>,
+}
+
+impl EmotionalVector {
+    /// Create new emotional vector with enhanced fields
+    pub fn new(valence: f32, arousal: f32, dominance: f32) -> Self {
+        let timestamp = Utc::now();
+        let category = Self::get_emotional_category(valence, arousal);
+        
+        Self {
+            valence: valence.clamp(-1.0, 1.0),
+            arousal: arousal.clamp(0.0, 1.0),
+            dominance: dominance.clamp(0.0, 1.0),
+            confidence: 0.8, // Default confidence
+            timestamp,
+            emotional_category: category,
+            emotional_trajectory: vec![],
+            predicted_emotion: None,
+            emotional_complexity: 0.0,
+        }
+    }
+    
+    /// Get human-readable emotional category
+    pub fn get_emotional_category(valence: f32, arousal: f32) -> String {
+        match (valence, arousal) {
+            (v, a) if v > 0.5 && a > 0.5 => "Excited".to_string(),
+            (v, a) if v > 0.5 && a <= 0.5 => "Happy".to_string(),
+            (v, a) if v <= 0.5 && a > 0.5 => "Anxious".to_string(),
+            _ => "Calm".to_string(),
+        }
+    }
+    
+    /// Add point to emotional trajectory
+    pub fn add_trajectory_point(&mut self, valence: f32, arousal: f32) {
+        self.emotional_trajectory.push(EmotionalPoint {
+            valence,
+            arousal,
+            timestamp: Utc::now(),
+        });
+    }
+    
+    /// Calculate emotional complexity based on trajectory
+    pub fn calculate_complexity(&mut self) {
+        if self.emotional_trajectory.len() < 2 {
+            self.emotional_complexity = 0.0;
+            return;
+        }
+        
+        let mut total_distance = 0.0;
+        for i in 1..self.emotional_trajectory.len() {
+            let prev = &self.emotional_trajectory[i-1];
+            let curr = &self.emotional_trajectory[i];
+            let distance = ((curr.valence - prev.valence).powi(2) + 
+                           (curr.arousal - prev.arousal).powi(2)).sqrt();
+            total_distance += distance;
+        }
+        
+        // Normalize by number of points
+        self.emotional_complexity = (total_distance / self.emotional_trajectory.len() as f32).clamp(0.0, 1.0);
+    }
+    
+    /// Predict next emotional state
+    pub fn predict_next_emotion(&self) -> Option<EmotionalVector> {
+        if self.emotional_trajectory.len() < 3 {
+            return None;
+        }
+        
+        let len = self.emotional_trajectory.len();
+        let latest = &self.emotional_trajectory[len - 1];
+        let previous = &self.emotional_trajectory[len - 2];
+        let older = &self.emotional_trajectory[len - 3];
+        
+        // Simple linear extrapolation
+        let valence_delta = (latest.valence - previous.valence) * 0.7 + (previous.valence - older.valence) * 0.3;
+        let arousal_delta = (latest.arousal - previous.arousal) * 0.7 + (previous.arousal - older.arousal) * 0.3;
+        
+        Some(EmotionalVector {
+            valence: (latest.valence + valence_delta).clamp(-1.0, 1.0),
+            arousal: (latest.arousal + arousal_delta).clamp(0.0, 1.0),
+            dominance: self.dominance,
+            confidence: (self.confidence - 0.1).max(0.0), // Confidence decreases with prediction
+            timestamp: Utc::now(),
+            emotional_category: EmotionalVector::get_emotional_category(latest.valence + valence_delta, latest.arousal + arousal_delta),
+            emotional_trajectory: self.emotional_trajectory.clone(),
+            predicted_emotion: None, // Would need recursive handling in a real implementation
+            emotional_complexity: self.emotional_complexity,
+        })
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -48,9 +168,9 @@ impl ShaderEngine {
             .dyn_into::<WebGlRenderingContext>()?;
 
         // Enable extensions for better performance
-        gl.get_extension("OES_texture_float")?;
-        gl.get_extension("OES_standard_derivatives")?;
-        gl.get_extension("EXT_shader_texture_lod")?;
+        let _ = gl.get_extension("OES_texture_float");
+        let _ = gl.get_extension("OES_standard_derivatives");
+        let _ = gl.get_extension("EXT_shader_texture_lod");
 
         Ok(ShaderEngine {
             canvas,
@@ -60,6 +180,11 @@ impl ShaderEngine {
             uniforms: HashMap::new(),
             time: 0.0,
             resolution: [800.0, 600.0],
+            emotional_state: None,
+            emotional_modulation_enabled: false,
+            emotional_history: vec![],
+            emotional_complexity: 0.0,
+            creativity_index: 0.0,
         })
     }
 
@@ -151,6 +276,24 @@ impl ShaderEngine {
             &JsValue::from(self.resolution[1])
         )))?;
 
+        // Update emotional uniforms if enabled
+        // Clone the emotional state values to avoid borrowing conflicts
+        let emotional_values = if self.emotional_modulation_enabled {
+            self.emotional_state.as_ref().map(|emotion| {
+                (emotion.valence, emotion.arousal, emotion.dominance, emotion.confidence, emotion.emotional_complexity)
+            })
+        } else {
+            None
+        };
+
+        if let Some((valence, arousal, dominance, confidence, complexity)) = emotional_values {
+            self.set_uniform("u_emotion_valence", JsValue::from(valence))?;
+            self.set_uniform("u_emotion_arousal", JsValue::from(arousal))?;
+            self.set_uniform("u_emotion_dominance", JsValue::from(dominance))?;
+            self.set_uniform("u_emotion_confidence", JsValue::from(confidence))?;
+            self.set_uniform("u_emotion_complexity", JsValue::from(complexity))?;
+        }
+
         // Clear and draw
         self.gl.clear_color(0.0, 0.0, 0.0, 1.0);
         self.gl.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
@@ -170,6 +313,7 @@ impl ShaderEngine {
             "burning_ship" => (VERTEX_SHADER, BURNING_SHIP_FRAGMENT),
             "newton" => (VERTEX_SHADER, NEWTON_FRAGMENT),
             "phoenix" => (VERTEX_SHADER, PHOENIX_FRAGMENT),
+            "emotional_mandelbrot" => (VERTEX_SHADER, EMOTIONAL_MANDELBROT_FRAGMENT),
             _ => return Err(JsValue::from_str("Unknown preset"))
         };
 
@@ -210,6 +354,100 @@ impl ShaderEngine {
         }
 
         Ok(JsValue::from(obj))
+    }
+
+    /// Set emotional state for modulation
+    #[wasm_bindgen]
+    pub fn set_emotional_state(&mut self, valence: f32, arousal: f32, dominance: f32) {
+        let mut emotional_vector = EmotionalVector::new(valence, arousal, dominance);
+        
+        // Add to history
+        self.emotional_history.push(emotional_vector.clone());
+        
+        // Keep only the last 100 emotional states
+        if self.emotional_history.len() > 100 {
+            self.emotional_history.remove(0);
+        }
+        
+        // Update complexity
+        emotional_vector.add_trajectory_point(valence, arousal);
+        emotional_vector.calculate_complexity();
+        self.emotional_complexity = emotional_vector.emotional_complexity;
+        
+        // Update creativity index based on emotional diversity
+        self.update_creativity_index();
+        
+        self.emotional_state = Some(emotional_vector);
+    }
+    
+    /// Update creativity index based on emotional history
+    fn update_creativity_index(&mut self) {
+        if self.emotional_history.len() < 2 {
+            self.creativity_index = 0.0;
+            return;
+        }
+        
+        // Calculate variance in emotional dimensions
+        let len = self.emotional_history.len() as f32;
+        let avg_valence: f32 = self.emotional_history.iter().map(|e| e.valence).sum::<f32>() / len;
+        let avg_arousal: f32 = self.emotional_history.iter().map(|e| e.arousal).sum::<f32>() / len;
+        
+        let valence_variance: f32 = self.emotional_history.iter().map(|e| (e.valence - avg_valence).powi(2)).sum::<f32>() / len;
+        let arousal_variance: f32 = self.emotional_history.iter().map(|e| (e.arousal - avg_arousal).powi(2)).sum::<f32>() / len;
+        
+        // Creativity index is higher when there's more variation
+        let variance = (valence_variance + arousal_variance).sqrt();
+        self.creativity_index = variance.clamp(0.0, 1.0);
+    }
+
+    /// Enable/disable emotional modulation
+    #[wasm_bindgen]
+    pub fn set_emotional_modulation(&mut self, enabled: bool) {
+        self.emotional_modulation_enabled = enabled;
+    }
+
+    /// Get current emotional state
+    #[wasm_bindgen]
+    pub fn get_emotional_state(&self) -> Option<JsValue> {
+        if let Some(emotion) = &self.emotional_state {
+            let obj = js_sys::Object::new();
+            let _ = js_sys::Reflect::set(&obj, &"valence".into(), &JsValue::from(emotion.valence));
+            let _ = js_sys::Reflect::set(&obj, &"arousal".into(), &JsValue::from(emotion.arousal));
+            let _ = js_sys::Reflect::set(&obj, &"dominance".into(), &JsValue::from(emotion.dominance));
+            let _ = js_sys::Reflect::set(&obj, &"confidence".into(), &JsValue::from(emotion.confidence));
+            let _ = js_sys::Reflect::set(&obj, &"emotional_category".into(), &JsValue::from(&emotion.emotional_category));
+            let _ = js_sys::Reflect::set(&obj, &"emotional_complexity".into(), &JsValue::from(emotion.emotional_complexity));
+            Some(JsValue::from(obj))
+        } else {
+            None
+        }
+    }
+    
+    /// Get emotional history
+    #[wasm_bindgen]
+    pub fn get_emotional_history(&self) -> JsValue {
+        let arr = js_sys::Array::new();
+        for emotion in &self.emotional_history {
+            let obj = js_sys::Object::new();
+            let _ = js_sys::Reflect::set(&obj, &"valence".into(), &JsValue::from(emotion.valence));
+            let _ = js_sys::Reflect::set(&obj, &"arousal".into(), &JsValue::from(emotion.arousal));
+            let _ = js_sys::Reflect::set(&obj, &"dominance".into(), &JsValue::from(emotion.dominance));
+            let _ = js_sys::Reflect::set(&obj, &"timestamp".into(), &JsValue::from(emotion.timestamp.timestamp()));
+            arr.push(&obj);
+        }
+        JsValue::from(arr)
+    }
+    
+    /// Get emotional complexity
+    #[wasm_bindgen]
+    pub fn get_emotional_complexity(&self) -> f32 {
+        self.emotional_complexity
+    }
+    
+    /// Get creativity index
+    #[wasm_bindgen]
+    pub fn get_creativity_index(&self) -> f32 {
+        self.creativity_index
     }
 
     // Private methods
@@ -353,8 +591,8 @@ void main() {
         if(i >= u_max_iter) break;
         if(dot(z, z) > 4.0) break;
 
-        float x = abs(z.x * z.x - z.y * z.y) + c.x;
-        float y = abs(2.0 * z.x * z.y) + c.y;
+        float x = z.x * z.x - z.y * z.y + c.x;
+        float y = 2.0 * abs(z.x * z.y) + c.y;
         z = vec2(x, y);
         iter = i;
     }
@@ -371,19 +609,47 @@ precision highp float;
 uniform float u_time;
 uniform vec2 u_resolution;
 uniform float u_zoom;
+uniform vec2 u_offset;
+uniform int u_max_iter;
+uniform vec3 u_color1;
+uniform vec3 u_color2;
 
 void main() {
     vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-    vec2 z = uv * u_zoom;
-    
-    for(int i = 0; i < 50; i++) {
+    vec2 z = uv * u_zoom + u_offset;
+
+    int iter = 0;
+    for(int i = 0; i < 1000; i++) {
+        if(i >= u_max_iter) break;
+        
+        // Newton's method for f(z) = z^3 - 1
         vec2 z2 = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y);
-        vec2 z3 = vec2(z2.x * z2.x - z2.y * z2.y, z2.x * z.y + z2.y * z.x);
-        vec2 dz = 3.0 * z2;
-        z = z - vec2((z3.x - 1.0) / dz.x, z3.y / dz.y);
+        vec2 z3 = vec2(z2.x * z.x - z2.y * z.y, z2.x * z.y + z2.y * z.x);
+        vec2 fz = vec2(z3.x - 1.0, z3.y);
+        
+        // f'(z) = 3z^2
+        vec2 dfz = vec2(3.0 * z2.x, 3.0 * z2.y);
+        
+        // Avoid division by zero
+        float denom = dfz.x * dfz.x + dfz.y * dfz.y;
+        if(denom < 0.0001) break;
+        
+        vec2 new_z = vec2(
+            z.x - (fz.x * dfz.x + fz.y * dfz.y) / denom,
+            z.y - (fz.y * dfz.x - fz.x * dfz.y) / denom
+        );
+        
+        if(distance(z, new_z) < 0.0001) {
+            iter = i;
+            break;
+        }
+        
+        z = new_z;
     }
-    
-    gl_FragColor = vec4(abs(z.x), abs(z.y), 0.5, 1.0);
+
+    float t = float(iter) / float(u_max_iter);
+    vec3 color = mix(u_color1, u_color2, t);
+    gl_FragColor = vec4(color, 1.0);
 }
 "#;
 
@@ -393,26 +659,88 @@ precision highp float;
 uniform float u_time;
 uniform vec2 u_resolution;
 uniform float u_zoom;
+uniform vec2 u_offset;
 uniform int u_max_iter;
+uniform vec3 u_color1;
+uniform vec3 u_color2;
 
 void main() {
     vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-    vec2 z = uv * u_zoom;
-    vec2 p = vec2(0.0);
-    
+    vec2 c = uv * u_zoom + u_offset;
+    vec2 z = vec2(0.0);
+    vec2 z1 = vec2(0.0);
+
     int iter = 0;
     for(int i = 0; i < 1000; i++) {
         if(i >= u_max_iter) break;
-        if(length(z) > 4.0) break;
-        
-        vec2 zn = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + vec2(0.56667, -0.5) + p * 0.5;
-        p = z;
-        z = zn;
+        if(dot(z, z) > 4.0) break;
+
+        float x = z.x * z.x - z.y * z.y + c.x + 0.56667 * z1.x;
+        float y = 2.0 * z.x * z.y + c.y - 0.5 * z1.y;
+        z1 = z;
+        z = vec2(x, y);
         iter = i;
     }
+
+    float t = float(iter) / float(u_max_iter);
+    vec3 color = mix(u_color1, u_color2, t);
+    gl_FragColor = vec4(color, 1.0);
+}
+"#;
+
+// Enhanced emotional fractal shader
+const EMOTIONAL_MANDELBROT_FRAGMENT: &str = r#"
+precision highp float;
+
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform float u_zoom;
+uniform vec2 u_offset;
+uniform int u_max_iter;
+uniform vec3 u_color1;
+uniform vec3 u_color2;
+// Emotional uniforms
+uniform float u_emotion_valence;
+uniform float u_emotion_arousal;
+uniform float u_emotion_dominance;
+uniform float u_emotion_confidence;
+uniform float u_emotion_complexity;
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+    vec2 c = uv * u_zoom + u_offset;
     
-    float color = length(z) / 4.0;
-    gl_FragColor = vec4(vec3(color), 1.0);
+    // Modulate based on emotional state
+    c.x += u_emotion_valence * 0.1 * u_emotion_confidence;
+    c.y += u_emotion_arousal * 0.05 * u_emotion_dominance;
+    
+    vec2 z = vec2(0.0);
+
+    int iter = 0;
+    for(int i = 0; i < 1000; i++) {
+        if(i >= u_max_iter) break;
+        if(dot(z, z) > 4.0) break;
+
+        float x = z.x * z.x - z.y * z.y + c.x;
+        float y = 2.0 * z.x * z.y + c.y;
+        z = vec2(x, y);
+        iter = i;
+    }
+
+    float t = float(iter) / float(u_max_iter);
+    
+    // Emotional color modulation
+    vec3 base_color = mix(u_color1, u_color2, t);
+    vec3 emotion_color = vec3(
+        abs(u_emotion_valence) * u_emotion_confidence,
+        u_emotion_arousal * u_emotion_dominance,
+        u_emotion_complexity
+    );
+    
+    // Blend based on emotional intensity
+    float emotional_blend = 0.3 * length(vec2(u_emotion_valence, u_emotion_arousal));
+    vec3 final_color = mix(base_color, emotion_color, emotional_blend);
+    gl_FragColor = vec4(final_color, 1.0);
 }
 "#;
 
@@ -468,4 +796,30 @@ impl PerformanceMonitor {
     pub fn get_fps(&self) -> f32 {
         self.fps
     }
+}
+
+/// Utility function to create emotional vector
+#[wasm_bindgen]
+pub fn create_emotional_vector(valence: f32, arousal: f32, dominance: f32) -> JsValue {
+    let mut emotion = EmotionalVector::new(valence, arousal, dominance);
+    
+    // Add to trajectory
+    emotion.add_trajectory_point(valence, arousal);
+    emotion.calculate_complexity();
+    
+    let obj = js_sys::Object::new();
+    let _ = js_sys::Reflect::set(&obj, &"valence".into(), &JsValue::from(emotion.valence));
+    let _ = js_sys::Reflect::set(&obj, &"arousal".into(), &JsValue::from(emotion.arousal));
+    let _ = js_sys::Reflect::set(&obj, &"dominance".into(), &JsValue::from(emotion.dominance));
+    let _ = js_sys::Reflect::set(&obj, &"confidence".into(), &JsValue::from(emotion.confidence));
+    let _ = js_sys::Reflect::set(&obj, &"emotional_category".into(), &JsValue::from(&emotion.emotional_category));
+    let _ = js_sys::Reflect::set(&obj, &"emotional_complexity".into(), &JsValue::from(emotion.emotional_complexity));
+    
+    JsValue::from(obj)
+}
+
+/// Utility function to get emotional category
+#[wasm_bindgen]
+pub fn get_emotional_category(valence: f32, arousal: f32, dominance: f32) -> String {
+    EmotionalVector::get_emotional_category(valence, arousal)
 }
