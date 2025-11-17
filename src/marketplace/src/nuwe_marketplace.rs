@@ -4,7 +4,7 @@
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, AccountId, Balance, Timestamp};
+use near_sdk::{env, AccountId, Timestamp};
 use near_contract_standards::non_fungible_token::TokenId;
 
 /// NUWE creative session NFT

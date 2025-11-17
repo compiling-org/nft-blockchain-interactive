@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Creative Engine Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #00d4ff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .demo-area {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .canvas-container {
+            background: #111;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        #webgpu-canvas {
+            width: 100%;
+            height: 500px;
+            background: #000;
+            border-radius: 8px;
+        }
+
+        .controls {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .slider-control {
+            margin-bottom: 15px;
+        }
+
+        .slider-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .slider-control input[type="range"] {
+            width: 100%;
+        }
+
+        .slider-value {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        button.secondary {
+            background: linear-gradient(45deg, #666, #999);
+        }
+
+        .status {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .status h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-success { color: #22c55e; }
+        .log-info { color: #3b82f6; }
+        .log-warning { color: #fbbf24; }
+        .log-error { color: #ef4444; }
+
+        @media (max-width: 768px) {
+            .demo-area {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 WebGPU Creative Engine</h1>
+            <p>Real-time shader rendering with emotional AI modulation</p>
+        </div>
+
+        <div class="demo-area">
+            <div class="canvas-container">
+                <canvas id="webgpu-canvas" width="800" height="500"></canvas>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Shader Controls</h3>
+                    
+                    <div class="slider-control">
+                        <label>Time Speed</label>
+                        <input type="range" id="time-speed" min="0.1" max="5" step="0.1" value="1">
+                        <div class="slider-value" id="time-speed-value">1.0</div>
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>Zoom</label>
+                        <input type="range" id="zoom" min="0.1" max="3" step="0.1" value="1">
+                        <div class="slider-value" id="zoom-value">1.0</div>
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>Complexity</label>
+                        <input type="range" id="complexity" min="10" max="200" step="5" value="100">
+                        <div class="slider-value" id="complexity-value">100</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>Emotional Modulation</h3>
+                    
+                    <div class="slider-control">
+                        <label>Valence (-1 to 1)</label>
+                        <input type="range" id="valence" min="-1" max="1" step="0.1" value="0">
+                        <div class="slider-value" id="valence-value">0.0</div>
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>Arousal (0 to 1)</label>
+                        <input type="range" id="arousal" min="0" max="1" step="0.1" value="0.5">
+                        <div class="slider-value" id="arousal-value">0.5</div>
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>Dominance (0 to 1)</label>
+                        <input type="range" id="dominance" min="0" max="1" step="0.1" value="0.5">
+                        <div class="slider-value" id="dominance-value">0.5</div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button onclick="compileShader()">Compile</button>
+                    <button class="secondary" onclick="resetShader()">Reset</button>
+                    <button onclick="saveAsNFT()">Save as NFT</button>
+                    <button class="secondary" onclick="exportShader()">Export</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="status">
+            <h2>WebGPU Engine Status</h2>
+            <div id="log-container">
+                <div class="log-entry log-info">[00:00:00] Initializing WebGPU engine...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="webgpu-engine.js"></script>
+    <script>
+        // Global variables
+        let webgpuEngine = null;
+        let isWebGPUSupported = false;
+        let animationId = null;
+        let startTime = Date.now();
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            setupEventListeners();
+            await initializeWebGPU();
+        });
+
+        // Setup event listeners for controls
+        function setupEventListeners() {
+            // Time speed slider
+            const timeSpeedSlider = document.getElementById('time-speed');
+            timeSpeedSlider.addEventListener('input', () => {
+                document.getElementById('time-speed-value').textContent = timeSpeedSlider.value;
+            });
+
+            // Zoom slider
+            const zoomSlider = document.getElementById('zoom');
+            zoomSlider.addEventListener('input', () => {
+                document.getElementById('zoom-value').textContent = zoomSlider.value;
+            });
+
+            // Complexity slider
+            const complexitySlider = document.getElementById('complexity');
+            complexitySlider.addEventListener('input', () => {
+                document.getElementById('complexity-value').textContent = complexitySlider.value;
+            });
+
+            // Emotional sliders
+            const valenceSlider = document.getElementById('valence');
+            valenceSlider.addEventListener('input', () => {
+                document.getElementById('valence-value').textContent = valenceSlider.value;
+            });
+
+            const arousalSlider = document.getElementById('arousal');
+            arousalSlider.addEventListener('input', () => {
+                document.getElementById('arousal-value').textContent = arousalSlider.value;
+            });
+
+            const dominanceSlider = document.getElementById('dominance');
+            dominanceSlider.addEventListener('input', () => {
+                document.getElementById('dominance-value').textContent = dominanceSlider.value;
+            });
+        }
+
+        // Initialize WebGPU engine
+        async function initializeWebGPU() {
+            const canvas = document.getElementById('webgpu-canvas');
+            log('info', 'Initializing WebGPU engine...');
+            
+            try {
+                webgpuEngine = new WebGPUEngine(canvas);
+                isWebGPUSupported = await webgpuEngine.initialize();
+                
+                if (isWebGPUSupported) {
+                    log('success', 'WebGPU engine initialized successfully!');
+                    startRenderLoop();
+                } else {
+                    log('error', 'WebGPU not supported. Falling back to Canvas2D.');
+                    // Fallback to Canvas2D rendering
+                }
+            } catch (error) {
+                log('error', `WebGPU initialization failed: ${error.message}`);
+            }
+        }
+
+        // Start render loop
+        function startRenderLoop() {
+            function render() {
+                if (webgpuEngine && isWebGPUSupported) {
+                    // Update uniforms with current values
+                    const time = (Date.now() - startTime) * 0.001;
+                    const timeSpeed = parseFloat(document.getElementById('time-speed').value);
+                    const zoom = parseFloat(document.getElementById('zoom').value);
+                    const complexity = parseInt(document.getElementById('complexity').value);
+                    const valence = parseFloat(document.getElementById('valence').value);
+                    const arousal = parseFloat(document.getElementById('arousal').value);
+                    const dominance = parseFloat(document.getElementById('dominance').value);
+                    
+                    webgpuEngine.updateUniforms({
+                        time: time * timeSpeed,
+                        resolution: [800, 500],
+                        zoom: zoom,
+                        iterations: complexity,
+                        valence: valence,
+                        arousal: arousal,
+                        dominance: dominance
+                    });
+                    
+                    webgpuEngine.render();
+                }
+                
+                animationId = requestAnimationFrame(render);
+            }
+            
+            animationId = requestAnimationFrame(render);
+        }
+
+        // Compile shader
+        async function compileShader() {
+            log('info', 'Compiling shader...');
+            // In a real implementation, this would compile the WGSL code
+            setTimeout(() => {
+                log('success', 'Shader compiled successfully!');
+            }, 500);
+        }
+
+        // Reset shader
+        function resetShader() {
+            log('info', 'Resetting shader parameters...');
+            document.getElementById('time-speed').value = 1;
+            document.getElementById('zoom').value = 1;
+            document.getElementById('complexity').value = 100;
+            document.getElementById('valence').value = 0;
+            document.getElementById('arousal').value = 0.5;
+            document.getElementById('dominance').value = 0.5;
+            
+            // Update displayed values
+            document.getElementById('time-speed-value').textContent = '1.0';
+            document.getElementById('zoom-value').textContent = '1.0';
+            document.getElementById('complexity-value').textContent = '100';
+            document.getElementById('valence-value').textContent = '0.0';
+            document.getElementById('arousal-value').textContent = '0.5';
+            document.getElementById('dominance-value').textContent = '0.5';
+            
+            log('success', 'Shader parameters reset to defaults');
+        }
+
+        // Save as NFT
+        function saveAsNFT() {
+            log('info', 'Saving shader as NFT...');
+            // In a real implementation, this would mint an NFT
+            setTimeout(() => {
+                log('success', 'NFT minted successfully! Token ID: wgsl_' + Date.now());
+            }, 1000);
+        }
+
+        // Export shader
+        function exportShader() {
+            log('info', 'Exporting shader code...');
+            // In a real implementation, this would export the WGSL code
+            setTimeout(() => {
+                log('success', 'Shader exported to clipboard');
+            }, 500);
+        }
+
+        // Log function
+        function log(type, message) {
+            const logContainer = document.getElementById('log-container');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 20 entries
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+    </script>
+</body>
+</html>

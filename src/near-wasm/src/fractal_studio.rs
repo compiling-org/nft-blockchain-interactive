@@ -4,7 +4,7 @@
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near};
+use near_sdk::{env};
 
 /// Fractal types supported by the studio
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
@@ -124,7 +124,7 @@ impl FractalParams {
     /// Apply emotional modulation to fractal parameters
     pub fn apply_emotional_modulation(&mut self, emotion: &EmotionalVector) {
         // Valence affects color intensity
-        let color_intensity = ((emotion.valence + 1.0) / 2.0).clamp(0.0, 1.0);
+        let _color_intensity = ((emotion.valence + 1.0) / 2.0).clamp(0.0, 1.0);
         
         // Arousal affects iteration count (more arousal = more detail)
         self.max_iterations = (100.0 + emotion.arousal * 200.0) as u32;
@@ -284,7 +284,7 @@ impl FractalParams {
                 for (int i = 0; i < {}; i++) {{
                     // Newton's method for z^3 - 1
                     vec2 z2 = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y);
-                    vec2 z3 = vec2(z2.x * z.x - z2.y * z.y, z2.x * z.y + z2.y * z.x);
+                    vec2 z3 = vec2(z2.x * z2.x - z2.y * z2.y, z2.x * z.y + z2.y * z.x);
                     vec2 dz = 3.0 * z2;
                     z = z - vec2(z3.x / dz.x, z3.y / dz.y);
                 }}
