@@ -47,6 +47,13 @@ fi
 
 cd ../..
 
+# Copy specific documentation to grant repository
+echo ""
+echo "📄 Copying specific documentation..."
+cp NEAR_SPECIFIC_README.md ../grant-repositories/near-creative-engine/README.md
+cp NEAR_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/near-creative-engine/TECHNICAL_ARCHITECTURE.md  
+cp NEAR_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/near-creative-engine/IMPLEMENTATION_REPORT.md
+
 echo ""
 echo "============================================"
 echo "✅ NEAR Grant Build Complete!"

@@ -23,6 +23,13 @@ fi
 
 cd ../..
 
+# Copy specific documentation to grant repository
+echo ""
+echo "📄 Copying specific documentation..."
+cp POLKADOT_SPECIFIC_README.md ../grant-repositories/polkadot-creative-identity/README.md
+cp POLKADOT_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/polkadot-creative-identity/TECHNICAL_ARCHITECTURE.md  
+cp POLKADOT_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/polkadot-creative-identity/IMPLEMENTATION_REPORT.md
+
 echo ""
 echo "============================================"
 echo "✅ Polkadot Grant Build Complete!"
