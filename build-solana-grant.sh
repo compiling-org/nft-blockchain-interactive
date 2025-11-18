@@ -38,6 +38,13 @@ fi
 
 cd ../..
 
+# Copy specific documentation to grant repository
+echo ""
+echo "📄 Copying specific documentation..."
+cp SOLANA_SPECIFIC_README.md ../grant-repositories/solana-emotional-metadata/README.md
+cp SOLANA_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/solana-emotional-metadata/TECHNICAL_ARCHITECTURE.md  
+cp SOLANA_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/solana-emotional-metadata/IMPLEMENTATION_REPORT.md
+
 echo ""
 echo "============================================"
 echo "✅ Solana Grant Build Complete!"

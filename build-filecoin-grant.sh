@@ -35,6 +35,13 @@ fi
 
 cd ../..
 
+# Copy specific documentation to grant repository
+echo ""
+echo "📄 Copying specific documentation..."
+cp FILECOIN_SPECIFIC_README.md ../grant-repositories/filecoin-creative-storage/README.md
+cp FILECOIN_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/filecoin-creative-storage/TECHNICAL_ARCHITECTURE.md  
+cp FILECOIN_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/filecoin-creative-storage/IMPLEMENTATION_REPORT.md
+
 echo ""
 echo "============================================"
 echo "✅ Filecoin Grant Build Complete!"

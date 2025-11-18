@@ -20,7 +20,7 @@ setup_and_push() {
     
     echo "📦 Setting up $repo_name..."
     
-    cd "$repo_name" || exit 1
+    cd "../grant-repositories/$repo_name" || exit 1
     
     # Initialize git if not already done
     if [ ! -d ".git" ]; then
@@ -37,14 +37,14 @@ setup_and_push() {
     
     # Commit if there are changes
     if ! git diff-index --quiet HEAD --; then
-        git commit -m "Initial commit with comprehensive living documentation"
+        git commit -m "Updated with comprehensive living documentation and specific implementation details"
     fi
     
     # Push to GitHub (with force to overwrite existing content)
     echo "🚀 Pushing $repo_name to GitHub..."
     git push -f -u origin main || git push -f -u origin master
     
-    cd ..
+    cd ../../blockchain-nft-interactive
     echo "✅ Completed $repo_name"
     echo ""
 }

@@ -45,7 +45,14 @@ else
     echo "⚠️  Some tests failed"
 fi
 
-cd ../..
+cd ..
+
+# Copy specific documentation to grant repository
+echo ""
+echo "📄 Copying specific documentation..."
+cp RUST_SPECIFIC_README.md ../grant-repositories/rust-emotional-engine/README.md
+cp RUST_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/rust-emotional-engine/TECHNICAL_ARCHITECTURE.md  
+cp RUST_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/rust-emotional-engine/IMPLEMENTATION_REPORT.md
 
 echo ""
 echo "============================================"
