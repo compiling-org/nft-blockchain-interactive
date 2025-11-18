@@ -7,22 +7,22 @@ The Polkadot Creative Identity system uses Subxt (Substrate RPC client) to provi
 ```mermaid
 graph TB
     subgraph "Client Layer"
-        A[Subxt Client]
-        B[Emotional Analytics Engine]
-        C[Soulbound Identity Manager]
-        D[Cross-chain Bridge]
+        A["Subxt Client"]
+        B["Emotional Analytics Engine"]
+        C["Soulbound Identity Manager"]
+        D["Cross-chain Bridge"]
     end
     
     subgraph "Polkadot Network"
-        E[Relay Chain]
-        F[Parachains]
-        G[Bridge Hub]
+        E["Relay Chain"]
+        F["Parachains"]
+        G["Bridge Hub"]
     end
     
     subgraph "Off-chain Services"
-        H[Analytics Database]
-        I[Bridge Service]
-        J[ML Model Service]
+        H["Analytics Database"]
+        I["Bridge Service"]
+        J["ML Model Service"]
     end
     
     A --> E
@@ -38,22 +38,22 @@ graph TB
 
 ```mermaid
 graph LR
-    A[PolkadotClient] --> B[OnlineClient<PolkadotConfig>]
-    A --> C[EmotionalBridge]
-    A --> D[SoulboundManager]
-    A --> E[CrossChainBridge]
+    A["PolkadotClient"] --> B["OnlineClient<PolkadotConfig>"]
+    A --> C["EmotionalBridge"]
+    A --> D["SoulboundManager"]
+    A --> E["CrossChainBridge"]
     
-    B --> F[RPC Connection]
-    B --> G[Runtime Metadata]
-    B --> H[Type Registry]
+    B --> F["RPC Connection"]
+    B --> G["Runtime Metadata"]
+    B --> H["Type Registry"]
     
-    C --> I[analyze_trends()]
-    C --> J[predict_emotion()]
-    C --> K[calculate_complexity()]
+    C --> I["analyze_trends()"]
+    C --> J["predict_emotion()"]
+    C --> K["calculate_complexity()"]
     
-    D --> L[create_soulbound_token()]
-    D --> M[update_reputation()]
-    D --> N[assign_badge()]
+    D --> L["create_soulbound_token()"]
+    D --> M["update_reputation()"]
+    D --> N["assign_badge()"]
 ```
 
 ### Connection Architecture (src/polkadot-client/src/lib.rs:18-70)
@@ -92,20 +92,20 @@ impl PolkadotClient {
 
 ```mermaid
 graph TD
-    A[Emotional Data Input] --> B[Data Preprocessing]
-    B --> C[Trend Slope Calculation]
-    B --> D[Volatility Analysis]
-    B --> E[Momentum Calculation]
+    A["Emotional Data Input"] --> B["Data Preprocessing"]
+    B --> C["Trend Slope Calculation"]
+    B --> D["Volatility Analysis"]
+    B --> E["Momentum Calculation"]
     
-    C --> F[Trend Direction Classification]
-    D --> G[Volatility Assessment]
-    E --> H[Momentum Analysis]
+    C --> F["Trend Direction Classification"]
+    D --> G["Volatility Assessment"]
+    E --> H["Momentum Analysis"]
     
-    F --> I[Confidence Scoring]
+    F --> I["Confidence Scoring"]
     G --> I
     H --> I
     
-    I --> J[Trend Analysis Result]
+    I --> J["Trend Analysis Result"]
 ```
 
 ### Algorithm Implementation
@@ -146,27 +146,27 @@ impl EmotionalBridge {
 
 ```mermaid
 graph LR
-    A[Current Emotional State] --> B[Trend Analysis]
-    A --> C[Historical Patterns]
-    A --> D[External Factors]
+    A["Current Emotional State"] --> B["Trend Analysis"]
+    A --> C["Historical Patterns"]
+    A --> D["External Factors"]
     
-    B --> E[Linear Extrapolation]
-    C --> F[Seasonal Pattern Detection]
-    D --> G[External Factor Analysis]
+    B --> E["Linear Extrapolation"]
+    C --> F["Seasonal Pattern Detection"]
+    D --> G["External Factor Analysis"]
     
-    E --> H[Valence Prediction]
+    E --> H["Valence Prediction"]
     F --> H
     G --> H
     
-    E --> I[Arousal Prediction]
+    E --> I["Arousal Prediction"]
     F --> I
     G --> I
     
-    E --> J[Dominance Prediction]
+    E --> J["Dominance Prediction"]
     F --> J
     G --> J
     
-    H --> K[Emotional Prediction Result]
+    H --> K["Emotional Prediction Result"]
     I --> K
     J --> K
 ```
@@ -209,21 +209,21 @@ pub fn calculate_complexity(&self, emotional_trajectory: &[EmotionalPoint]) -> f
 
 ```mermaid
 graph TD
-    A[SoulboundToken] --> B[token_id: H256]
-    A --> C[owner: AccountId32]
-    A --> D[identity_data: IdentityData]
-    A --> E[reputation_score: ReputationScore]
-    A --> F[badges: Vec<Badge>]
-    A --> G[metadata_uri: String]
+    A["SoulboundToken"] --> B["token_id: H256"]
+    A --> C["owner: AccountId32"]
+    A --> D["identity_data: IdentityData"]
+    A --> E["reputation_score: ReputationScore"]
+    A --> F["badges: Vec<Badge>"]
+    A --> G["metadata_uri: String"]
     
-    D --> H[biography: String]
-    D --> I[skills: Vec<String>]
-    D --> J[achievements: Vec<Achievement>]
-    D --> K[preferences: UserPreferences]
+    D --> H["biography: String"]
+    D --> I["skills: Vec<String>"]
+    D --> J["achievements: Vec<Achievement>"]
+    D --> K["preferences: UserPreferences"]
     
-    E --> L[overall_score: f32]
-    E --> M[category_scores: HashMap<String, f32>]
-    E --> N[temporal_metrics: TemporalMetrics]
+    E --> L["overall_score: f32"]
+    E --> M["category_scores: HashMap<String, f32>"]
+    E --> N["temporal_metrics: TemporalMetrics"]
 ```
 
 ### Reputation Scoring System (src/polkadot-client/src/soulbound.rs:101-200)
@@ -268,15 +268,15 @@ impl ReputationScore {
 
 ```mermaid
 graph TD
-    A[New Activity] --> B[Time-based Decay]
-    B --> C[Category Score Update]
-    C --> D[Weighted Recalculation]
-    D --> E[Verification Multiplier]
-    E --> F[Final Score]
+    A["New Activity"] --> B["Time-based Decay"]
+    B --> C["Category Score Update"]
+    C --> D["Weighted Recalculation"]
+    D --> E["Verification Multiplier"]
+    E --> F["Final Score"]
     
-    G[Temporal Metrics] --> H[Stability Calculation]
-    H --> I[Volatility Assessment]
-    I --> J[Confidence Adjustment]
+    G["Temporal Metrics"] --> H["Stability Calculation"]
+    H --> I["Volatility Assessment"]
+    I --> J["Confidence Adjustment"]
     J --> F
 ```
 
@@ -340,18 +340,18 @@ impl SoulboundManager {
 
 ```mermaid
 graph TD
-    A[Polkadot Client] --> B[CrossChainBridge]
-    B --> C[Bridge Service API]
-    C --> D[NEAR Bridge]
-    C --> E[Solana Bridge]
-    C --> F[Ethereum Bridge]
+    A["Polkadot Client"] --> B["CrossChainBridge"]
+    B --> C["Bridge Service API"]
+    C --> D["NEAR Bridge"]
+    C --> E["Solana Bridge"]
+    C --> F["Ethereum Bridge"]
     
-    G[Identity Hash] --> H[Cross-chain Verification]
-    H --> I[Metadata Synchronization]
-    I --> J[State Replication]
+    G["Identity Hash"] --> H["Cross-chain Verification"]
+    H --> I["Metadata Synchronization"]
+    I --> J["State Replication"]
     
-    K[Reputation Data] --> L[Bridge Validation]
-    L --> M[Target Chain Update]
+    K["Reputation Data"] --> L["Bridge Validation"]
+    L --> M["Target Chain Update"]
 ```
 
 ### Cross-chain Message Format
@@ -408,16 +408,16 @@ impl CrossChainMessage {
 
 ```mermaid
 graph LR
-    A[Client Requests] --> B[Load Balancer]
-    B --> C[Client Pool 1]
-    B --> D[Client Pool 2]
-    B --> E[Client Pool 3]
+    A["Client Requests"] --> B["Load Balancer"]
+    B --> C["Client Pool 1"]
+    B --> D["Client Pool 2"]
+    B --> E["Client Pool 3"]
     
-    C --> F[RPC Node 1]
-    D --> G[RPC Node 2]
-    E --> H[RPC Node 3]
+    C --> F["RPC Node 1"]
+    D --> G["RPC Node 2"]
+    E --> H["RPC Node 3"]
     
-    F --> I[Analytics Cache]
+    F --> I["Analytics Cache"]
     G --> I
     H --> I
 ```
@@ -466,17 +466,17 @@ impl VerificationLevel {
 
 ```mermaid
 graph TD
-    A[Full Identity Data] --> B[Selective Disclosure]
-    B --> C[Zero-knowledge Proof]
-    C --> D[Public Identity Hash]
+    A["Full Identity Data"] --> B["Selective Disclosure"]
+    B --> C["Zero-knowledge Proof"]
+    C --> D["Public Identity Hash"]
     
-    E[Private Reputation] --> F[Reputation Commitment]
-    F --> G[Selective Reveal]
-    G --> H[Public Reputation Score]
+    E["Private Reputation"] --> F["Reputation Commitment"]
+    F --> G["Selective Reveal"]
+    G --> H["Public Reputation Score"]
     
-    I[Biometric Data] --> J[Secure Enclave]
-    J --> K[Biometric Template]
-    K --> L[Zero-knowledge Proof]
+    I["Biometric Data"] --> J["Secure Enclave"]
+    J --> K["Biometric Template"]
+    K --> L["Zero-knowledge Proof"]
 ```
 
 ## 🔗 Development Resources

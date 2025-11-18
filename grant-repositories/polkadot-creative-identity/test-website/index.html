@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Polkadot Creative Identity</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: #e0e0e0; cursor: pointer; border-radius: 5px; }
+        .tab.active { background: #e6007a; color: white; }
+        .tab-content { display: none; background: #fff; padding: 20px; border-radius: 10px; }
+        .tab-content.active { display: block; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .control-group { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .slider-container { margin: 15px 0; }
+        .slider { width: 100%; }
+        .btn { padding: 10px 20px; background: #e6007a; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #c40068; }
+        .log { background: #000; color: #0f0; padding: 15px; border-radius: 8px; font-family: monospace; height: 200px; overflow-y: auto; }
+        .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .metric { background: #e6f7ff; padding: 15px; border-radius: 8px; text-align: center; }
+        .metric-value { font-size: 24px; font-weight: bold; color: #e6007a; }
+        .metric-label { font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Polkadot Creative Identity</h1>
+            <p>Cross-Chain Bridge & Soulbound Tokens</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('soulbound')">Soulbound Tokens</div>
+            <div class="tab" onclick="switchTab('bridge')">Cross-Chain Bridge</div>
+            <div class="tab" onclick="switchTab('settings')">Settings</div>
+        </div>
+        
+        <!-- Soulbound Tokens Tab -->
+        <section id="soulbound-tab" class="tab-content active">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Creative Identity Tokens</h3>
+                    <p>Soulbound tokens representing creative achievements and identity:</p>
+                    <ul>
+                        <li>Proof of creative work ownership</li>
+                        <li>Emotional journey documentation</li>
+                        <li>Collaboration history tracking</li>
+                        <li>Reputation and skill verification</li>
+                    </ul>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Mint Soulbound Token</h3>
+                    <label>Token Name:</label>
+                    <input type="text" id="token-name" placeholder="Master Creator" style="width: 100%; padding: 8px; margin: 10px 0;">
+                    
+                    <label>Description:</label>
+                    <textarea id="token-description" placeholder="Achieved mastery in creative computation" style="width: 100%; height: 80px; padding: 8px; margin: 10px 0;"></textarea>
+                    
+                    <button class="btn" onclick="mintSoulboundToken()">Mint Token</button>
+                </div>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-value" id="tokens-minted">0</div>
+                    <div class="metric-label">Tokens Minted</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="identities-verified">0</div>
+                    <div class="metric-label">Identities Verified</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="collaborations">0</div>
+                    <div class="metric-label">Collaborations</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Cross-Chain Bridge Tab -->
+        <section id="bridge-tab" class="tab-content">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Cross-Chain Bridge</h3>
+                    <p>Transfer creative assets and identity across blockchains:</p>
+                    <ul>
+                        <li>NEAR ↔ Polkadot asset bridging</li>
+                        <li>Solana ↔ Polkadot identity synchronization</li>
+                        <li>Filecoin ↔ Polkadot data verification</li>
+                        <li>Multi-chain reputation aggregation</li>
+                    </ul>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Bridge Transfer</h3>
+                    <label>Source Chain:</label>
+                    <select id="source-chain" style="width: 100%; padding: 8px; margin: 10px 0;">
+                        <option value="near">NEAR</option>
+                        <option value="solana">Solana</option>
+                        <option value="filecoin">Filecoin</option>
+                    </select>
+                    
+                    <label>Destination Chain:</label>
+                    <select id="dest-chain" style="width: 100%; padding: 8px; margin: 10px 0;">
+                        <option value="polkadot">Polkadot</option>
+                    </select>
+                    
+                    <button class="btn" onclick="initiateBridge()">Initiate Transfer</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Settings Tab -->
+        <section id="settings-tab" class="tab-content">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Polkadot Wallet Connection</h3>
+                    <button class="btn" onclick="connectWallet()">Connect Polkadot Wallet</button>
+                    <p id="wallet-status">Not connected</p>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Bridge Configuration</h3>
+                    <label>Relay Chain:</label>
+                    <input type="text" id="relay-chain" placeholder="Kusama" style="width: 100%; padding: 8px; margin: 10px 0;" value="Kusama">
+                    
+                    <button class="btn" onclick="updateBridge()">Update Bridge</button>
+                </div>
+            </div>
+        </section>
+        
+        <div class="log" id="identity-log">
+            <div>[INFO] Polkadot Creative Identity system initialized</div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
+        // Mint soulbound token
+        function mintSoulboundToken() {
+            const name = document.getElementById('token-name').value || 'Creative Token';
+            const description = document.getElementById('token-description').value || 'Creative achievement';
+            
+            const logDiv = document.getElementById('identity-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Minting soulbound token: ${name}...</div>` + logDiv.innerHTML;
+            
+            setTimeout(() => {
+                const tokens = parseInt(document.getElementById('tokens-minted').textContent) + 1;
+                document.getElementById('tokens-minted').textContent = tokens;
+                
+                const now = new Date().toLocaleTimeString();
+                logDiv.innerHTML = `<div>[${now}] Soulbound token minted successfully: ${name}</div>` + logDiv.innerHTML;
+            }, 1500);
+        }
+        
+        // Initiate bridge transfer
+        function initiateBridge() {
+            const source = document.getElementById('source-chain').value;
+            const dest = document.getElementById('dest-chain').value;
+            
+            const logDiv = document.getElementById('identity-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Initiating bridge transfer from ${source} to ${dest}...</div>` + logDiv.innerHTML;
+            
+            setTimeout(() => {
+                const now = new Date().toLocaleTimeString();
+                logDiv.innerHTML = `<div>[${now}] Bridge transfer initiated successfully</div>` + logDiv.innerHTML;
+            }, 1500);
+        }
+        
+        // Wallet connection
+        function connectWallet() {
+            const logDiv = document.getElementById('identity-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Connecting to Polkadot wallet...</div>` + logDiv.innerHTML;
+            
+            setTimeout(() => {
+                document.getElementById('wallet-status').textContent = 'Connected: 5F3sa2TJAWMqDhXG6jhV4N8ko9r...';
+                const now = new Date().toLocaleTimeString();
+                logDiv.innerHTML = `<div>[${now}] Wallet connected successfully</div>` + logDiv.innerHTML;
+            }, 1000);
+        }
+        
+        // Update bridge
+        function updateBridge() {
+            const relay = document.getElementById('relay-chain').value;
+            
+            const logDiv = document.getElementById('identity-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Updating bridge configuration for ${relay}...</div>` + logDiv.innerHTML;
+            
+            setTimeout(() => {
+                const now = new Date().toLocaleTimeString();
+                logDiv.innerHTML = `<div>[${now}] Bridge configuration updated successfully</div>` + logDiv.innerHTML;
+            }, 500);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialization code here
+        });
+    </script>
+</body>
+</html>

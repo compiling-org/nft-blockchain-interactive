@@ -13,40 +13,40 @@
 
 ```mermaid
 graph TD
-    A[Subxt Client] --> B[Emotional Bridge Analytics]
-    A --> C[Soulbound Identity]
-    A --> D[Cross-chain Integration]
+    A["Subxt Client"] --> B["Emotional Bridge Analytics"]
+    A --> C["Soulbound Identity"]
+    A --> D["Cross-chain Integration"]
     
-    B --> E[Trend Analysis Engine]
-    B --> F[Predictive Emotion Model]
-    B --> G[Complexity Scoring]
+    B --> E["Trend Analysis Engine"]
+    B --> F["Predictive Emotion Model"]
+    B --> G["Complexity Scoring"]
     
-    C --> H[Advanced Reputation Metrics]
-    C --> I[Identity Badges]
-    C --> J[Reputation Updates]
+    C --> H["Advanced Reputation Metrics"]
+    C --> I["Identity Badges"]
+    C --> J["Reputation Updates"]
     
-    D --> K[Multi-chain Support]
-    D --> L[Bridge Service Integration]
+    D --> K["Multi-chain Support"]
+    D --> L["Bridge Service Integration"]
 ```
 
 ### Client Architecture
 
 ```mermaid
 graph LR
-    A[PolkadotClient] --> B[EmotionalBridge Module]
-    A --> C[Soulbound Module]
-    A --> D[CrossChain Module]
+    A["PolkadotClient"] --> B["EmotionalBridge Module"]
+    A --> C["Soulbound Module"]
+    A --> D["CrossChain Module"]
     
-    B --> E[analyze_trends()]
-    B --> F[predict_emotion()]
-    B --> G[calculate_complexity()]
+    B --> E["analyze_trends()"]
+    B --> F["predict_emotion()"]
+    B --> G["calculate_complexity()"]
     
-    C --> H[create_soulbound_token()]
-    C --> I[update_reputation()]
-    C --> J[assign_badge()]
+    C --> H["create_soulbound_token()"]
+    C --> I["update_reputation()"]
+    C --> J["assign_badge()"]
     
-    D --> K[bridge_to_near()]
-    D --> L[bridge_to_solana()]
+    D --> K["bridge_to_near()"]
+    D --> L["bridge_to_solana()"]
 ```
 
 ## 🔧 Implementation Details
@@ -263,17 +263,17 @@ npm run test:polkadot
 ### Bridge Architecture
 ```mermaid
 graph TD
-    A[Polkadot Client] --> B[CrossChainBridge]
-    B --> C[NEAR Bridge Service]
-    B --> D[Solana Bridge Service]
-    B --> E[Ethereum Bridge Service]
+    A["Polkadot Client"] --> B["CrossChainBridge"]
+    B --> C["NEAR Bridge Service"]
+    B --> D["Solana Bridge Service"]
+    B --> E["Ethereum Bridge Service"]
     
-    C --> F[NEAR Contract]
-    D --> G[Solana Program]
-    E --> H[Ethereum Smart Contract]
+    C --> F["NEAR Contract"]
+    D --> G["Solana Program"]
+    E --> H["Ethereum Smart Contract"]
     
-    I[Emotional State Hash] --> J[Cross-chain Verification]
-    J --> K[Metadata Synchronization]
+    I["Emotional State Hash"] --> J["Cross-chain Verification"]
+    J --> K["Metadata Synchronization"]
 ```
 
 ## 📈 Roadmap

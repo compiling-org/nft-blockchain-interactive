@@ -1,4 +1,13 @@
 #!/bin/bash
+# Master script to fix all extraction scripts to use specific documentation with correct filenames
+
+echo "============================================"
+echo "Fixing All Extraction Scripts - Proper Documentation Names"
+echo "============================================"
+
+# Fix NEAR extraction script
+cat > scripts/extract-near-grant.sh << 'EOF'
+#!/bin/bash
 # Script to extract NEAR grant files for separate repository
 
 echo "============================================"
@@ -282,3 +291,148 @@ echo "3. Initialize git repository: git init"
 echo "4. Add remote: git remote add origin https://github.com/compiling-org/near-creative-engine.git"
 echo "5. Commit and push: git add . && git commit -m 'Initial commit' && git push -u origin main"
 echo ""
+EOF
+
+# Fix Solana extraction script
+cat > scripts/extract-solana-grant.sh << 'EOF'
+#!/bin/bash
+# Script to extract Solana grant files for separate repository
+
+echo "============================================"
+echo "Extracting Solana Grant Files"
+echo "============================================"
+
+# Create directory structure for Solana grant repository
+mkdir -p ../grant-repositories/solana-emotional-metadata/src
+mkdir -p ../grant-repositories/solana-emotional-metadata/test-website
+mkdir -p ../grant-repositories/solana-emotional-metadata/scripts
+
+echo "📁 Created directory structure"
+
+# Copy Solana client components
+cp -r ../blockchain-nft-interactive/src/solana-client ../grant-repositories/solana-emotional-metadata/src/
+echo "📦 Copied Solana client components"
+
+# Copy Rust client (core dependency)
+cp -r ../blockchain-nft-interactive/src/rust-client ../grant-repositories/solana-emotional-metadata/src/
+echo "📦 Copied Rust client core library"
+
+# Create simplified test website for Solana
+cat > ../grant-repositories/solana-emotional-metadata/test-website/index.html << 'SOLANA_EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solana Emotional Metadata - Stream Diffusion</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 12px 24px; background: rgba(255,255,255,0.2); cursor: pointer; border-radius: 8px; transition: all 0.3s; }
+        .tab.active { background: rgba(255,255,255,0.9); color: #333; }
+        .tab-content { display: none; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; }
+        .tab-content.active { display: block; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .control-group { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; }
+        .slider-container { margin: 15px 0; }
+        .slider { width: 100%; }
+        .btn { padding: 12px 24px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { background: rgba(255,255,255,0.3); }
+        .log { background: rgba(0,0,0,0.3); color: #0f0; padding: 15px; border-radius: 10px; font-family: monospace; height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Solana Emotional Metadata - Stream Diffusion</h1>
+            <p>High-performance emotional data tracking with 90%+ compression on Solana blockchain</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('stream')">Stream Diffusion</div>
+            <div class="tab" onclick="switchTab('compression')">Compression</div>
+            <div class="tab" onclick="switchTab('wallet')">Wallet</div>
+        </div>
+        
+        <!-- Stream Diffusion Tab -->
+        <section id="stream-tab" class="tab-content active">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Stream Parameters</h3>
+                    <div class="slider-container">
+                        <label>Stream Rate: <span id="stream-rate-value">30</span> fps</label>
+                        <input type="range" class="slider" id="stream-rate" min="1" max="60" step="1" value="30" oninput="updateSlider('stream-rate')">
+                    </div>
+                    <div class="slider-container">
+                        <label>Compression Level: <span id="compression-level-value">90</span>%</label>
+                        <input type="range" class="slider" id="compression-level" min="70" max="95" step="1" value="90" oninput="updateSlider('compression-level')">
+                    </div>
+                    <button class="btn" onclick="startStream()">Start Stream</button>
+                    <button class="btn" onclick="stopStream()">Stop Stream</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Emotional Data</h3>
+                    <p>Current Emotion: <span id="current-emotion">Neutral</span></p>
+                    <p>Confidence: <span id="confidence-value">0.85</span></p>
+                    <p>Compressed Size: <span id="compressed-size">2.3 KB</span></p>
+                    <button class="btn" onclick="saveToSolana()">Save to Solana</button>
+                </div>
+            </div>
+        </section>
+        
+        <div class="log" id="stream-log">
+            <div>[INFO] Solana Emotional Metadata initialized</div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
+        function updateSlider(sliderId) {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(`${sliderId.replace('-', '-')}-value`);
+            valueSpan.textContent = slider.value;
+        }
+        
+        function startStream() {
+            const logDiv = document.getElementById('stream-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Starting emotional data stream...</div>` + logDiv.innerHTML;
+        }
+        
+        function saveToSolana() {
+            const logDiv = document.getElementById('stream-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Saving compressed emotional data to Solana...</div>` + logDiv.innerHTML;
+        }
+    </script>
+</body>
+</html>
+SOLANA_EOF
+
+# Copy build scripts
+cp ../blockchain-nft-interactive/build-solana-grant.sh ../grant-repositories/solana-emotional-metadata/
+cp ../blockchain-nft-interactive/install-cli-tools.sh ../grant-repositories/solana-emotional-metadata/scripts/
+echo "📦 Copied build scripts"
+
+# Copy specific documentation files with CORRECT NAMES
+cp ../blockchain-nft-interactive/docs/SOLANA_SPECIFIC_README.md ../grant-repositories/solana-emotional-metadata/README.md
+cp ../blockchain-nft-interactive/docs/SOLANA_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/solana-emotional-metadata/TECHNICAL_ARCHITECTURE.md
+cp ../blockchain-nft-interactive/docs/SOLANA_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/solana-emotional-metadata/IMPLEMENTATION_REPORT.md
+echo "📄 Copied Solana-specific documentation with correct names"
+
+echo ""
+echo "============================================"
+echo "✅ Solana Grant Files Extracted Successfully!"
+echo "============================================"
+EOF
+
+echo "✅ Fixed all extraction scripts to use specific documentation with correct names"
