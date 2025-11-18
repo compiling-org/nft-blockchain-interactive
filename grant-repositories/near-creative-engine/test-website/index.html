@@ -1,30 +1,3 @@
-#!/bin/bash
-# Script to extract NEAR grant files for separate repository
-
-echo "============================================"
-echo "Extracting NEAR Grant Files"
-echo "============================================"
-
-# Create directory structure for NEAR grant repository
-mkdir -p ../grant-repositories/near-creative-engine/src
-mkdir -p ../grant-repositories/near-creative-engine/test-website
-mkdir -p ../grant-repositories/near-creative-engine/scripts
-
-echo "📁 Created directory structure"
-
-# Copy NEAR WASM components
-cp -r ../blockchain-nft-interactive/src/near-wasm ../grant-repositories/near-creative-engine/src/
-echo "📦 Copied NEAR WASM components"
-
-# Copy Rust client (core dependency)
-cp -r ../blockchain-nft-interactive/src/rust-client ../grant-repositories/near-creative-engine/src/
-echo "📦 Copied Rust client core library"
-
-# Extract Fractal Studio tab from index.html
-echo "🔧 Extracting Fractal Studio tab from test website"
-
-# Create a simplified test website with only NEAR components
-cat > ../grant-repositories/near-creative-engine/test-website/index.html << 'NEAR_EOF'
 <!DOCTYPE html>
 <html>
 <head>
@@ -255,30 +228,3 @@ cat > ../grant-repositories/near-creative-engine/test-website/index.html << 'NEA
     </script>
 </body>
 </html>
-NEAR_EOF
-
-echo "🔧 Created simplified test website for NEAR grant"
-
-# Copy build scripts
-cp ../blockchain-nft-interactive/build-near-grant.sh ../grant-repositories/near-creative-engine/
-cp ../blockchain-nft-interactive/install-cli-tools.sh ../grant-repositories/near-creative-engine/scripts/
-echo "📦 Copied build scripts"
-
-# Copy specific documentation files with CORRECT NAMES
-cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_README.md ../grant-repositories/near-creative-engine/README.md
-cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/near-creative-engine/TECHNICAL_ARCHITECTURE.md
-cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/near-creative-engine/IMPLEMENTATION_REPORT.md
-echo "📄 Copied grant-specific documentation with correct names"
-
-echo ""
-echo "============================================"
-echo "✅ NEAR Grant Files Extracted Successfully!"
-echo "============================================"
-echo ""
-echo "Next steps:"
-echo "1. cd ../near-creative-engine"
-echo "2. Review and customize the extracted files"
-echo "3. Initialize git repository: git init"
-echo "4. Add remote: git remote add origin https://github.com/compiling-org/near-creative-engine.git"
-echo "5. Commit and push: git add . && git commit -m 'Initial commit' && git push -u origin main"
-echo ""

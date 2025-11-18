@@ -20,6 +20,7 @@ pub use crate::interactive::*;
 pub use crate::mintbase::*;
 pub use crate::soulbound::*;
 pub use crate::wgsl_studio::*;
+pub use crate::enhanced_soulbound::*;
 
 mod emotional;
 mod interactive;
@@ -27,6 +28,7 @@ mod mintbase;
 mod soulbound;
 mod fractal_studio;
 mod wgsl_studio;
+mod enhanced_soulbound;
 
 /// Main interactive NFT contract
 #[near(contract_state)]

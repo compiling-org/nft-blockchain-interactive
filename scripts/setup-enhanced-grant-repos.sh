@@ -677,7 +677,7 @@ mkdir -p ../grant-repositories
 log_success "Created grant-repositories directory"
 
 # Make all extraction scripts executable
-chmod +x ../blockchain-nft-interactive/scripts/extract-*.sh
+chmod +x ./extract-*.sh
 log_success "Made extraction scripts executable"
 
 # Define grant configurations
@@ -699,22 +699,22 @@ for grant_key in "${!grants[@]}"; do
     # Extract the grant using existing script
     case $grant_key in
         "near-creative-engine")
-            ../blockchain-nft-interactive/scripts/extract-near-grant.sh
+            ./extract-near-grant.sh
             ;;
         "solana-emotional-metadata")
-            ../blockchain-nft-interactive/scripts/extract-solana-grant.sh
+            ./extract-solana-grant.sh
             ;;
         "filecoin-creative-storage")
-            ../blockchain-nft-interactive/scripts/extract-filecoin-grant.sh
+            ./extract-filecoin-grant.sh
             ;;
         "mintbase-creative-marketplace")
-            ../blockchain-nft-interactive/scripts/extract-mintbase-grant.sh
+            ./extract-mintbase-grant.sh
             ;;
         "rust-emotional-engine")
-            ../blockchain-nft-interactive/scripts/extract-rust-grant.sh
+            ./extract-rust-grant.sh
             ;;
         "polkadot-creative-identity")
-            ../blockchain-nft-interactive/scripts/extract-polkadot-grant.sh
+            ./extract-polkadot-grant.sh
             ;;
     esac
     

@@ -1,4 +1,14 @@
 #!/bin/bash
+# Script to fix all extraction scripts to use specific documentation
+
+echo "============================================"
+echo "Fixing Extraction Scripts to Use Specific Documentation"
+echo "============================================"
+
+# Function to fix NEAR extraction script
+fix_near_script() {
+    cat > scripts/extract-near-grant.sh << 'EOF'
+#!/bin/bash
 # Script to extract NEAR grant files for separate repository
 
 echo "============================================"
@@ -264,11 +274,11 @@ cp ../blockchain-nft-interactive/build-near-grant.sh ../grant-repositories/near-
 cp ../blockchain-nft-interactive/install-cli-tools.sh ../grant-repositories/near-creative-engine/scripts/
 echo "📦 Copied build scripts"
 
-# Copy specific documentation files with CORRECT NAMES
+# Copy specific documentation files
 cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_README.md ../grant-repositories/near-creative-engine/README.md
 cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/near-creative-engine/TECHNICAL_ARCHITECTURE.md
 cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/near-creative-engine/IMPLEMENTATION_REPORT.md
-echo "📄 Copied grant-specific documentation with correct names"
+echo "📄 Copied grant-specific documentation"
 
 echo ""
 echo "============================================"
@@ -282,3 +292,10 @@ echo "3. Initialize git repository: git init"
 echo "4. Add remote: git remote add origin https://github.com/compiling-org/near-creative-engine.git"
 echo "5. Commit and push: git add . && git commit -m 'Initial commit' && git push -u origin main"
 echo ""
+EOF
+}
+
+# Execute the fix
+fix_near_script
+
+echo "✅ Fixed NEAR extraction script to use specific documentation"
