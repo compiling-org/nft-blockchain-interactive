@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 // Comprehensive AI/ML Blockchain Integration Component
 // Demonstrates all extracted patterns from 15+ repositories
@@ -40,7 +40,7 @@ export const AIMLBlockchainIntegration: React.FC = () => {
       const rawSignal = new Float32Array(1000).map(() => Math.random() * 2 - 1);
       const filteredSignal = applyBandpassFilter(rawSignal);
       const denoisedSignal = removeEnvironmentalNoise(filteredSignal);
-      const icaCleaned = applyICA(denoisedSignal);
+      applyICA(denoisedSignal);
       
       console.log('⚡ Setting up Candle GPU acceleration...');
       
@@ -79,7 +79,7 @@ export const AIMLBlockchainIntegration: React.FC = () => {
         timestamp: Date.now(),
         performance_metrics: {
           processing_time: endTime - startTime,
-          memory_usage: performance.memory?.usedJSHeapSize || 0,
+          memory_usage: (performance as any).memory?.usedJSHeapSize || 0,
           gpu_utilization: gpuReady ? 85 : 0
         }
       };
@@ -156,8 +156,8 @@ export const AIMLBlockchainIntegration: React.FC = () => {
     const memoryManager = {
       allocated: 0,
       allocate: (size: number) => {
-        if (this.allocated + size <= 512 * 1024 * 1024) {
-          this.allocated += size;
+        if (memoryManager.allocated + size <= 512 * 1024 * 1024) {
+          memoryManager.allocated += size;
           return true;
         }
         return false;
@@ -229,6 +229,9 @@ export const AIMLBlockchainIntegration: React.FC = () => {
         }
       ]
     };
+    
+    // Use the message to avoid unused variable error
+    console.log('XCM Message constructed:', message);
     
     return true;
   };
