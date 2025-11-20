@@ -1,25 +1,43 @@
-# Rust 
-target/ 
-Cargo.lock 
- 
-# Build artifacts 
-*.exe 
-*.dll 
-*.so 
-*.dylib 
-*.pdb 
- 
-# IDE 
-.vscode/ 
-.idea/ 
- 
-# OS 
-.DS_Store 
-Thumbs.db 
- 
-# Logs 
-*.log 
- 
-# Cache 
-.cache/ 
-node_modules/ 
+# Rust
+target/
+Cargo.lock
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Cache
+.cache/
+node_modules/
+
+# 🚨 EMERGENCY: NEVER AGAIN - BLOCK GIGANTIC REFERENCE FOLDERS
+blockchain-ai-ml-references/
+references/
+reference-repos/
+external-repos/
+
+# BLOCK ENTIRE BLOCKCHAIN/AI REPOSITORIES BY NAME
+avalanchego/
+deno/
+nearcore/
+solana/
+polkadot/
+forest/
+lotus/
+candle/
+rust/
+tensorflow/
