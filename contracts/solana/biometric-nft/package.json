@@ -1,0 +1,25 @@
+{
+  "name": "biometric-nft-solana",
+  "version": "1.0.0",
+  "description": "Biometric NFT program for Solana with emotion integration",
+  "main": "deploy.js",
+  "scripts": {
+    "deploy": "node deploy.js",
+    "test": "node test.js",
+    "build": "cargo build"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.87.6",
+    "@solana/spl-token": "^0.3.9"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "solana",
+    "nft",
+    "biometric",
+    "emotion",
+    "blockchain"
+  ],
+  "author": "",
+  "license": "MIT"
+}

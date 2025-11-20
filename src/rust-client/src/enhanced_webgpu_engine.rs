@@ -2,13 +2,13 @@
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
-use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlBuffer, WebGlUniformLocation};
+use web_sys::{WebGlRenderingContext, WebGlProgram, WebGlShader, WebGlBuffer, WebGlUniformLocation};
 use js_sys::{Float32Array, Uint8Array, Promise};
 use serde::{Deserialize, Serialize};
 
 /// Enhanced GPU compute engine with AI/ML model support
 pub struct EnhancedGPUComputeEngine {
-    context: WebGl2RenderingContext,
+    context: WebGlRenderingContext,
     programs: HashMap<String, WebGlProgram>,
     buffers: HashMap<String, WebGlBuffer>,
     uniforms: HashMap<String, WebGlUniformLocation>,
@@ -201,7 +201,7 @@ void main() {
 
 impl EnhancedGPUComputeEngine {
     /// Create a new enhanced GPU compute engine
-    pub fn new(context: WebGl2RenderingContext) -> Result<Self, JsValue> {
+    pub fn new(context: WebGlRenderingContext) -> Result<Self, JsValue> {
         let mut engine = Self {
             context,
             programs: HashMap::new(),
@@ -231,15 +231,15 @@ impl EnhancedGPUComputeEngine {
     
     /// Create a WebGL program from vertex and fragment shaders
     fn create_program(&mut self, vertex_source: &str, fragment_source: &str) -> Result<WebGlProgram, JsValue> {
-        let vertex_shader = self.compile_shader(WebGl2RenderingContext::VERTEX_SHADER, vertex_source)?;
-        let fragment_shader = self.compile_shader(WebGl2RenderingContext::FRAGMENT_SHADER, fragment_source)?;
+        let vertex_shader = self.compile_shader(WebGlRenderingContext::VERTEX_SHADER, vertex_source)?;
+        let fragment_shader = self.compile_shader(WebGlRenderingContext::FRAGMENT_SHADER, fragment_source)?;
         
         let program = self.context.create_program().ok_or("Failed to create program")?;
         self.context.attach_shader(&program, &vertex_shader);
         self.context.attach_shader(&program, &fragment_shader);
         self.context.link_program(&program);
         
-        if !self.context.get_program_parameter(&program, WebGl2RenderingContext::LINK_STATUS).as_bool().unwrap_or(false) {
+        if !self.context.get_program_parameter(&program, WebGlRenderingContext::LINK_STATUS).as_bool().unwrap_or(false) {
             return Err(JsValue::from_str("Failed to link program"));
         }
         
@@ -260,7 +260,7 @@ impl EnhancedGPUComputeEngine {
         self.context.shader_source(&shader, source);
         self.context.compile_shader(&shader);
         
-        if !self.context.get_shader_parameter(&shader, WebGl2RenderingContext::COMPILE_STATUS).as_bool().unwrap_or(false) {
+        if !self.context.get_shader_parameter(&shader, WebGlRenderingContext::COMPILE_STATUS).as_bool().unwrap_or(false) {
             return Err(JsValue::from_str("Failed to compile shader"));
         }
         
@@ -268,47 +268,11 @@ impl EnhancedGPUComputeEngine {
     }
     
     /// Load an AI model for GPU acceleration
-    pub fn load_ai_model(&mut self, model_name: &str, model: AIModel) -> Result<(), JsValue> {
-        // Convert model weights to GPU textures
-        let weight_texture = self.create_texture_from_data(&model.layers[0].weights)?;
-        let bias_texture = self.create_texture_from_data(&model.layers[0].biases)?;
-        
-        // Store model data
-        self.ai_models.insert(model_name.to_string(), model);
+    pub fn load_ai_model(&mut self, model: AIModel) -> Result<(), JsValue> {
+        // Store model data (simplified - in real implementation would upload to GPU)
+        self.ai_models.insert(model.model_type.clone(), model);
         
         Ok(())
-    }
-    
-    /// Create a texture from float data
-    fn create_texture_from_data(&self, data: &[f32]) -> Result<web_sys::WebGlTexture, JsValue> {
-        let texture = self.context.create_texture().ok_or("Failed to create texture")?;
-        self.context.bind_texture(WebGl2RenderingContext::TEXTURE_2D, Some(&texture));
-        
-        // Convert float data to RGBA texture
-        let mut rgba_data = Vec::with_capacity(data.len() * 4);
-        for &value in data {
-            rgba_data.push((value * 255.0) as u8);
-            rgba_data.push(0);
-            rgba_data.push(0);
-            rgba_data.push(255);
-        }
-        
-        self.context.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
-            WebGl2RenderingContext::TEXTURE_2D,
-            0,
-            WebGl2RenderingContext::RGBA as i32,
-            (data.len() as f32).sqrt() as i32,
-            (data.len() as f32).sqrt() as i32,
-            0,
-            WebGl2RenderingContext::RGBA,
-            WebGl2RenderingContext::UNSIGNED_BYTE,
-            Some(&Uint8Array::from(&rgba_data[..]))
-        )?;
-        
-        self.context.tex_parameteri(WebGl2RenderingContext::TEXTURE_2D, WebGl2RenderingContext::TEXTURE_MIN_FILTER, WebGl2RenderingContext::NEAREST as i32);
-        self.context.tex_parameteri(WebGl2RenderingContext::TEXTURE_2D, WebGl2RenderingContext::TEXTURE_MAG_FILTER, WebGl2RenderingContext::NEAREST as i32);
-        
-        Ok(texture)
     }
     
     /// Run AI inference on GPU
@@ -481,7 +445,7 @@ impl EnhancedGPUComputeEngine {
     
     /// Clean up GPU resources
     pub fn cleanup(&mut self) {
-        self.context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT | WebGl2RenderingContext::DEPTH_BUFFER_BIT);
+        self.context.clear(WebGlRenderingContext::COLOR_BUFFER_BIT | WebGlRenderingContext::DEPTH_BUFFER_BIT);
         self.programs.clear();
         self.buffers.clear();
         self.uniforms.clear();
