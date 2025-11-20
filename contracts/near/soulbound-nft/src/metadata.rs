@@ -1,9 +1,6 @@
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-use near_sdk::json_types::{Base64VecU8, U128, U64};
+use near_sdk::json_types::{Base64VecU8};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{
-    env, near, AccountId, PanicOnDefault, PromiseOrValue
-};
 
 pub type TokenId = String;
 pub type Timestamp = u64;

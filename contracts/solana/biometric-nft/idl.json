@@ -1,0 +1,176 @@
+{
+  "version": "0.1.0",
+  "name": "biometric_nft",
+  "instructions": [
+    {
+      "name": "initializeNft",
+      "accounts": [
+        {
+          "name": "nftAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "emotionData",
+          "type": {
+            "defined": "EmotionData"
+          }
+        },
+        {
+          "name": "qualityScore",
+          "type": "f64"
+        },
+        {
+          "name": "biometricHash",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "verifyBiometric",
+      "accounts": [
+        {
+          "name": "nftAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "verifier",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "biometricData",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "updateEmotion",
+      "accounts": [
+        {
+          "name": "nftAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newEmotionData",
+          "type": {
+            "defined": "EmotionData"
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "NftAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "emotionData",
+            "type": {
+              "defined": "EmotionData"
+            }
+          },
+          {
+            "name": "qualityScore",
+            "type": "f64"
+          },
+          {
+            "name": "biometricHash",
+            "type": "string"
+          },
+          {
+            "name": "isVerified",
+            "type": "bool"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "emotionHistory",
+            "type": {
+              "vec": {
+                "defined": "EmotionData"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "EmotionData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "valence",
+            "type": "f64"
+          },
+          {
+            "name": "arousal",
+            "type": "f64"
+          },
+          {
+            "name": "dominance",
+            "type": "f64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "LowQualityScore",
+      "msg": "Quality score is too low"
+    },
+    {
+      "code": 6001,
+      "name": "BiometricMismatch",
+      "msg": "Biometric data does not match"
+    },
+    {
+      "code": 6002,
+      "name": "Unauthorized",
+      "msg": "Unauthorized access"
+    }
+  ],
+  "metadata": {
+    "address": "BiometricNftProgram1111111111111111111111"
+  }
+}

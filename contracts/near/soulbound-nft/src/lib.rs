@@ -6,10 +6,9 @@
 
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LazyOption, LookupMap, UnorderedMap, UnorderedSet};
-use near_sdk::json_types::{Base64VecU8, U64};
-use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::json_types::{Base64VecU8, U128, U64};
+use near_sdk::serde::Serialize;
 use near_sdk::{env, near, AccountId, PanicOnDefault, PromiseOrValue};
-pub use crate::metadata::*;
 mod metadata;
 
 /// This spec can be treated like a version of the standard.
@@ -70,10 +69,9 @@ pub struct EmotionRecord {
 }
 
 /// Standard Token structure for NEP-171
-#[near(serializers = [borsh])]
+#[near(serializers = [borsh, json])]
 pub struct Token {
     pub owner_id: AccountId,
-    pub approved_account_ids: LookupMap<AccountId, U64>,
 }
 
 /// Structure for token metadata
@@ -98,7 +96,6 @@ impl Token {
     pub fn new(owner_id: AccountId) -> Self {
         Self {
             owner_id,
-            approved_account_ids: LookupMap::new(b"a".to_vec()),
         }
     }
 }
@@ -219,10 +216,10 @@ impl BiometricSoulboundNFT {
     /// Override transfer to make tokens soulbound (non-transferable)
     pub fn nft_transfer(
         &mut self,
-        receiver_id: AccountId,
-        token_id: TokenId,
-        approval_id: Option<u64>,
-        memo: Option<String>,
+        _receiver_id: AccountId,
+        _token_id: TokenId,
+        _approval_id: Option<u64>,
+        _memo: Option<String>,
     ) {
         env::panic_str("Soulbound tokens are non-transferable");
     }
@@ -230,11 +227,11 @@ impl BiometricSoulboundNFT {
     /// Override transfer call to make tokens soulbound (non-transferable)
     pub fn nft_transfer_call(
         &mut self,
-        receiver_id: AccountId,
-        token_id: TokenId,
-        approval_id: Option<u64>,
-        memo: Option<String>,
-        msg: String,
+        _receiver_id: AccountId,
+        _token_id: TokenId,
+        _approval_id: Option<u64>,
+        _memo: Option<String>,
+        _msg: String,
     ) -> PromiseOrValue<bool> {
         env::panic_str("Soulbound tokens are non-transferable");
     }
