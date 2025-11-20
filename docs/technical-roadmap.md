@@ -1,5 +1,49 @@
 # Technical Roadmap - Blockchain NFT Interactive
 
+## BRUTAL REALITY CHECK (Current State)
+
+- 90% documentation, ~10% incomplete code; not production-ready
+- All blockchain interactions are mocked in UIs; no real wallets connected
+- No smart contracts deployed to any testnet/mainnet
+- AI/ML inference not integrated; no real model loading or camera processing
+- WebGPU fractal shaders not wired to working pipelines in production UIs
+- IPFS/Filecoin storage is simulated; no real CID uploads pinned or verified
+- Testing status: 0% coverage; no automated tests running; manual checks only
+
+## Implemented vs Planned
+
+- Implemented (backend-only, compile-level where applicable)
+  - Reference extraction of NEAR NFT patterns (metadata provider/resolver) [not integrated]
+  - Reference extraction of Solana token manager state machine [not integrated]
+  - ONNX Runtime sample compiled locally; no integration
+  - Candle WASM worker patterns identified; no integration
+
+- Planned (not implemented; will be marked as implemented only after verification)
+  - Real wallet integrations (NEAR, Solana, Polkadot)
+  - Testnet deployments (NEAR contracts, Solana programs, Substrate pallet)
+  - AI/ML inference pipeline (ONNX/Candle) with real models
+  - WebGPU fractal pipeline with emotion-driven parameters
+  - IPFS/Filecoin storage with real CID pinning and integrity checks
+  - Cross-chain messaging (XCM-like versioned payloads)
+
+## Performance & Metrics
+
+- No measured metrics. All previous performance claims were theoretical; removed.
+- Metrics will be added only after real implementations are measured.
+
+## Next Steps (Grant Eligibility Focus)
+
+- Replace wallet mocks with real SDK integrations in all test websites
+- Deploy minimal NEAR contract to testnet and bind UI calls
+- Integrate IPFS client to produce real CIDs; display and persist
+- Implement ONNX inference (CPU) in Rust Emotional Engine; expose to UI
+- Wire a working WebGPU pipeline for a simple fractal with live parameters
+
+## Documentation Policy
+
+- This roadmap will be updated at the end of each session to reflect reality
+- Planned features are explicitly marked; no future claims counted as implemented
+
 ## 🎯 Project Vision
 
 This roadmap outlines the technical development path for the Blockchain NFT Interactive project, focusing on transforming the current prototype into a production-ready platform with real blockchain integrations and advanced AI capabilities.

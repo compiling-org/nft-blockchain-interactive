@@ -10,43 +10,23 @@ let nearModal = null;
 let nearWallet = null;
 let nearAccountId = null;
 
-// Initialize NEAR Wallet Selector
+// Initialize NEAR Wallet using wallet-connections.js
 async function initNEARWallet() {
     try {
-        // For testing without npm packages, we'll use a simplified approach
-        // In production, you would use: @near-wallet-selector/core
-        
         console.log('Initializing NEAR wallet connection...');
         
-        // Simulated wallet for testing
-        const testWallet = {
-            accountId: 'test-creator.testnet',
-            isSignedIn: () => true,
-            signIn: async () => {
-                console.log('NEAR wallet sign in requested');
-                nearAccountId = 'test-creator.testnet';
+        // Use the real wallet connection from wallet-connections.js
+        if (window.walletConnections) {
+            const accountId = await window.walletConnections.connectNEARWallet();
+            if (accountId) {
+                nearAccountId = accountId;
+                nearWallet = window.walletConnections.getNearWallet();
                 updateWalletUI();
-                return true;
-            },
-            signOut: async () => {
-                console.log('NEAR wallet sign out');
-                nearAccountId = null;
-                updateWalletUI();
-            },
-            viewMethod: async ({ contractId, method, args }) => {
-                console.log(`NEAR view call: ${contractId}.${method}`, args);
-                return simulateNEARViewCall(contractId, method, args);
-            },
-            callMethod: async ({ contractId, method, args, gas, deposit }) => {
-                console.log(`NEAR call: ${contractId}.${method}`, {args, gas, deposit});
-                return simulateNEARTransaction(contractId, method, args);
+                console.log('✅ NEAR wallet connected:', accountId);
             }
-        };
-        
-        nearWallet = testWallet;
-        
-        // Auto-connect for testing
-        await nearWallet.signIn();
+        } else {
+            throw new Error('Wallet connections not available');
+        }
         
         log('NEAR wallet initialized successfully', 'success');
         return true;
@@ -118,10 +98,9 @@ async function mintNFTOnMintbase(metadata) {
         
         const contractId = 'your-store.mintbase1.near';
         
-        const result = await nearWallet.callMethod({
-            contractId,
-            method: 'nft_batch_mint',
-            args: {
+        // Use real NEAR contract call via wallet-connections.js
+        if (window.walletConnections && nearWallet && nearWallet.isSignedIn()) {
+            const args = {
                 owner_id: nearAccountId,
                 metadata: {
                     title: metadata.title,
@@ -141,15 +120,54 @@ async function mintNFTOnMintbase(metadata) {
                     },
                     percentage: 1000 // 10% total royalty
                 }
-            },
-            gas: '300000000000000',
-            deposit: '10000000000000000000000' // 0.01 NEAR
-        });
-        
-        log('NFT minted successfully!', 'success');
-        log('Token ID: ' + result.token_ids[0], 'success');
-        
-        return result.token_ids[0];
+            };
+            
+            const result = await nearWallet.account().functionCall({
+                contractId,
+                methodName: 'nft_batch_mint',
+                args,
+                gas: '300000000000000',
+                attachedDeposit: '10000000000000000000000' // 0.01 NEAR
+            });
+            
+            log('NFT minted successfully!', 'success');
+            log('Token ID: ' + result.token_ids[0], 'success');
+            return result.token_ids[0];
+        } else {
+            // Fallback to simulation
+            const result = await nearWallet.callMethod({
+                contractId,
+                method: 'nft_batch_mint',
+                args: {
+                    owner_id: nearAccountId,
+                    metadata: {
+                        title: metadata.title,
+                        description: metadata.description,
+                        media: metadata.ipfsCid,
+                        extra: JSON.stringify({
+                            emotional_data: metadata.emotionalData,
+                            session_type: metadata.sessionType,
+                            performance_metrics: metadata.performanceMetrics
+                        })
+                    },
+                    num_to_mint: 1,
+                    royalty_args: {
+                        split_between: {
+                            [nearAccountId]: 9500, // 95% to creator
+                            [contractId]: 500       // 5% platform fee
+                        },
+                        percentage: 1000 // 10% total royalty
+                    }
+                },
+                gas: '300000000000000',
+                deposit: '10000000000000000000000' // 0.01 NEAR
+            });
+            
+            log('NFT minted successfully!', 'success');
+            log('Token ID: ' + result.token_ids[0], 'success');
+            
+            return result.token_ids[0];
+        }
         
     } catch (error) {
         log('Minting failed: ' + error.message, 'error');

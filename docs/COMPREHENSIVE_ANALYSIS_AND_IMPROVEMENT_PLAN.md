@@ -69,27 +69,33 @@ Production Infrastructure:
   - No scaling architecture
 ```
 
-## 🎯 NEXT STEPS: FROM CLAIMS TO REALITY
+## BRUTAL REALITY CHECK
 
-### Phase 1: Make It Real (Weeks 1-2)
-**Priority: Replace ALL mocks with real implementations**
+- Most features are NOT IMPLEMENTED; documentation overstated prior claims
+- All wallet connections are simulated; zero real SDK integrations
+- All contract calls are mocked; no on-chain transactions
+- AI inference is placeholder; no model loading or camera integration
+- No production deployments or monitoring
+
+## NEXT STEPS: FROM CLAIMS TO REALITY (Updated)
+
+### Phase 1: Replace mocks with minimal real implementations
+**Priority: Focus on smallest working path per project**
 
 ```bash
-# Week 1: Real Wallet Integration
-- Integrate NEAR Wallet SDK (replace mock connections)
-- Add Solana Wallet Adapter (real Phantom/Solflare)
-- Implement Polkadot Extension (actual browser extension)
-- Create unified wallet management system
+Week 1:
+- NEAR Wallet SDK integration in NEAR Creative Engine test website
+- IPFS client (web3.storage) returning real CIDs
+- Deploy minimal NEAR NFT contract from reference example
 
-# Week 2: Real Contract Interactions  
-- Deploy contracts to testnets (NEAR testnet, Solana devnet, Rococo)
-- Replace mock calls with real contract calls
-- Implement proper transaction handling
-- Add gas fee estimation and management
+Week 2:
+- Bind NEAR UI to deployed contract methods (view/change)
+- Implement ONNX Runtime sample inference in Rust Emotional Engine (CPU)
+- Bring up WebGPU pipeline for basic fractal rendering (single uniform)
 ```
 
-### Phase 2: AI Integration (Weeks 3-4)
-**Priority: Replace placeholder AI with real inference**
+### Phase 2: AI Integration (Focused)
+**Priority: One model loading and one inference path verified**
 
 ```bash
 # Week 3: Real Emotion Detection
@@ -243,10 +249,7 @@ Target State (Realistic 6-week goal):
 ## 📈 SUCCESS METRICS
 
 ### Technical Metrics
-- **Real Transaction Success Rate**: >95% (vs current 0% mocked)
-- **Wallet Connection Success**: >90% (vs current 100% mocked)
-- **AI Inference Speed**: <500ms (vs current instant mock)
-- **Contract Deployment**: 100% on testnet, 100% on mainnet
+- Not measured. Will be added only after implementations exist.
 
 ### User Experience Metrics
 - **Real User Feedback**: Collect from 100+ beta testers

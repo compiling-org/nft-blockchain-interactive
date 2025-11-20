@@ -15,6 +15,7 @@ members = [
     "src/rust-client",
     "src/ipfs-integration",
     "src/polkadot-client",
+    "contracts/near/soulbound-nft",
 ]
 exclude = [
     "src/near-wasm",
