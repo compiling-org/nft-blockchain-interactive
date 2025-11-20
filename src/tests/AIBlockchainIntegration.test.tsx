@@ -1,9 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+/**
+ * @vitest-environment jsdom
+ */
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AIBlockchainIntegration from '../components/AIBlockchainIntegration';
 import { BiometricNFTClient } from '../utils/solana-client';
-import { FilecoinStorageClient } from '../utils/filecoin-storage-working';
-import { PolkadotSoulboundClient } from '../utils/polkadot-client-working';
+import { FilecoinStorageClient } from '../utils/filecoin-storage';
+import { PolkadotSoulboundClient } from '../utils/polkadot-client';
 
 // Mock canvas reference
 const mockCanvasRef = {
@@ -155,10 +158,12 @@ describe('AIBlockchainIntegration', () => {
   });
 
   it('handles errors gracefully', async () => {
-    // Mock failed Filecoin upload
-    vi.mocked(FilecoinStorageClient).mockImplementationOnce(() => ({
+    // Mock failed Filecoin upload - reset mock first
+    vi.clearAllMocks();
+    const mockFilecoinClient = {
       storeEmotionalArt: vi.fn().mockRejectedValue(new Error('Filecoin upload failed'))
-    }));
+    };
+    vi.mocked(FilecoinStorageClient).mockReturnValue(mockFilecoinClient as any);
 
     const mockOnComplete = vi.fn();
     
