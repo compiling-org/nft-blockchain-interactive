@@ -4,14 +4,11 @@
  * Integrates with AI/ML emotion detection and biometric verification
  */
 
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LazyOption, LookupMap, UnorderedMap, UnorderedSet};
-use near_sdk::json_types::{Base64VecU8, U128, U64};
+use near_sdk::json_types::{Base64VecU8, U64};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{
-    env, near_bindgen, AccountId, Balance, CryptoHash, PanicOnDefault, Promise, PromiseOrValue,
-};
-
+use near_sdk::{env, near, AccountId, PanicOnDefault, PromiseOrValue};
 pub use crate::metadata::*;
 mod metadata;
 
@@ -20,15 +17,14 @@ pub const NFT_METADATA_SPEC: &str = "nft-1.0.0";
 /// This is the name of the NFT standard we're using
 pub const NFT_STANDARD_NAME: &str = "nep171";
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct BiometricSoulboundNFT {
     pub owner_id: AccountId,
     pub tokens_per_owner: LookupMap<AccountId, UnorderedSet<TokenId>>,
     pub tokens_by_id: LookupMap<TokenId, Token>,
     pub token_metadata_by_id: UnorderedMap<TokenId, TokenMetadata>,
     pub metadata: LazyOption<NFTContractMetadata>,
-    
     // Custom fields for biometric authentication
     pub biometric_data: LookupMap<TokenId, BiometricData>,
     pub emotion_history: LookupMap<TokenId, Vec<EmotionRecord>>,
@@ -42,8 +38,8 @@ pub type Balance = U128;
 pub type Timestamp = u64;
 
 /// Custom biometric data structure
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
+#[near(serializers = [borsh, json])]
+#[derive(Clone)]
 pub struct BiometricData {
     pub biometric_hash: String,      // Hash of biometric features
     pub emotion_data: EmotionData,   // AI-detected emotion data
@@ -54,8 +50,8 @@ pub struct BiometricData {
 }
 
 /// Emotion data from AI inference
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
+#[near(serializers = [borsh, json])]
+#[derive(Clone)]
 pub struct EmotionData {
     pub primary_emotion: String,     // "Happy", "Sad", "Focused", etc.
     pub confidence: f64,             // AI confidence (0.0 - 1.0)
@@ -65,8 +61,8 @@ pub struct EmotionData {
 }
 
 /// Historical emotion record
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
+#[near(serializers = [borsh, json])]
+#[derive(Clone)]
 pub struct EmotionRecord {
     pub timestamp: Timestamp,
     pub emotion_data: EmotionData,
@@ -74,15 +70,14 @@ pub struct EmotionRecord {
 }
 
 /// Standard Token structure for NEP-171
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(serializers = [borsh])]
 pub struct Token {
     pub owner_id: AccountId,
     pub approved_account_ids: LookupMap<AccountId, U64>,
 }
 
 /// Structure for token metadata
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
-#[serde(crate = "near_sdk::serde")]
+#[near(serializers = [borsh, json])]
 pub struct TokenMetadata {
     pub title: Option<String>, // ex. "Arch Nemesis: Mail Carrier" or "Parcel #5055"
     pub description: Option<String>, // free-form description
@@ -109,7 +104,7 @@ impl Token {
 }
 
 /// Implementation of main contract
-#[near_bindgen]
+#[near]
 impl BiometricSoulboundNFT {
     #[init]
     pub fn new(owner_id: AccountId, metadata: NFTContractMetadata) -> Self {
@@ -324,8 +319,7 @@ impl BiometricSoulboundNFT {
 }
 
 /// Helper structure for JSON serialization
-#[derive(Serialize, Deserialize)]
-#[serde(crate = "near_sdk::serde")]
+#[near(serializers = [json])]
 pub struct JsonToken {
     pub token_id: TokenId,
     pub owner_id: AccountId,
@@ -334,8 +328,8 @@ pub struct JsonToken {
 }
 
 /// Metadata for the contract itself
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
+#[near(serializers = [borsh, json])]
+#[derive(Clone)]
 pub struct NFTContractMetadata {
     pub spec: String,              // required, essentially a version like "nft-1.0.0"
     pub name: String,              // required, ex. "Mochi Rising - Digital Edition" or "Metaverse 3"

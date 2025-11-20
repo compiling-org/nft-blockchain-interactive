@@ -15,18 +15,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "near-api-js": "^2.1.4",
-    "@solana/web3.js": "^1.87.6",
-    "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-react": "^0.15.32",
-    "@solana/wallet-adapter-wallets": "^0.19.16",
     "@polkadot/api": "^10.9.1",
     "@polkadot/extension-dapp": "^0.46.5",
-    "lucide-react": "^0.263.1",
-    "sonner": "^1.0.3",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.32",
+    "@solana/wallet-adapter-wallets": "^0.19.37",
+    "@solana/web3.js": "^1.87.6",
     "clsx": "^2.0.0",
+    "lucide-react": "^0.263.1",
+    "near-api-js": "^2.1.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sonner": "^1.0.3",
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
