@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge, Alert, AlertDescription } from './ui/simple-components';
-import { Brain, Cpu, Zap, Shield, Activity, Eye, Fingerprint, Network, Globe, Database } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Alert, AlertDescription } from './ui/simple-components';
+import { Brain, Zap, Activity, Fingerprint, Network } from 'lucide-react';
 
 // Simple toast implementation
 const toast = {
@@ -11,8 +11,9 @@ const toast = {
 };
 
 // NEAR Wallet Integration - REAL IMPLEMENTATION
-import { connect, WalletConnection, keyStores } from 'near-api-js';
+import { connect, WalletConnection } from 'near-api-js';
 import { InMemoryKeyStore } from 'near-api-js/lib/key_stores';
+import BN from 'bn.js';
 
 interface AIMLBlockchainIntegrationProps {
   className?: string;
@@ -23,6 +24,9 @@ interface BiometricData {
   timestamp: number;
   quality: number;
   deviceId: string;
+  qualityScore?: number;
+  artifacts?: Float32Array[];
+  features?: Float32Array;
 }
 
 interface ProcessedBiometrics {
@@ -80,13 +84,9 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
   const [biometricData, setBiometricData] = useState<BiometricData | null>(null);
   const [processedBiometrics, setProcessedBiometrics] = useState<ProcessedBiometrics | null>(null);
   const [aiResult, setAiResult] = useState<AIModelResult | null>(null);
-  const [blockchainState, setBlockchainState] = useState<BlockchainState | null>(null);
   const [crossChainMessage, setCrossChainMessage] = useState<CrossChainMessage | null>(null);
   const [gpuDevice, setGpuDevice] = useState<string>('');
   const [quantizationMode, setQuantizationMode] = useState<'fp16' | 'bf16' | 'int8'>('fp16');
-  
-  // REAL NEAR Wallet State
-  const [nearConnection, setNearConnection] = useState<any>(null);
   const [walletConnection, setWalletConnection] = useState<WalletConnection | null>(null);
   const [accountId, setAccountId] = useState<string>('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
@@ -101,7 +101,6 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
         const near = await connect(NEAR_CONFIG);
         const wallet = new WalletConnection(near, 'nft-interactive');
         
-        setNearConnection(near);
         setWalletConnection(wallet);
         
         if (wallet.isSignedIn()) {
@@ -126,12 +125,12 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
     
     try {
       if (!walletConnection.isSignedIn()) {
-        await walletConnection.requestSignIn(
-          CONTRACT_IDS.soulboundNFT,
-          'NFT Interactive Platform - Biometric Soulbound Tokens',
-          `${window.location.origin}/success`,
-          `${window.location.origin}/failure`
-        );
+        await walletConnection.requestSignIn({
+          contractId: CONTRACT_IDS.soulboundNFT,
+          methodNames: ['mint_soulbound', 'nft_token', 'nft_tokens_for_owner'],
+          successUrl: `${window.location.origin}/success`,
+          failureUrl: `${window.location.origin}/failure`
+        });
       } else {
         setAccountId(walletConnection.getAccountId());
         setIsWalletConnected(true);
@@ -162,8 +161,8 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
           quality_score: emotionData.confidence,
           biometric_hash: generateBiometricHash(emotionData.prediction),
         },
-        gas: '300000000000000', // 300 TGas
-        attachedDeposit: '1000000000000000000000000', // 1 NEAR
+        gas: new BN('300000000000000'), // 300 TGas
+        attachedDeposit: new BN('1000000000000000000000000'), // 1 NEAR
       });
       
       toast.success('Soulbound NFT minted successfully!');
@@ -353,7 +352,6 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
       
       // Step 6: Check blockchain state with Solana patterns
       const blockchainState = await checkBlockchainState('token_123');
-      setBlockchainState(blockchainState);
       toast.success('Blockchain state verified');
       
       // Step 7: Send cross-chain message with Polkadot patterns
@@ -475,8 +473,66 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
           </CardContent>
         </Card>
 
-        {/* Rest of the component remains the same... */}
-        
+        {/* AI/ML Processing Status */}
+        {aiResult && (
+          <Card className="bg-gradient-to-r from-blue-900/30 to-green-900/30 border-blue-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="w-6 h-6 text-blue-400" />
+                AI Model Results
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p><strong>Device:</strong> {gpuDevice || 'CPU'}</p>
+                <p><strong>Quantization:</strong> {quantizationMode.toUpperCase()}</p>
+                <p><strong>Confidence:</strong> {(aiResult.confidence * 100).toFixed(1)}%</p>
+                <p><strong>Processing Time:</strong> {aiResult.inferenceTime}ms</p>
+                <p><strong>Prediction:</strong> {aiResult.prediction}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Biometric Data Display */}
+        {biometricData && (
+          <Card className="bg-gradient-to-r from-green-900/30 to-teal-900/30 border-green-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-6 h-6 text-green-400" />
+                Biometric Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p><strong>Signal Quality:</strong> {(biometricData.qualityScore ? biometricData.qualityScore * 100 : 0).toFixed(1)}%</p>
+                <p><strong>Artifacts Removed:</strong> {biometricData.artifacts?.length || 0}</p>
+                <p><strong>Features Extracted:</strong> {biometricData.features?.length || 0}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Cross-Chain Message Status */}
+        {crossChainMessage && (
+          <Card className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 border-purple-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Network className="w-6 h-6 text-purple-400" />
+                Cross-Chain Message
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p><strong>From:</strong> {crossChainMessage.origin}</p>
+                <p><strong>To:</strong> {crossChainMessage.destination}</p>
+                <p><strong>Instruction:</strong> {crossChainMessage.instruction}</p>
+                <p><strong>Asset:</strong> {crossChainMessage.payload?.asset}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Controls */}
         <div className="flex flex-col gap-4">
           <div className="flex gap-4">
@@ -544,15 +600,22 @@ function generateMockEEGData(length: number): Float32Array {
 }
 
 function removeEnvironmentalNoise(signal: Float32Array, frequency: number): Float32Array {
-  return signal.map(s => s * 0.95);
+  // Simple noise removal based on frequency
+  const noiseReduction = 0.95 + (frequency / 1000) * 0.02;
+  return signal.map(s => s * noiseReduction);
 }
 
 function applyBandpassFilter(signal: Float32Array, lowFreq: number, highFreq: number, sampleRate: number): Float32Array {
-  return signal.map(s => s * 0.9);
+  // Simple bandpass simulation
+  const filterStrength = 0.9 - (highFreq - lowFreq) / sampleRate * 0.1;
+  return signal.map(s => s * filterStrength);
 }
 
 function applyWaveletDenoising(signal: Float32Array, wavelet: string, level: number): Float32Array {
-  return signal.map(s => s * 0.98);
+  // Simple wavelet denoising simulation
+  const denoiseStrength = 0.98 - level * 0.01;
+  console.log(`Applying ${wavelet} wavelet denoising at level ${level}`);
+  return signal.map(s => s * denoiseStrength);
 }
 
 function performICA(signal: Float32Array, components: number): Float32Array[] {
@@ -585,31 +648,40 @@ async function detectAvailableDevices(): Promise<Array<{id: number, type: string
 }
 
 async function buildInferenceSession(modelPath: string, options: any): Promise<any> {
+  console.log(`Building inference session for model: ${modelPath} with options:`, options);
   return {
-    run: async (inputs: any) => ({
-      output: { data: new Float32Array([0.9, 0.05, 0.05]) },
-      confidence: { data: new Float32Array([0.95]) }
-    })
+    run: async (inputs: any) => {
+      console.log(`Running inference with inputs:`, inputs);
+      return {
+        output: { data: new Float32Array([0.9, 0.05, 0.05]) },
+        confidence: { data: new Float32Array([0.95]) }
+      };
+    }
   };
 }
 
 async function getConditionalOwnershipState(tokenId: string): Promise<'active' | 'locked' | 'expired'> {
+  console.log(`Checking conditional ownership state for token: ${tokenId}`);
   return 'active';
 }
 
 async function getTimeLock(tokenId: string): Promise<number> {
+  console.log(`Getting time lock for token: ${tokenId}`);
   return Date.now() / 1000 + 3600;
 }
 
 async function getInvalidationType(tokenId: string): Promise<'time' | 'usage' | 'condition'> {
+  console.log(`Getting invalidation type for token: ${tokenId}`);
   return 'time';
 }
 
 async function getTokenOwner(tokenId: string): Promise<string> {
+  console.log(`Getting token owner for token: ${tokenId}`);
   return '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb6';
 }
 
 async function getTokenMetadata(tokenId: string): Promise<Record<string, any>> {
+  console.log(`Getting token metadata for token: ${tokenId}`);
   return {
     name: 'Biometric Soulbound Token',
     symbol: 'BST',
@@ -619,23 +691,4 @@ async function getTokenMetadata(tokenId: string): Promise<Record<string, any>> {
       { trait_type: 'Verification', value: 'AI-Enhanced' }
     ]
   };
-}
-
-function createVersionedXcmMessage(version: number, content: any): any {
-  return {
-    version,
-    content,
-    encoded: new Uint8Array([version, ...new TextEncoder().encode(JSON.stringify(content))])
-  };
-}
-
-function encodeMultiLocation(location: string): any {
-  return {
-    parents: 1,
-    interior: { X1: [{ Parachain: 2000 }] }
-  };
-}
-
-async function sendXcmMessage(message: any, destination: any): Promise<string> {
-  return '0x' + Array.from(message.encoded).map(b => b.toString(16).padStart(2, '0')).join('');
 }

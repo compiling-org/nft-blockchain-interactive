@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+
+interface Result {
+  eeg_processed: boolean;
+  gpu_accelerated: boolean;
+  model_deployed: boolean;
+  token_verified: boolean;
+  xcm_sent: boolean;
+  access_granted: boolean;
+  timestamp: number;
+  performance_metrics: {
+    processing_time: number;
+    memory_usage: number;
+    gpu_utilization: number;
+  };
+}
 
 export const AIMLIntegration = () => {
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<Result[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   
   const executeIntegration = async () => {

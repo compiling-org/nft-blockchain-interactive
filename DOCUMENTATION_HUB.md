@@ -98,6 +98,8 @@ New to the project? Follow this path:
 3. **[👨‍💻 Developer Guide](docs/developer-guide.md)** - Technical setup and coding
 4. **[🏗️ Technical Architecture](TECHNICAL_ARCHITECTURE.md)** - System design details
 
+> Reality check: backend and frontend have been tested; UI and real user flows still need testing and validation across chains.
+
 ### 🛠️ **Developer Journey**
 
 For developers building on the platform:

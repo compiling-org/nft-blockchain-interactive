@@ -9,30 +9,52 @@ let nearConnection = null;
 let nearWallet = null;
 let nearAccountId = null;
 
+// Import near-api-js (will be available via script tag)
+const { connect, keyStores, WalletConnection } = window.nearApi || {};
+
+// NEAR Configuration
+const NEAR_CONFIG = {
+    networkId: 'testnet',
+    keyStore: new keyStores?.BrowserLocalStorageKeyStore() || null,
+    nodeUrl: 'https://rpc.testnet.near.org',
+    walletUrl: 'https://wallet.testnet.near.org',
+    helperUrl: 'https://helper.testnet.near.org',
+    explorerUrl: 'https://explorer.testnet.near.org',
+};
+
+const CONTRACT_ID = 'fractal-studio-final.testnet';
+
 async function connectNEARWallet() {
     try {
         blockchain.log('Connecting to NEAR testnet...', 'info');
         
-        // Using NEAR Wallet Selector pattern
-        // For testing, we'll use MyNearWallet on testnet
-        const config = {
-            networkId: 'testnet',
-            nodeUrl: 'https://rpc.testnet.near.org',
-            walletUrl: 'https://testnet.mynearwallet.com/',
-            helperUrl: 'https://helper.testnet.near.org',
-            explorerUrl: 'https://testnet.nearblocks.io',
-        };
+        if (!window.nearApi) {
+            throw new Error('near-api-js not loaded. Please include the script tag.');
+        }
         
-        // Open MyNearWallet in new window
-        const callbackUrl = window.location.origin + window.location.pathname;
-        const walletUrl = `${config.walletUrl}/login/?referrer=${encodeURIComponent(callbackUrl)}`;
+        const { connect, keyStores, WalletConnection } = window.nearApi;
         
-        blockchain.log('Opening NEAR wallet...', 'info');
-        blockchain.log('Testnet: ' + config.networkId, 'info');
-        blockchain.log('RPC: ' + config.nodeUrl, 'info');
+        // Initialize key store if not exists
+        if (!NEAR_CONFIG.keyStore) {
+            NEAR_CONFIG.keyStore = new keyStores.BrowserLocalStorageKeyStore();
+        }
         
-        // For now, simulate connection (real integration requires near-api-js)
-        nearAccountId = 'test-creator.testnet';
+        // Connect to NEAR
+        nearConnection = await connect(NEAR_CONFIG);
+        nearWallet = new WalletConnection(nearConnection, 'blockchain-nft-interactive');
+        
+        if (!nearWallet.isSignedIn()) {
+            blockchain.log('Requesting NEAR wallet sign in...', 'info');
+            await nearWallet.requestSignIn(
+                CONTRACT_ID,
+                'Blockchain NFT Interactive',
+                window.location.href,
+                window.location.href
+            );
+            return null; // Will redirect
+        }
+        
+        nearAccountId = nearWallet.getAccountId();
         updateWalletStatus('NEAR', nearAccountId);
         blockchain.log('✅ NEAR wallet connected: ' + nearAccountId, 'success');
         
@@ -278,6 +300,124 @@ async function uploadToIPFS(data) {
 }
 
 // ============================================
+// NEAR Contract Interactions (Real)
+// ============================================
+
+async function startFractalSession(emotionData) {
+    try {
+        if (!nearWallet || !nearWallet.isSignedIn()) {
+            throw new Error('NEAR wallet not connected');
+        }
+        
+        blockchain.log('Starting fractal session on NEAR...', 'info');
+        
+        const args = {
+            session_id: Date.now().toString(),
+            initial_emotion: emotionData.primary_emotion || 'neutral',
+            arousal: emotionData.arousal || 0.5,
+            valence: emotionData.valence || 0.5
+        };
+        
+        const result = await nearWallet.account().functionCall({
+            contractId: CONTRACT_ID,
+            methodName: 'start_fractal_session',
+            args: args,
+            gas: '300000000000000',
+            attachedDeposit: '1000000000000000000000000' // 0.001 NEAR
+        });
+        
+        blockchain.log('✅ Fractal session started', 'success');
+        return result;
+        
+    } catch (error) {
+        blockchain.log('❌ Failed to start fractal session: ' + error.message, 'error');
+        throw error;
+    }
+}
+
+function getNearWallet() {
+    return nearWallet;
+}
+
+async function testNearMetadata() {
+    try {
+        if (!nearWallet || !nearWallet.account) {
+            blockchain.log('NEAR wallet not connected', 'warning');
+            return;
+        }
+        blockchain.log('Viewing nft_metadata from ' + CONTRACT_ID, 'info');
+        const result = await nearWallet.account().viewFunction(
+            CONTRACT_ID,
+            'nft_metadata',
+            {}
+        );
+        blockchain.log('Metadata: ' + JSON.stringify(result), 'success');
+        return result;
+    } catch (e) {
+        blockchain.log('❌ View call failed: ' + e.message, 'error');
+        throw e;
+    }
+}
+
+async function mintFractalNFT(sessionData, ipfsCid) {
+    try {
+        if (!nearWallet || !nearWallet.isSignedIn()) {
+            throw new Error('NEAR wallet not connected');
+        }
+        
+        blockchain.log('Minting fractal NFT...', 'info');
+        
+        const args = {
+            session_data: {
+                session_id: sessionData.session_id,
+                emotion_arousal: sessionData.arousal || 0.5,
+                emotion_valence: sessionData.valence || 0.5,
+                fractal_complexity: sessionData.complexity || 0.7,
+                ipfs_cid: ipfsCid
+            }
+        };
+        
+        const result = await nearWallet.account().functionCall({
+            contractId: CONTRACT_ID,
+            methodName: 'mint_fractal_nft',
+            args: args,
+            gas: '300000000000000',
+            attachedDeposit: '100000000000000000000000' // 0.1 NEAR
+        });
+        
+        blockchain.log('✅ Fractal NFT minted successfully!', 'success');
+        return result;
+        
+    } catch (error) {
+        blockchain.log('❌ Failed to mint fractal NFT: ' + error.message, 'error');
+        throw error;
+    }
+}
+
+async function getUserNFTs() {
+    try {
+        if (!nearWallet || !nearWallet.isSignedIn()) {
+            throw new Error('NEAR wallet not connected');
+        }
+        
+        blockchain.log('Fetching user NFTs...', 'info');
+        
+        const result = await nearWallet.account().viewFunction(
+            CONTRACT_ID,
+            'nft_tokens_for_owner',
+            { account_id: nearAccountId }
+        );
+        
+        blockchain.log(`✅ Found ${result.length} NFTs`, 'success');
+        return result;
+        
+    } catch (error) {
+        blockchain.log('❌ Failed to fetch NFTs: ' + error.message, 'error');
+        throw error;
+    }
+}
+
+// ============================================
 // Connect All Wallets
 // ============================================
 
@@ -392,6 +532,8 @@ IPFS:
 
 window.walletConnections = {
     connectNEARWallet,
+    getNearWallet,
+    testNearMetadata,
     connectSolanaWallet,
     connectMetaMask,
     connectPolkadotWallet,
