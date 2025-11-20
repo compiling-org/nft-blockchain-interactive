@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { PublicKey } from '@solana/web3.js';
 import { useWallet, useConnection, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter, TorusWalletAdapter } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl } from '@solana/web3.js';
 import BiometricNFTClient, { createAnchorProvider } from '../utils/solana-client';
 import '@solana/wallet-adapter-react-ui/styles.css';
 

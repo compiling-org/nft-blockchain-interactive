@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import init, { ShaderEngine } from '../rust-client/pkg/nft_rust_client';
 
 interface EmotionalState {
@@ -296,7 +296,7 @@ export default function FractalStudio() {
 }
 
 function getEmotionalCategory(state: EmotionalState): string {
-  const { valence, arousal, dominance } = state;
+  const { valence, arousal } = state;
   
   if (valence > 0.7 && arousal > 0.7) return 'Excited';
   if (valence > 0.7 && arousal < 0.3) return 'Content';

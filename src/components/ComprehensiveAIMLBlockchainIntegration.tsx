@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Brain, Cpu, Zap, Shield, Activity, Eye, Fingerprint, Network, Globe, Database } from 'lucide-react';
+import { Brain, Cpu, Zap, Shield, Activity, Eye, Fingerprint, Network, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AIMLBlockchainIntegrationProps {
@@ -68,13 +68,13 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
   const processEEGData = useCallback(async (rawData: Float32Array): Promise<ProcessedBiometrics> => {
     try {
       // Environmental Noise Removal (50/60Hz) - BrainFlow pattern
-      const cleanedSignal = removeEnvironmentalNoise(rawData, 60);
+      const cleanedSignal = removeEnvironmentalNoise(rawData);
       
       // Bandpass Filter (1-50Hz) - BrainFlow pattern
-      const filteredSignal = applyBandpassFilter(cleanedSignal, 1, 50, 250);
+      const filteredSignal = applyBandpassFilter(cleanedSignal);
       
       // Wavelet Denoising - BrainFlow pattern
-      const denoisedSignal = applyWaveletDenoising(filteredSignal, 'db4', 4);
+      const denoisedSignal = applyWaveletDenoising(filteredSignal);
       
       // ICA Artifact Removal - BrainFlow pattern
       const artifacts = performICA(denoisedSignal, 4);
@@ -123,11 +123,7 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
       const startTime = performance.now();
       
       // Session building - ONNX Runtime pattern
-      const session = await buildInferenceSession('biometric_model.onnx', {
-        device,
-        quantization: quantizationMode,
-        optimization: 'all'
-      });
+      const session = await buildInferenceSession();
       
       // Input tensor preparation - ONNX Runtime pattern
       const inputTensor = new Tensor('float32', features, [1, features.length]);
@@ -151,24 +147,24 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
   }, [quantizationMode]);
 
   // Solana Token Manager Conditional Ownership
-  const checkBlockchainState = useCallback(async (tokenId: string): Promise<BlockchainState> => {
+  const checkBlockchainState = useCallback(async (): Promise<BlockchainState> => {
     try {
       // Conditional ownership state machine - Solana pattern
-      const conditionalState = await getConditionalOwnershipState(tokenId);
+      const conditionalState = await getConditionalOwnershipState();
       
       // Time-lock validation - Solana pattern
-      const timeLock = await getTimeLock(tokenId);
+      const timeLock = await getTimeLock();
       const currentTime = Date.now() / 1000;
       const isLocked = timeLock > currentTime;
       
       // Invalidation type checking - Solana pattern
-      const invalidationType = await getInvalidationType(tokenId);
+      const invalidationType = await getInvalidationType();
       
       // Owner verification - Solana pattern
-      const owner = await getTokenOwner(tokenId);
+      const owner = await getTokenOwner();
       
       // Metadata retrieval - Solana pattern
-      const metadata = await getTokenMetadata(tokenId);
+      const metadata = await getTokenMetadata();
       
       return {
         owner,
@@ -195,10 +191,10 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
       });
       
       // Multi-location encoding - Polkadot pattern
-      const destinationLocation = encodeMultiLocation(message.destination);
+      encodeMultiLocation();
       
       // Message sending - Polkadot pattern
-      const messageHash = await sendXcmMessage(versionedMessage, destinationLocation);
+      const messageHash = await sendXcmMessage(versionedMessage);
       
       return messageHash;
     } catch (error) {
@@ -241,7 +237,7 @@ export const ComprehensiveAIMLBlockchainIntegration: React.FC<AIMLBlockchainInte
       toast.success(`AI inference completed in ${aiResult.inferenceTime.toFixed(2)}ms`);
       
       // Step 5: Check blockchain state with Solana patterns
-      const blockchainState = await checkBlockchainState('token_123');
+      const blockchainState = await checkBlockchainState();
       setBlockchainState(blockchainState);
       toast.success('Blockchain state verified');
       
@@ -593,15 +589,15 @@ function generateMockEEGData(length: number): Float32Array {
   return data;
 }
 
-function removeEnvironmentalNoise(signal: Float32Array, frequency: number): Float32Array {
+function removeEnvironmentalNoise(signal: Float32Array): Float32Array {
   return signal.map(s => s * 0.95);
 }
 
-function applyBandpassFilter(signal: Float32Array, lowFreq: number, highFreq: number, sampleRate: number): Float32Array {
+function applyBandpassFilter(signal: Float32Array): Float32Array {
   return signal.map(s => s * 0.9);
 }
 
-function applyWaveletDenoising(signal: Float32Array, wavelet: string, level: number): Float32Array {
+function applyWaveletDenoising(signal: Float32Array): Float32Array {
   return signal.map(s => s * 0.98);
 }
 
@@ -634,32 +630,32 @@ async function detectAvailableDevices(): Promise<Array<{id: number, type: string
   ];
 }
 
-async function buildInferenceSession(modelPath: string, options: any): Promise<any> {
+async function buildInferenceSession(): Promise<any> {
   return {
-    run: async (inputs: any) => ({
+    run: async () => ({
       output: { data: new Float32Array([0.9, 0.05, 0.05]) },
       confidence: { data: new Float32Array([0.95]) }
     })
   };
 }
 
-async function getConditionalOwnershipState(tokenId: string): Promise<'active' | 'locked' | 'expired'> {
+async function getConditionalOwnershipState(): Promise<'active' | 'locked' | 'expired'> {
   return 'active';
 }
 
-async function getTimeLock(tokenId: string): Promise<number> {
+async function getTimeLock(): Promise<number> {
   return Date.now() / 1000 + 3600;
 }
 
-async function getInvalidationType(tokenId: string): Promise<'time' | 'usage' | 'condition'> {
+async function getInvalidationType(): Promise<'time' | 'usage' | 'condition'> {
   return 'time';
 }
 
-async function getTokenOwner(tokenId: string): Promise<string> {
+async function getTokenOwner(): Promise<string> {
   return '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb6';
 }
 
-async function getTokenMetadata(tokenId: string): Promise<Record<string, any>> {
+async function getTokenMetadata(): Promise<Record<string, any>> {
   return {
     name: 'Biometric Soulbound Token',
     symbol: 'BST',
@@ -679,15 +675,15 @@ function createVersionedXcmMessage(version: number, content: any): any {
   };
 }
 
-function encodeMultiLocation(location: string): any {
+function encodeMultiLocation(): any {
   return {
     parents: 1,
     interior: { X1: [{ Parachain: 2000 }] }
   };
 }
 
-async function sendXcmMessage(message: any, destination: any): Promise<string> {
-  return '0x' + Array.from(message.encoded).map(b => b.toString(16).padStart(2, '0')).join('');
+async function sendXcmMessage(message: any): Promise<string> {
+  return '0x' + Array.from(message.encoded as number[]).map((b: number) => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Tensor class for ONNX Runtime

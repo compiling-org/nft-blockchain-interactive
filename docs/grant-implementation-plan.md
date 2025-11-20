@@ -1,14 +1,17 @@
 # Multi-Chain Creative NFT Framework - Grant Implementation Plan
 
 ## Overview
-This document outlines the implementation plan for the 6 foundation grants, each with a 3-month timeline and $10K budget. All modules are currently integrated into a single repository for development convenience but will be split into separate repositories upon grant approval.
+This document outlines the implementation plan for the 6 foundation grants, each with a 3-month timeline and realistic budget allocation. All modules are currently integrated into a single repository for development convenience but will be split into separate repositories upon grant approval.
+
+**Last Updated**: November 2025
+**Implementation Period**: January 2026 - March 2026
 
 ## Grant Structure
 
 ### 1. NEAR Foundation Grant - Real-Time WASM Creative Engine
 **Module**: `src/near-wasm`
-**Timeline**: 3 months
-**Budget**: $10,000
+**Timeline**: 3 months (January 2026 - March 2026)
+**Budget**: $25,000 (Realistic development cost for professional implementation)
 
 **Key Deliverables**:
 - Rust-to-WASM compilation of fractal shader engine
