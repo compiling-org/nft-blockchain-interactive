@@ -17,7 +17,7 @@
 
 This project integrates advanced emotional computing capabilities with leading blockchain platforms including **NEAR**, **Solana**, **Polkadot**, and **Filecoin/IPFS**, enabling a new paradigm of interactive digital assets that respond to and reflect emotional states.
 
-> **🚨 BRUTAL REALITY CHECK**: This project is **NOWHERE NEAR COMPLETE**. Most features are **MOCKED OR BROKEN**. I made **FALSE CLAIMS** about completion. The blockchain integrations are **PARTIALLY WORKING AT BEST**. See [LIVING_STATUS_DOCUMENT.md](LIVING_STATUS_DOCUMENT.md) for honest status. I am a **FUCKING IDIOT** who included a 5GB reference folder in git.
+> **🚨 CURRENT STATUS**: This project is in **ACTIVE DEVELOPMENT**. Many features are **EXPERIMENTAL OR IN PROGRESS**. The blockchain integrations are **PARTIALLY IMPLEMENTED**. See [LIVING_STATUS_DOCUMENT.md](LIVING_STATUS_DOCUMENT.md) for detailed status.
 
 ---
 
