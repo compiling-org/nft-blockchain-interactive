@@ -47,68 +47,102 @@ This project integrates advanced emotional computing capabilities with leading b
 
 **System Components Overview:**
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    🎨 Frontend Experience                      │
-├─────────────────────────────────────────────────────────────────┤
-│  Test Website UI          │  Marketplace Frontend             │
-│  🌐 Multi-tab Interface   │  🏪 NFT Gallery & Creation        │
-└───────────────────────────┴───────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 🧠 AI & Computing Core                          │
-├─────────────────────────────────────────────────────────────────┤
-│  Emotional Computing      │  Pattern Recognition               │
-│  💭 VAD Model Engine      │  🔍 Trajectory Analysis            │
-└───────────────────────────┴───────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  🎭 Creative Engine                            │
-├─────────────────────────────────────────────────────────────────┤
-│  Rust Creative Engine     │  Fractal Studio    │  WGSL Studio   │
-│  ⚙️ WebGPU/WASM Runtime  │  🔮 Real-time Gen │  🎨 Shader Proc │
-└───────────────────────────┴───────────────────┴─────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 ⛓️ Blockchain Infrastructure                   │
-├─────────────────────────────────────────────────────────────────┤
-│  NEAR Protocol   │  Solana       │  Polkadot                    │
-│  🎯 WASM Contracts│  ⚡ Anchor Programs│  🌉 Cross-Chain Bridge   │
-└──────────────────┴───────────────┴──────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 💾 Decentralized Storage                         │
-├─────────────────────────────────────────────────────────────────┤
-│  IPFS/Filecoin            │  Cross-Chain Metadata              │
-│  🗃️ Emotional Data Storage│  🔗 State Preservation             │
-└───────────────────────────┴───────────────────────────────────┘
+```mermaid
+graph TB
+    classDef frontend fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
+    classDef ai fill:#feca57,stroke:#333,stroke-width:2px,color:#333
+    classDef engine fill:#9c88ff,stroke:#333,stroke-width:2px,color:#fff
+    classDef blockchain fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff
+    classDef storage fill:#48dbfb,stroke:#333,stroke-width:2px,color:#333
+
+    subgraph "🎨 Frontend Experience"
+        UI["Test Website UI<br/>🌐 Multi-tab Interface"]:::frontend
+        MF["Marketplace Frontend<br/>🏪 NFT Gallery & Creation"]:::frontend
+    end
+
+    subgraph "🧠 AI & Computing Core"
+        EMOTIONAL["Emotional Computing<br/>💭 VAD Model Engine"]:::ai
+        PATTERNS["Pattern Recognition<br/>🔍 Trajectory Analysis"]:::ai
+    end
+
+    subgraph "🎭 Creative Engine"
+        RUST["Rust Creative Engine<br/>⚙️ WebGPU/WASM Runtime"]:::engine
+        FRACTAL["Fractal Studio<br/>🔮 Real-time Generation"]:::engine
+        WGSL["WGSL Studio<br/>🎨 Shader Processing"]:::engine
+    end
+
+    subgraph "⛓️ Blockchain Infrastructure"
+        NEAR["NEAR Protocol<br/>🎯 WASM Smart Contracts"]:::blockchain
+        SOL["Solana<br/>⚡ Anchor Programs"]:::blockchain
+        DOT["Polkadot<br/>🌉 Cross-Chain Bridge"]:::blockchain
+    end
+
+    subgraph "💾 Decentralized Storage"
+        IPFS["IPFS/Filecoin<br/>🗃️ Emotional Data Storage"]:::storage
+        METADATA["Cross-Chain Metadata<br/>🔗 State Preservation"]:::storage
+    end
+
+    %% Data Flow Connections
+    UI -.->|"Emotional Input"| EMOTIONAL
+    UI -->|"Creative Commands"| RUST
+    MF -->|"NFT Operations"| NEAR
+
+    EMOTIONAL -->|"Influenced Creation"| FRACTAL
+    PATTERNS -->|"Pattern Data"| METADATA
+
+    RUST -->|"Generated Assets"| IPFS
+    NEAR -->|"State Storage"| IPFS
+    SOL -->|"Metadata"| IPFS
+    DOT -->|"Bridge Data"| IPFS
+
+    FRACTAL -.->|"Visual Output"| UI
+    METADATA -.->|"Cross-Chain Sync"| DOT
 ```
 
 ### 🔧 Component Integration Flow
 
 **Data Flow Architecture:**
 
-```
-👤 User
-   │
-   ▼
-🎯 Processing Pipeline
-┌─────────────────────────────────────────────────────────────────┐
-│  Emotional Input → VAD Analysis → Emotional Computing → Creative │
-│  🎭 Express Emotion │  🔍 Analyze  │  💭 Compute State │  🎨 Generate  │
-└─────────────────────────────────────────────────────────────────┘
-   │                    │                    │                    │
-   ▼                    ▼                    ▼                    ▼
-💾 Data Layer          🗄️ Storage Systems
-┌─────────────────┐    ┌─────────────────────────────────────────────────────────────────┐
-│  Emotional State│───▶│  IPFS/Filecoin Storage  │  Blockchain Networks               │
-│  Metadata       │    │  🗃️ Emotional Data      │  ⛓️ Cross-Chain Sync              │
-│  NFT Data       │───▶│  Cross-Chain Metadata   │  💰 NFT Minting & Trading         │
-└─────────────────┘    └─────────────────────────┴───────────────────────────────────┘
+```mermaid
+graph TD
+    classDef user fill:#ff6b6b,stroke:#333,stroke-width:3px,color:#fff
+    classDef process fill:#feca57,stroke:#333,stroke-width:2px,color:#333
+    classDef data fill:#96ceb4,stroke:#333,stroke-width:2px,color:#333
+    classDef storage fill:#48dbfb,stroke:#333,stroke-width:2px,color:#333
+    classDef blockchain fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff
+
+    U["👤 User"]:::user
+    
+    subgraph "🎯 Processing Pipeline"
+        EI["Emotional Input"]:::process
+        VAD["VAD Analysis"]:::process
+        EC["Emotional Computing"]:::process
+        CG["Creative Generation"]:::process
+    end
+
+    subgraph "💾 Data Layer"
+        ES["Emotional State"]:::data
+        MD["Metadata"]:::data
+        NFT["NFT Data"]:::data
+    end
+
+    subgraph "🗄️ Storage Systems"
+        IPFS["IPFS/Filecoin Storage"]:::storage
+        BC["Blockchain Networks"]:::blockchain
+    end
+
+    U -->|"Express Emotion"| EI
+    EI -->|"Analyze"| VAD
+    VAD -->|"Compute State"| EC
+    EC -->|"Generate"| CG
+
+    EC -->|"Store State"| ES
+    ES -->|"Persist"| IPFS
+    CG -->|"Create NFT"| NFT
+    NFT -->|"Mint"| BC
+
+    ES -->|"Cross-Reference"| MD
+    MD -->|"Sync"| BC
 ```
 
 ---
@@ -119,15 +153,19 @@ This project integrates advanced emotional computing capabilities with leading b
 
 **Build Pipeline Status:**
 
-```
-🏗️ Build Pipeline
-├─ Main Project Core ──────────────── ✅ Core Ready
-├─ Rust Client Engine ─────────────── ✅ Engine Ready  
-├─ IPFS Integration ─────────────────── ✅ Storage Ready
-├─ Polkadot Bridge ────────────────── ✅ Bridge Ready
-├─ NEAR WASM Contracts ─────────────── ✅ NEAR Ready
-├─ Solana Programs ────────────────── ✅ Solana Ready
-└─ Marketplace Module ─────────────── ✅ Market Ready
+```mermaid
+graph TD
+    classDef success fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
+    classDef process fill:#feca57,stroke:#333,stroke-width:2px,color:#333
+
+    A["🏗️ Build Pipeline"]:::process
+    A --> B["Main Project Core<br/>✅ Core Ready"]:::success
+    A --> C["Rust Client Engine<br/>✅ Engine Ready"]:::success
+    A --> D["IPFS Integration<br/>✅ Storage Ready"]:::success
+    A --> E["Polkadot Bridge<br/>✅ Bridge Ready"]:::success
+    A --> F["NEAR WASM Contracts<br/>✅ NEAR Ready"]:::success
+    A --> G["Solana Programs<br/>✅ Solana Ready"]:::success
+    A --> H["Marketplace Module<br/>✅ Market Ready"]:::success
 ```
 
 ### 🚀 Quick Build Commands
@@ -153,24 +191,31 @@ cd src/marketplace && cargo build        # Marketplace
 
 **Interface Components:**
 
-```
-🌐 Main Interface
-├─ 🏪 Marketplace Tab ─────────────── NFT Gallery & Trading
-│  ├─ 📊 Browse NFTs (Working)
-│  └─ 💰 Simulated Trading (Mocked)
-│
-├─ 🎨 Create NFT Tab ─────────────── Emotional Asset Creation  
-│  ├─ 🧠 Emotional Input (Working)
-│  └─ 🎭 Creative Generation (Working)
-│
-├─ 🏛️ DAO Tab ────────────────────── Governance & Voting
-│  └─ 🗳️ Proposal System (Mocked)
-│
-├─ 🔐 Soulbound Tab ───────────────── Identity & Reputation
-│  └─ 👤 Identity Management (Working)
-│
-└─ 🌉 Cross-Chain Tab ─────────────── Bridge Operations
-   └─ 🔗 Bridge Interface (Mocked)
+```mermaid
+graph TD
+    classDef working fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
+    classDef mocked fill:#FF9800,stroke:#333,stroke-width:2px,color:#fff
+    classDef interface fill:#2196F3,stroke:#333,stroke-width:2px,color:#fff
+
+    MAIN["🌐 Main Interface"]:::interface
+    
+    MAIN --> MARKET["🏪 Marketplace Tab<br/>NFT Gallery & Trading"]:::interface
+    MAIN --> CREATE["🎨 Create NFT Tab<br/>Emotional Asset Creation"]:::interface
+    MAIN --> DAO["🏛️ DAO Tab<br/>Governance & Voting"]:::interface
+    MAIN --> SOUL["🔐 Soulbound Tab<br/>Identity & Reputation"]:::interface
+    MAIN --> BRIDGE["🌉 Cross-Chain Tab<br/>Bridge Operations"]:::interface
+
+    MARKET --> BROWSE["📊 Browse NFTs<br/>✅ Working"]:::working
+    MARKET --> TRADE["💰 Simulated Trading<br/>⚠️ Mocked"]:::mocked
+
+    CREATE --> EMOTIONAL["🧠 Emotional Input<br/>✅ Working"]:::working
+    CREATE --> GENERATE["🎭 Creative Generation<br/>✅ Working"]:::working
+
+    DAO --> PROPOSALS["🗳️ Proposal System<br/>⚠️ Mocked"]:::mocked
+
+    SOUL --> IDENTITY["👤 Identity Management<br/>✅ Working"]:::working
+
+    BRIDGE --> INTERFACE["🔗 Bridge Interface<br/>⚠️ Mocked"]:::mocked
 ```
 
 ### 🎨 Creative Engine Capabilities
