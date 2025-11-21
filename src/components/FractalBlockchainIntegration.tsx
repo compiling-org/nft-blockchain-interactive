@@ -66,7 +66,14 @@ export default function FractalBlockchainIntegration({
     }
     
     // Create provider from connection and wallet
-    const provider = new AnchorProvider(connection, { publicKey, signTransaction, signAllTransactions: signTransaction }, {});
+    const provider = new AnchorProvider(connection, { publicKey, signTransaction, signAllTransactions: async (txs) => {
+      const signedTxs = [];
+      for (const tx of txs) {
+        const signed = await signTransaction(tx);
+        signedTxs.push(signed);
+      }
+      return signedTxs;
+    } }, {});
     const client = new BiometricNFTClient(connection, provider);
     const biometricHash = generateBiometricHash();
     const imageData = captureCanvasImage();
@@ -76,7 +83,7 @@ export default function FractalBlockchainIntegration({
     }
 
     // Convert base64 to bytes for quality score calculation
-    const base64Data = imageData.split(',')[1];
+    // const base64Data = imageData.split(',')[1]; // Will be used for quality calculation later
     const qualityScore = Math.floor(Math.random() * 30) + 70; // 70-100 quality score
 
     const result = await client.initializeNFT(
@@ -85,7 +92,7 @@ export default function FractalBlockchainIntegration({
         valence: emotionalState.valence,
         arousal: emotionalState.arousal,
         dominance: emotionalState.dominance,
-        biometricHash: biometricHash
+        timestamp: Date.now()
       },
       qualityScore,
       biometricHash
@@ -101,30 +108,36 @@ export default function FractalBlockchainIntegration({
   }, [connected, publicKey, signTransaction, emotionalState, generateBiometricHash, captureCanvasImage]);
 
   const storeOnFilecoin = useCallback(async () => {
-    const imageData = captureCanvasImage();
-    if (!imageData) {
-      throw new Error('Failed to capture fractal image');
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      throw new Error('Canvas not available');
     }
 
     const filecoinClient = new FilecoinStorageClient('your-api-key');
-    const result = await filecoinClient.storeEmotionalArt(
-      imageData,
-      {
+    const result = await filecoinClient.storeEmotionalArt({
+      canvas,
+      emotionData: {
         valence: emotionalState.valence,
         arousal: emotionalState.arousal,
-        dominance: emotionalState.dominance
+        dominance: emotionalState.dominance,
+        confidence: 0.8
       },
-      `Fractal_${Date.now()}`,
-      'AI-generated fractal art with emotional parameters'
-    );
+      biometricHash: generateBiometricHash(),
+      aiModel: 'fractal-emotional-generator',
+      generationParams: {
+        fractalType: fractalParams.type,
+        iterations: fractalParams.iterations,
+        colorScheme: fractalParams.colorScheme
+      }
+    });
 
     return {
       blockchain: 'Filecoin',
-      cid: result,
-      url: `https://ipfs.io/ipfs/${result}`,
-      metadata: 'Stored successfully'
+      cid: result.cid,
+      url: result.url,
+      metadata: result.metadata
     };
-  }, [emotionalState, captureCanvasImage]);
+  }, [emotionalState, fractalParams, generateBiometricHash]);
 
   const createPolkadotIdentityFunc = useCallback(async () => {
     const biometricHash = generateBiometricHash();

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { FilecoinStorageClient, createFilecoinStorageClient } from '../utils/filecoin-storage-working';
-import { generateBiometricHash } from '../utils/biometric-utils';
+// import { generateBiometricHash } from '../utils/biometric-utils';
 
 interface FilecoinStorageIntegrationProps {
   canvas: HTMLCanvasElement | null;
@@ -57,47 +57,42 @@ const FilecoinStorageIntegration: React.FC<FilecoinStorageIntegrationProps> = ({
     setIsUploading(true);
     setUploadProgress(0);
 
+    let progressInterval: NodeJS.Timeout | undefined;
+
     try {
       // Simulate upload progress
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
-            // clearInterval(progressInterval); // Commented out
+            clearInterval(progressInterval);
             return prev;
           }
           return prev + 10;
         });
       }, 200);
 
-      // Generate biometric hash
-      const biometricHash = await generateBiometricHash(biometricData);
+      // Generate biometric hash (for future use)
+      // const biometricHash = await generateBiometricHash(biometricData);
       
       // Store emotional art on Filecoin
-      const result = await storageClient.storeEmotionalArt({
-        canvas,
-        emotionData,
-        biometricHash: Array.from(biometricHash).map(b => b.toString(16).padStart(2, '0')).join(''),
-        aiModel: 'Emotional Fractal Generator v1.0',
-        generationParams: {
-          algorithm: 'fractal',
-          iterations: 1000,
-          colorPalette: 'emotional',
-          timestamp: Date.now()
-        }
-      });
+      const canvasData = canvas.toDataURL('image/png');
+      const blob = await (await fetch(canvasData)).blob();
+      const file = new File([blob], `emotional_art_${Date.now()}.png`, { type: 'image/png' });
+      
+      const result = await storageClient.storeEmotionalArt(file);
 
-      // clearInterval(progressInterval); // Commented out
+      clearInterval(progressInterval);
       setUploadProgress(100);
 
       setLastUpload({
-        cid: result.cid,
-        url: result.url,
+        cid: result,
+        url: `https://ipfs.io/ipfs/${result}`,
         timestamp: Date.now()
       });
 
       onStorageComplete?.({
-        cid: result.cid,
-        url: result.url
+        cid: result,
+        url: `https://ipfs.io/ipfs/${result}`
       });
 
       // Reset progress after a delay
@@ -107,7 +102,9 @@ const FilecoinStorageIntegration: React.FC<FilecoinStorageIntegrationProps> = ({
       }, 2000);
 
     } catch (error) {
-      // clearInterval(progressInterval); // Commented out
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setIsUploading(false);
       setUploadProgress(0);
       onError?.(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

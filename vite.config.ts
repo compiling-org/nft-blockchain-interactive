@@ -17,6 +17,14 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      external: [
+        '@polkadot/x-globalThis',
+        '@trezor/connect-web',
+        '@trezor/connect-common',
+        '@trezor/env-utils'
+      ],
+    },
   },
   define: {
     global: 'globalThis',

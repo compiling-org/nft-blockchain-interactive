@@ -1,18 +1,18 @@
 // Simple Polkadot soulbound client implementation
 export class PolkadotSoulboundClient {
-  private contractAddress: string;
+  // private _contractAddress: string;
 
-  constructor(contractAddress: string) {
-    this.contractAddress = contractAddress;
+  constructor(_contractAddress: string) {
+    // this._contractAddress = contractAddress;
   }
 
   async createIdentity(
-    name: string,
-    biometricHash: string,
-    valence: number,
-    arousal: number,
-    dominance: number,
-    metadataUri: string
+    _name: string,
+    _biometricHash: string,
+    _valence: number,
+    _arousal: number,
+    _dominance: number,
+    _metadataUri: string
   ): Promise<{
     identityId: number;
     transactionHash: string;
@@ -56,15 +56,15 @@ export class PolkadotSoulboundClient {
   }
 
   async updateIdentity(
-    identityId: number,
-    name?: string,
-    biometricHash?: string,
-    emotionData?: {
+    _identityId: number,
+    _name?: string,
+    _biometricHash?: string,
+    _emotionData?: {
       valence: number;
       arousal: number;
       dominance: number;
     },
-    metadataUri?: string
+    _metadataUri?: string
   ): Promise<{
     transactionHash: string;
   }> {
@@ -75,7 +75,10 @@ export class PolkadotSoulboundClient {
     };
   }
 
-  async verifyIdentity(identityId: number, biometricHash: string): Promise<{
+  async verifyIdentity(
+    _identityId: number,
+    _biometricHash: string
+  ): Promise<{
     isVerified: boolean;
     confidence: number;
   }> {

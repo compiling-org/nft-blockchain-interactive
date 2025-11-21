@@ -117,7 +117,7 @@ const idl = {
   }
 };
 
-const PROGRAM_ID = new PublicKey('BiometricNftProgram1111111111111111111111');
+const PROGRAM_ID = new PublicKey('11111111111111111111111111111111'); // System Program ID as placeholder
 
 interface EmotionData {
   valence: number;
