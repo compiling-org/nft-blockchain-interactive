@@ -1,0 +1,328 @@
+#!/bin/bash
+# Script to extract Bitte grant files for separate repository
+
+echo "============================================"
+echo "Extracting Bitte Grant Files (formerly Mintbase)"
+echo "============================================"
+
+# Create directory structure for Bitte grant repository
+mkdir -p ../grant-repositories/bitte-creative-marketplace/src
+mkdir -p ../grant-repositories/bitte-creative-marketplace/test-website
+mkdir -p ../grant-repositories/bitte-creative-marketplace/scripts
+
+echo "📁 Created directory structure"
+
+# Copy marketplace components
+cp -r ./src/marketplace ../grant-repositories/bitte-creative-marketplace/src/
+echo "📦 Copied marketplace components"
+
+# Copy Rust client (core dependency)
+cp -r ./src/rust-client ../grant-repositories/bitte-creative-marketplace/src/
+echo "📦 Copied Rust client core library"
+
+# Extract Marketplace tab from index.html
+echo "🔧 Extracting Marketplace tab from test website"
+
+# Create a simplified test website with only Bitte components
+cat > ../grant-repositories/bitte-creative-marketplace/test-website/index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bitte Creative Marketplace</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: #e0e0e0; cursor: pointer; border-radius: 5px; }
+        .tab.active { background: #00c389; color: white; }
+        .tab-content { display: none; background: #fff; padding: 20px; border-radius: 10px; }
+        .tab-content.active { display: block; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .control-group { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .slider-container { margin: 15px 0; }
+        .slider { width: 100%; }
+        .btn { padding: 10px 20px; background: #00c389; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background: #00a06f; }
+        .log { background: #000; color: #0f0; padding: 15px; border-radius: 8px; font-family: monospace; height: 200px; overflow-y: auto; }
+        .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .metric { background: #e6f7ff; padding: 15px; border-radius: 8px; text-align: center; }
+        .metric-value { font-size: 24px; font-weight: bold; color: #00c389; }
+        .metric-label { font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Bitte Creative Marketplace</h1>
+            <p>DAO-governed marketplace for emotionally-responsive digital art (formerly Mintbase)</p>
+            <p style="color: #ff6b6b; font-size: 0.9rem;">⚠️ CURRENTLY SIMULATED: All blockchain interactions use alert() popups</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('marketplace')">Marketplace</div>
+            <div class="tab" onclick="switchTab('dao')">DAO Governance</div>
+            <div class="tab" onclick="switchTab('settings')">Settings</div>
+        </div>
+        
+        <!-- Marketplace Tab -->
+        <section id="marketplace-tab" class="tab-content active">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Mint Interactive NFT</h3>
+                    <p>Create emotionally-responsive NFTs with interactive properties</p>
+                    
+                    <label>NFT Name:</label>
+                    <input type="text" id="nft-name" placeholder="Creative Session #001" style="width: 100%; padding: 8px; margin: 10px 0;">
+                    
+                    <label>Description:</label>
+                    <textarea id="nft-description" placeholder="Interactive fractal generated with emotional input" style="width: 100%; height: 80px; padding: 8px; margin: 10px 0;"></textarea>
+                    
+                    <button class="btn" onclick="mintNFT()">Mint NFT</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Marketplace Features</h3>
+                    <p>Our marketplace includes:</p>
+                    <ul>
+                        <li>Interactive NFTs with emotional properties</li>
+                        <li>DAO-governed curation and pricing</li>
+                        <li>Revenue sharing with creators</li>
+                        <li>Community voting on featured works</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-value" id="nfts-minted">0</div>
+                    <div class="metric-label">NFTs Minted</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="dao-proposals">0</div>
+                    <div class="metric-label">DAO Proposals</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="community-votes">0</div>
+                    <div class="metric-label">Community Votes</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- DAO Governance Tab -->
+        <section id="dao-tab" class="tab-content">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>DAO Governance</h3>
+                    <p>Community-driven decision making with emotional consensus:</p>
+                    <ul>
+                        <li>Emotional voting weight system</li>
+                        <li>Quadratic voting for proposal prioritization</li>
+                        <li>Reputation-based governance</li>
+                        <li>Transparent decision tracking</li>
+                    </ul>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Create Governance Proposal</h3>
+                    <label>Proposal Title:</label>
+                    <input type="text" id="proposal-title" placeholder="New curation policy" style="width: 100%; padding: 8px; margin: 10px 0;">
+                    
+                    <label>Description:</label>
+                    <textarea id="proposal-description" placeholder="Description of the proposed change" style="width: 100%; height: 80px; padding: 8px; margin: 10px 0;"></textarea>
+                    
+                    <button class="btn" onclick="createProposal()">Create Proposal</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Settings Tab -->
+        <section id="settings-tab" class="tab-content">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Mintbase Wallet Connection</h3>
+                    <button class="btn" onclick="connectWallet()">Connect Mintbase Wallet</button>
+                    <p id="wallet-status">Not connected</p>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Contract Settings</h3>
+                    <label>Store ID:</label>
+                    <input type="text" id="store-id" placeholder="your-store.mintbase.testnet" style="width: 100%; padding: 8px; margin: 10px 0;">
+                    
+                    <button class="btn" onclick="updateContract()">Update Contract</button>
+                </div>
+            </div>
+        </section>
+        
+        <div class="log" id="marketplace-log">
+            <div>[INFO] Mintbase Creative Marketplace system initialized</div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
+        // Mint NFT
+        function mintNFT() {
+            const name = document.getElementById('nft-name').value || 'Creative Session';
+            const description = document.getElementById('nft-description').value || 'Interactive fractal generated with emotional input';
+            
+            const logDiv = document.getElementById('marketplace-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Minting NFT: ${name}...</div>` + logDiv.innerHTML;
+            
+            setTimeout(() => {
+                const nftsMinted = parseInt(document.getElementById('nfts-minted').textContent) + 1;
+                document.getElementById('nfts-minted').textContent = nftsMinted;
+                
+                const now = new Date().toLocaleTimeString();
+                logDiv.innerHTML = `<div>[${now}] NFT minted successfully: ${name}</div>` + logDiv.innerHTML;
+            }, 1500);
+        }
+        
+        // Create proposal
+        function createProposal() {
+            const title = document.getElementById('proposal-title').value || 'New Proposal';
+            const description = document.getElementById('proposal-description').value || 'Proposal description';
+            
+            const logDiv = document.getElementById('marketplace-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Creating DAO proposal: ${title}...</div>` + logDiv.innerHTML;
+            
+            setTimeout(() => {
+                const proposals = parseInt(document.getElementById('dao-proposals').textContent) + 1;
+                document.getElementById('dao-proposals').textContent = proposals;
+                
+                const now = new Date().toLocaleTimeString();
+                logDiv.innerHTML = `<div>[${now}] Proposal created successfully: ${title}</div>` + logDiv.innerHTML;
+            }, 1500);
+        }
+        
+        // Wallet connection
+        function connectWallet() {
+            const logDiv = document.getElementById('marketplace-log');
+            const now = new Date().toLocaleTimeString();
+            logDiv.innerHTML = `<div>[${now}] Connecting to Mintbase wallet...</div>` + logDiv.innerHTML;
+            
+            setTimeout(() => {
+                document.getElementById('wallet-status').textContent = 'Connected: test-account.mintbase.testnet';
+                const now = new Date().toLocaleTimeString();
+                logDiv.innerHTML = `<div>[${now}] Wallet connected successfully</div>` + logDiv.innerHTML;
+            }, 1000);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialization code here
+        });
+    </script>
+</body>
+</html>
+EOF
+
+echo "🔧 Created simplified test website for Mintbase grant"
+
+# Copy build scripts
+cp ./build-mintbase-grant.sh ../grant-repositories/mintbase-creative-marketplace/
+cp ./install-cli-tools.sh ../grant-repositories/mintbase-creative-marketplace/scripts/
+echo "📦 Copied build scripts"
+
+# Create README for Mintbase grant repository
+cat > ../grant-repositories/mintbase-creative-marketplace/README.md << 'EOF'
+# Mintbase Creative Marketplace
+
+This repository contains the Mintbase Foundation grant implementation for a DAO-governed marketplace for emotionally-responsive digital art.
+
+## Project Overview
+
+We propose developing a marketplace and DAO governance system for emotionally-responsive digital art using Mintbase's NFT infrastructure. This module will create a community-driven platform for creators to mint, sell, and govern interactive NFTs that respond to emotional input, with revenue sharing and transparent decision-making processes.
+
+## Features
+
+- **Interactive NFT Marketplace**: Mint and trade emotionally-responsive NFTs
+- **DAO Governance**: Community-driven decision making with emotional consensus
+- **Revenue Sharing**: Creator compensation and community rewards
+- **Mintbase Integration**: Native Mintbase NFT store and wallet integration
+- **Emotional Voting**: Weighted voting system based on emotional engagement
+
+## Getting Started
+
+### Prerequisites
+
+- Rust and Cargo
+- Node.js and npm
+- Mintbase wallet
+- NEAR CLI
+
+### Installation
+
+```bash
+# Install CLI tools
+./scripts/install-cli-tools.sh
+
+# Build the project
+./build-mintbase-grant.sh
+```
+
+### Building
+
+```bash
+# Build marketplace contracts
+cd src/marketplace
+cargo build --target wasm32-unknown-unknown --release
+```
+
+### Deployment
+
+1. Deploy contracts to NEAR testnet
+2. Create Mintbase store
+3. Update contract IDs in test-website configuration
+4. Serve test-website on a web server
+
+## Directory Structure
+
+```
+├── src/
+│   ├── marketplace/           # Marketplace smart contracts
+│   └── rust-client/           # Core Rust library (shared dependency)
+├── test-website/              # Browser-based frontend
+├── scripts/                   # Utility scripts
+├── build-mintbase-grant.sh    # Build script
+└── README.md                 # This file
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+- **Website**: https://compiling-org.netlify.app
+- **GitHub**: https://github.com/compiling-org
+- **Email**: kapil.bambardekar@gmail.com, vdmo@gmail.com
+EOF
+
+echo "📄 Created README for Mintbase grant repository"
+
+echo ""
+echo "============================================"
+echo "✅ Mintbase Grant Files Extracted Successfully!"
+echo "============================================"
+echo ""
+echo "Next steps:"
+echo "1. cd ../mintbase-creative-marketplace"
+echo "2. Review and customize the extracted files"
+echo "3. Initialize git repository: git init"
+echo "4. Add remote: git remote add origin https://github.com/compiling-org/mintbase-creative-marketplace.git"
+echo "5. Commit and push: git add . && git commit -m 'Initial commit' && git push -u origin main"
+echo ""

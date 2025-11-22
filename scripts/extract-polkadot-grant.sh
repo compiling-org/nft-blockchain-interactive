@@ -13,11 +13,11 @@ mkdir -p ../grant-repositories/polkadot-creative-identity/scripts
 echo "📁 Created directory structure"
 
 # Copy Polkadot client components
-cp -r ../blockchain-nft-interactive/src/polkadot-client ../grant-repositories/polkadot-creative-identity/src/
+cp -r ./src/polkadot-client ../grant-repositories/polkadot-creative-identity/src/
 echo "📦 Copied Polkadot client components"
 
 # Copy Rust client (core dependency)
-cp -r ../blockchain-nft-interactive/src/rust-client ../grant-repositories/polkadot-creative-identity/src/
+cp -r ./src/rust-client ../grant-repositories/polkadot-creative-identity/src/
 echo "📦 Copied Rust client core library"
 
 # Extract Soulbound Tokens tab from index.html
@@ -247,8 +247,8 @@ EOF
 echo "🔧 Created simplified test website for Polkadot grant"
 
 # Copy build scripts
-cp ../blockchain-nft-interactive/build-polkadot-grant.sh ../grant-repositories/polkadot-creative-identity/
-cp ../blockchain-nft-interactive/install-cli-tools.sh ../grant-repositories/polkadot-creative-identity/scripts/
+cp ./build-polkadot-grant.sh ../grant-repositories/polkadot-creative-identity/
+cp ./install-cli-tools.sh ../grant-repositories/polkadot-creative-identity/scripts/
 echo "📦 Copied build scripts"
 
 # Create README for Polkadot grant repository

@@ -21,12 +21,14 @@ pub struct NftBlockchainInteractive {
 }
 
 /// Filecoin client for IPFS and storage operations
+#[allow(dead_code)]
 pub struct FilecoinClient {
     api_endpoint: String,
     auth_token: Option<String>,
 }
 
 /// NEAR blockchain client
+#[allow(dead_code)]
 pub struct NearClient {
     network_id: String,
     account_id: Option<String>,
@@ -34,6 +36,7 @@ pub struct NearClient {
 }
 
 /// NFT collection metadata
+#[allow(dead_code)]
 pub struct NftCollection {
     name: String,
     symbol: String,
@@ -43,6 +46,7 @@ pub struct NftCollection {
 }
 
 /// Deployment configuration for testnets
+#[allow(dead_code)]
 pub struct DeploymentConfig {
     filecoin_testnet: bool,
     near_testnet: bool,
@@ -116,12 +120,12 @@ impl NftBlockchainInteractive {
             collection.minted_count += 1;
 
             // Store metadata on Filecoin/IPFS if client is available
-            if let Some(ref filecoin) = self.filecoin_client {
+            if let Some(ref _filecoin) = self.filecoin_client {
                 self.store_metadata_on_filecoin(metadata)?;
             }
 
             // Mint on NEAR if client is available
-            if let Some(ref near) = self.near_client {
+            if let Some(ref _near) = self.near_client {
                 self.mint_on_near(collection_name, token_id, metadata)?;
             }
 
@@ -158,9 +162,9 @@ impl NftBlockchainInteractive {
         Ok(())
     }
 
-    fn mint_on_near(&self, collection_name: &str, token_id: u64, metadata: &str) -> Result<(), Box<dyn std::error::Error>> {
+    fn mint_on_near(&self, _collection_name: &str, _token_id: u64, _metadata: &str) -> Result<(), Box<dyn std::error::Error>> {
         // Placeholder for NEAR minting
-        println!("Minting NFT on NEAR: {} #{}", collection_name, token_id);
+        println!("Minting NFT on NEAR: {} #{}", _collection_name, _token_id);
         Ok(())
     }
 

@@ -13,11 +13,11 @@ mkdir -p ../grant-repositories/near-creative-engine/scripts
 echo "📁 Created directory structure"
 
 # Copy NEAR WASM components
-cp -r ../blockchain-nft-interactive/src/near-wasm ../grant-repositories/near-creative-engine/src/
+cp -r ./src/near-wasm ../grant-repositories/near-creative-engine/src/
 echo "📦 Copied NEAR WASM components"
 
 # Copy Rust client (core dependency)
-cp -r ../blockchain-nft-interactive/src/rust-client ../grant-repositories/near-creative-engine/src/
+cp -r ./src/rust-client ../grant-repositories/near-creative-engine/src/
 echo "📦 Copied Rust client core library"
 
 # Extract Fractal Studio tab from index.html
@@ -260,14 +260,14 @@ NEAR_EOF
 echo "🔧 Created simplified test website for NEAR grant"
 
 # Copy build scripts
-cp ../blockchain-nft-interactive/build-near-grant.sh ../grant-repositories/near-creative-engine/
-cp ../blockchain-nft-interactive/install-cli-tools.sh ../grant-repositories/near-creative-engine/scripts/
+cp ./build-near-grant.sh ../grant-repositories/near-creative-engine/
+cp ./install-cli-tools.sh ../grant-repositories/near-creative-engine/scripts/
 echo "📦 Copied build scripts"
 
 # Copy specific documentation files with CORRECT NAMES
-cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_README.md ../grant-repositories/near-creative-engine/README.md
-cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/near-creative-engine/TECHNICAL_ARCHITECTURE.md
-cp ../blockchain-nft-interactive/docs/NEAR_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/near-creative-engine/IMPLEMENTATION_REPORT.md
+cp ./docs/NEAR_SPECIFIC_README.md ../grant-repositories/near-creative-engine/README.md
+cp ./docs/NEAR_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/near-creative-engine/TECHNICAL_ARCHITECTURE.md
+cp ./docs/NEAR_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/near-creative-engine/IMPLEMENTATION_REPORT.md
 echo "📄 Copied grant-specific documentation with correct names"
 
 echo ""

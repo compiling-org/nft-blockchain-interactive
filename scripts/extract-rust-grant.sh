@@ -13,11 +13,11 @@ mkdir -p ../grant-repositories/rust-emotional-engine/scripts
 echo "📁 Created directory structure"
 
 # Copy Rust client (core library)
-cp -r ../blockchain-nft-interactive/src/rust-client ../grant-repositories/rust-emotional-engine/src/
+cp -r ./src/rust-client ../grant-repositories/rust-emotional-engine/src/
 echo "📦 Copied Rust client core library"
 
 # Copy WASM components
-cp -r ../blockchain-nft-interactive/src/wasm-contracts ../grant-repositories/rust-emotional-engine/src/
+cp -r ./src/wasm-contracts ../grant-repositories/rust-emotional-engine/src/
 echo "📦 Copied WASM components"
 
 # Extract NUWE/MODURUST tab from index.html
@@ -299,8 +299,8 @@ EOF
 echo "🔧 Created simplified test website for Rust grant"
 
 # Copy build scripts
-cp ../blockchain-nft-interactive/build-rust-grant.sh ../grant-repositories/rust-emotional-engine/
-cp ../blockchain-nft-interactive/install-cli-tools.sh ../grant-repositories/rust-emotional-engine/scripts/
+cp ./build-rust-grant.sh ../grant-repositories/rust-emotional-engine/
+cp ./install-cli-tools.sh ../grant-repositories/rust-emotional-engine/scripts/
 echo "📦 Copied build scripts"
 
 # Create README for Rust grant repository

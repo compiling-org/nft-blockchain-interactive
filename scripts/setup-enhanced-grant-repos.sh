@@ -677,17 +677,17 @@ mkdir -p ../grant-repositories
 log_success "Created grant-repositories directory"
 
 # Make all extraction scripts executable
-chmod +x ./extract-*.sh
+chmod +x scripts/extract-*.sh
 log_success "Made extraction scripts executable"
 
-# Define grant configurations
+# Define grant configurations - REALISTIC STATUS
 declare -A grants=(
-    ["near-creative-engine"]="NEAR Creative Engine - Fractal Studio|Real-time fractal generation with emotional computing on NEAR blockchain|✅ NEAR WASM smart contracts, ✅ Fractal generation engine, ✅ Emotional computing integration, ✅ WebGPU/WASM compilation, ✅ IPFS storage integration|Rust, WASM, NEAR Protocol, WebGPU|NEAR WASM contracts with fractal studio and emotional computing"
-    ["solana-emotional-metadata"]="Solana Emotional Metadata|High-performance emotional data tracking with 90%+ compression|✅ Solana Anchor programs, ✅ Emotional state compression, ✅ Stream diffusion framework, ✅ Advanced storage patterns, ✅ Cross-chain metadata|Rust, Anchor, Solana, State Compression|Solana programs with emotional data compression and stream diffusion"
-    ["filecoin-creative-storage"]="Filecoin Creative Storage|Universal decentralized storage for creative data|✅ IPFS client implementation, ✅ Filecoin integration, ✅ Multi-project storage, ✅ Compression algorithms, ✅ Metadata management|Rust, IPFS, Filecoin, IPLD|IPFS/Filecoin storage with compression for creative data"
-    ["mintbase-creative-marketplace"]="Mintbase Creative Marketplace|NFT marketplace with DAO governance for creative works|✅ NEAR marketplace contracts, ✅ DAO governance structure, ✅ Emotional NFT support, ✅ Multi-token standards, ✅ Royalty mechanisms|Rust, NEAR, Mintbase, DAO|NEAR marketplace with emotional NFTs and DAO governance"
-    ["rust-emotional-engine"]="Rust Emotional Engine|Core emotional computing and creative generation engine|✅ WebGPU creative engine, ✅ VAD emotional model, ✅ Fractal generation, ✅ Shader processing, ✅ WASM compilation|Rust, WebGPU, WASM, VAD Model|Core Rust engine with emotional computing and creative tools"
-    ["polkadot-creative-identity"]="Polkadot Creative Identity|Cross-chain bridge and soulbound identity system|✅ Polkadot Subxt client, ✅ Cross-chain bridge logic, ✅ Soulbound tokens, ✅ Identity management, ✅ Emotional state bridging|Rust, Polkadot, Subxt, XCM|Polkadot client with cross-chain bridge and soulbound identity"
+    ["near-creative-engine"]="NEAR Creative Engine - Fractal Studio|Real-time fractal generation with emotional computing on NEAR blockchain|⚠️ NEAR WASM contracts exist, ✅ Fractal generation engine works, ⚠️ Emotional computing basic, ❌ WebGPU/WASM compilation broken, ❌ IPFS storage simulated|Rust, WASM, NEAR Protocol, WebGPU|NEAR contracts structure exists but not deployed to testnet"
+    ["solana-emotional-metadata"]="Solana Emotional Metadata|High-performance emotional data tracking with 90%+ compression|⚠️ Solana Anchor program structure exists, ❌ Emotional state compression not implemented, ⚠️ Stream diffusion framework basic, ❌ Storage patterns not tested, ❌ Cross-chain metadata simulated|Rust, Anchor, Solana, State Compression|Solana programs exist but not deployed to devnet"
+    ["filecoin-creative-storage"]="Filecoin Creative Storage|Universal decentralized storage for creative data|⚠️ IPFS client structure exists, ❌ Filecoin integration not implemented, ⚠️ Multi-project storage planned, ❌ Compression algorithms basic, ❌ Metadata management simulated|Rust, IPFS, Filecoin, IPLD|IPFS client library exists but no real network connections"
+    ["bitte-creative-marketplace"]="Bitte Creative Marketplace|NFT marketplace with DAO governance for creative works|⚠️ NEAR marketplace contracts exist, ❌ DAO governance simulated, ⚠️ Emotional NFT support planned, ⚠️ Multi-token standards basic, ❌ Royalty mechanisms use alert() popups|Rust, NEAR, Bitte, DAO|Marketplace UI complete but all blockchain calls are simulated"
+    ["rust-emotional-engine"]="Rust Emotional Engine|Core emotional computing and creative generation engine|✅ WebGPU creative engine functional, ✅ VAD emotional model implemented, ✅ Fractal generation works, ⚠️ Shader processing basic, ⚠️ WASM compilation needs fixes|Rust, WebGPU, WASM, VAD Model|Core engine is most complete component with working fractals"
+    ["polkadot-creative-identity"]="Polkadot Creative Identity|Cross-chain bridge and soulbound identity system|⚠️ Polkadot Subxt client structure exists, ❌ Cross-chain bridge not implemented, ⚠️ Soulbound token logic basic, ❌ Identity management simulated, ❌ Emotional state bridging conceptual|Rust, Polkadot, Subxt, XCM|Polkadot client structure exists but no real bridge functionality"
 )
 
 # Process each grant
@@ -699,22 +699,22 @@ for grant_key in "${!grants[@]}"; do
     # Extract the grant using existing script
     case $grant_key in
         "near-creative-engine")
-            ./extract-near-grant.sh
+            bash scripts/extract-near-grant.sh
             ;;
         "solana-emotional-metadata")
-            ./extract-solana-grant.sh
+            bash scripts/extract-solana-grant.sh
             ;;
         "filecoin-creative-storage")
-            ./extract-filecoin-grant.sh
+            bash scripts/extract-filecoin-grant.sh
             ;;
-        "mintbase-creative-marketplace")
-            ./extract-mintbase-grant.sh
+        "bitte-creative-marketplace")
+            bash scripts/extract-bitte-grant.sh
             ;;
         "rust-emotional-engine")
-            ./extract-rust-grant.sh
+            bash scripts/extract-rust-grant.sh
             ;;
         "polkadot-creative-identity")
-            ./extract-polkadot-grant.sh
+            bash scripts/extract-polkadot-grant.sh
             ;;
     esac
     
@@ -769,35 +769,35 @@ graph TD
 
 | Repository | Foundation | Status | Description |
 |------------|------------|--------|-------------|
-| [near-creative-engine](near-creative-engine) | NEAR Foundation | ✅ Active | Real-time fractal generation with emotional computing |
-| [solana-emotional-metadata](solana-emotional-metadata) | Solana Foundation | ✅ Active | High-performance emotional data tracking with 90%+ compression |
-| [filecoin-creative-storage](filecoin-creative-storage) | Filecoin Foundation | ✅ Active | Universal decentralized storage for creative data |
-| [mintbase-creative-marketplace](mintbase-creative-marketplace) | Mintbase Foundation | ✅ Active | NFT marketplace with DAO governance for creative works |
-| [rust-emotional-engine](rust-emotional-engine) | Rust Foundation | ✅ Active | Core emotional computing and creative generation engine |
-| [polkadot-creative-identity](polkadot-creative-identity) | Web3 Foundation | ✅ Active | Cross-chain bridge and soulbound identity system |
+| [near-creative-engine](near-creative-engine) | NEAR Foundation | ⚠️ Structure Exists | Real-time fractal generation with emotional computing - contracts not deployed |
+| [solana-emotional-metadata](solana-emotional-metadata) | Solana Foundation | ⚠️ Structure Exists | High-performance emotional data tracking - programs not deployed |
+| [filecoin-creative-storage](filecoin-creative-storage) | Filecoin Foundation | ⚠️ Structure Exists | Universal decentralized storage - no real network integration |
+| [bitte-creative-marketplace](bitte-creative-marketplace) | Bitte Foundation | ⚠️ UI Complete | NFT marketplace - all blockchain calls simulated |
+| [rust-emotional-engine](rust-emotional-engine) | Rust Foundation | ✅ Most Complete | Core emotional computing and creative generation engine |
+| [polkadot-creative-identity](polkadot-creative-identity) | Web3 Foundation | ⚠️ Structure Exists | Cross-chain bridge and soulbound identity - no real bridge |
 
 ## 📊 Implementation Status
 
-### Overall Progress
+### Overall Progress (REALISTIC)
 \`\`\`mermaid
 pie title Implementation Progress by Foundation
-    "NEAR Foundation" : 90
-    "Solana Foundation" : 85
-    "Filecoin Foundation" : 95
-    "Mintbase Foundation" : 70
-    "Rust Foundation" : 95
-    "Web3 Foundation" : 80
+    "NEAR Foundation" : 40
+    "Solana Foundation" : 30
+    "Filecoin Foundation" : 25
+    "Bitte Foundation" : 35
+    "Rust Foundation" : 70
+    "Web3 Foundation" : 20
 \`\`\`
 
-### Feature Completion Matrix
+### Feature Completion Matrix (REALISTIC)
 \`\`\`mermaid
 graph LR
     subgraph "Feature Categories"
-        CORE["Core Architecture<br/>95%"]
-        CONTRACTS["Smart Contracts<br/>90%"]
-        UI["User Interface<br/>85%"]
-        INTEGRATION["Blockchain Integration<br/>40%"]
-        PRODUCTION["Production Ready<br/>20%"]
+        CORE["Core Architecture<br/>70%"]
+        CONTRACTS["Smart Contracts<br/>40%"]
+        UI["User Interface<br/>90%"]
+        INTEGRATION["Blockchain Integration<br/>5%"]
+        PRODUCTION["Production Ready<br/>0%"]
     end
     
     CORE --> CONTRACTS
@@ -1061,7 +1061,7 @@ echo "  ├── 📄 README.md (Master documentation index)"
 echo "  ├── 🎨 near-creative-engine/ (NEAR Foundation)"
 echo "  ├── 🧠 solana-emotional-metadata/ (Solana Foundation)"
 echo "  ├── 💾 filecoin-creative-storage/ (Filecoin Foundation)"
-echo "  ├── 🛒 mintbase-creative-marketplace/ (Mintbase Foundation)"
+echo "  ├── 🛒 bitte-creative-marketplace/ (Bitte Foundation)"
 echo "  ├── ⚙️ rust-emotional-engine/ (Rust Foundation)"
 echo "  └── 🔗 polkadot-creative-identity/ (Web3 Foundation)"
 echo ""

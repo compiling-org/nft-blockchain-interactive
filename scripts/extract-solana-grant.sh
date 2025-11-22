@@ -13,11 +13,11 @@ mkdir -p ../grant-repositories/solana-emotional-metadata/scripts
 echo "📁 Created directory structure"
 
 # Copy Solana client components
-cp -r ../blockchain-nft-interactive/src/solana-client ../grant-repositories/solana-emotional-metadata/src/
+cp -r ./src/solana-client ../grant-repositories/solana-emotional-metadata/src/
 echo "📦 Copied Solana client components"
 
 # Copy Rust client (core dependency)
-cp -r ../blockchain-nft-interactive/src/rust-client ../grant-repositories/solana-emotional-metadata/src/
+cp -r ./src/rust-client ../grant-repositories/solana-emotional-metadata/src/
 echo "📦 Copied Rust client core library"
 
 # Create simplified test website for Solana
@@ -122,14 +122,14 @@ cat > ../grant-repositories/solana-emotional-metadata/test-website/index.html <<
 SOLANA_EOF
 
 # Copy build scripts
-cp ../blockchain-nft-interactive/build-solana-grant.sh ../grant-repositories/solana-emotional-metadata/
-cp ../blockchain-nft-interactive/install-cli-tools.sh ../grant-repositories/solana-emotional-metadata/scripts/
+cp ./build-solana-grant.sh ../grant-repositories/solana-emotional-metadata/
+cp ./install-cli-tools.sh ../grant-repositories/solana-emotional-metadata/scripts/
 echo "📦 Copied build scripts"
 
 # Copy specific documentation files with CORRECT NAMES
-cp ../blockchain-nft-interactive/docs/SOLANA_SPECIFIC_README.md ../grant-repositories/solana-emotional-metadata/README.md
-cp ../blockchain-nft-interactive/docs/SOLANA_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/solana-emotional-metadata/TECHNICAL_ARCHITECTURE.md
-cp ../blockchain-nft-interactive/docs/SOLANA_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/solana-emotional-metadata/IMPLEMENTATION_REPORT.md
+cp ./docs/SOLANA_SPECIFIC_README.md ../grant-repositories/solana-emotional-metadata/README.md
+cp ./docs/SOLANA_SPECIFIC_TECHNICAL_ARCHITECTURE.md ../grant-repositories/solana-emotional-metadata/TECHNICAL_ARCHITECTURE.md
+cp ./docs/SOLANA_SPECIFIC_IMPLEMENTATION_REPORT.md ../grant-repositories/solana-emotional-metadata/IMPLEMENTATION_REPORT.md
 echo "📄 Copied Solana-specific documentation with correct names"
 
 echo ""

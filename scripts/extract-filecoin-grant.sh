@@ -13,7 +13,7 @@ mkdir -p ../grant-repositories/filecoin-creative-storage/scripts
 echo "📁 Created directory structure"
 
 # Copy IPFS integration components
-cp -r ../blockchain-nft-interactive/src/ipfs-integration ../grant-repositories/filecoin-creative-storage/src/
+cp -r ./src/ipfs-integration ../grant-repositories/filecoin-creative-storage/src/
 echo "📦 Copied IPFS integration components"
 
 # Extract Storage tab from index.html
@@ -275,8 +275,8 @@ EOF
 echo "🔧 Created simplified test website for Filecoin grant"
 
 # Copy build scripts
-cp ../blockchain-nft-interactive/build-filecoin-grant.sh ../grant-repositories/filecoin-creative-storage/
-cp ../blockchain-nft-interactive/install-cli-tools.sh ../grant-repositories/filecoin-creative-storage/scripts/
+cp ./build-filecoin-grant.sh ../grant-repositories/filecoin-creative-storage/
+cp ./install-cli-tools.sh ../grant-repositories/filecoin-creative-storage/scripts/
 echo "📦 Copied build scripts"
 
 # Create README for Filecoin grant repository

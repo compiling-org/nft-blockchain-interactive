@@ -25,10 +25,10 @@
       "deployable": true,
       "standalone": true
     },
-    "mintbase": {
-      "name": "Mintbase Grant - Marketplace & DAO",
+    "bitte": {
+      "name": "Bitte Grant - Marketplace & DAO",
       "description": "NFT marketplace for NUWE sessions and MODURUST tools with DAO governance",
-      "blockchain": "NEAR Protocol + Mintbase",
+      "blockchain": "NEAR Protocol + Bitte",
       "smart_contracts": [
         "src/marketplace/src/lib.rs",
         "src/marketplace/src/nuwe_marketplace.rs",
@@ -41,7 +41,7 @@
         "test-website/blockchain.js"
       ],
       "dependencies": [
-        "mintbase-js (external)",
+        "bitte-js (external)",
         "@near-wallet-selector/core (external)"
       ],
       "build_commands": [
@@ -161,10 +161,10 @@
     "smart_contract_separation": "Each grant has its own smart contract modules in separate directories",
     "build_independence": "Each grant has independent build commands",
     "integration_points": [
-      "Filecoin provides storage for NEAR, Mintbase, and Solana grants",
+      "Filecoin provides storage for NEAR, Bitte, and Solana grants",
       "Polkadot bridges emotional data between Solana and other chains",
       "Rust core library is foundation for NEAR fractal generation",
-      "Mintbase marketplace can list NFTs from all grants"
+      "Bitte marketplace can list NFTs from all grants"
     ]
   },
   "deployment_scenarios": {
