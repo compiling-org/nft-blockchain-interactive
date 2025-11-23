@@ -8,8 +8,6 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/compiling-org/nft-blockchain-interactive"
 homepage = "https://compiling-org.netlify.app"
 
-[workspace]
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -30,7 +28,8 @@ getrandom = { version = "0.2", features = ["js"] }
 candle-core = { git = "https://github.com/huggingface/candle.git", optional = true }
 candle-nn = { git = "https://github.com/huggingface/candle.git", optional = true }
 lancedb = { version = "0.22.3", optional = true }
-rodio = { version = "0.17", optional = true }  # Audio processing instead of tunes
+tunes = { version = "0.3", optional = true }  # Music generation and audio processing
+rodio = { version = "0.17", optional = true }  # Audio playback (kept for compatibility)
 
 
 # WASM support
@@ -49,4 +48,4 @@ tokio = { version = "1.0", features = ["full"] }
 default = ["ai-ml"]
 ai-ml = ["candle-core", "candle-nn"]
 db = ["lancedb"]
-audio = ["rodio"]
+audio = ["tunes", "rodio"]

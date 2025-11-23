@@ -1,11 +1,24 @@
 //! # Music Integration Module
 //!
 //! This module integrates audio processing and music generation capabilities
-//! using rodio for audio handling within the NFT blockchain interactive framework.
+//! using the tunes crate for music generation and rodio for audio playback
+//! within the NFT blockchain interactive framework.
+//! 
+//! Reference patterns adapted from bevy_audio for robust audio handling and
+//! emotional parameter mapping inspired by creative computing frameworks.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
+
+#[cfg(feature = "audio")]
+use tunes::{Note, Scale, Chord, Progression, Rhythm, Instrument, Composition};
+#[cfg(feature = "audio")]
+use rodio::{OutputStream, Sink, Source, Sample};
+#[cfg(feature = "audio")]
+use std::sync::Arc;
+#[cfg(feature = "audio")]
+use std::time::Duration;
 
 /// Configuration for music generation
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,6 +39,68 @@ impl Default for MusicConfig {
             complexity: 0.5,
             emotional_mapping: EmotionalMusicMapping::default(),
         }
+    }
+}
+
+/// Custom audio source for generated music
+#[cfg(feature = "audio")]
+pub struct MusicSource {
+    data: Vec<i16>,
+    sample_rate: u32,
+    current_sample: usize,
+}
+
+#[cfg(feature = "audio")]
+impl MusicSource {
+    pub fn new(audio_data: &[u8], sample_rate: u32) -> Self {
+        // Convert byte data to i16 samples
+        let mut data = Vec::new();
+        for chunk in audio_data.chunks_exact(2) {
+            let sample = i16::from_le_bytes([chunk[0], chunk[1]]);
+            data.push(sample);
+        }
+        
+        Self {
+            data,
+            sample_rate,
+            current_sample: 0,
+        }
+    }
+}
+
+#[cfg(feature = "audio")]
+impl Iterator for MusicSource {
+    type Item = i16;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current_sample < self.data.len() {
+            let sample = self.data[self.current_sample];
+            self.current_sample += 1;
+            Some(sample)
+        } else {
+            None
+        }
+    }
+}
+
+#[cfg(feature = "audio")]
+impl Source for MusicSource {
+    fn current_frame_len(&self) -> Option<usize> {
+        Some(self.data.len() - self.current_sample)
+    }
+    
+    fn channels(&self) -> u16 {
+        1 // Mono
+    }
+    
+    fn sample_rate(&self) -> u32 {
+        self.sample_rate
+    }
+    
+    fn total_duration(&self) -> Option<std::time::Duration> {
+        let samples_remaining = self.data.len() - self.current_sample;
+        let seconds = samples_remaining as f64 / self.sample_rate as f64;
+        Some(std::time::Duration::from_secs_f64(seconds))
     }
 }
 
@@ -85,19 +160,82 @@ pub struct EmotionalInput {
 /// Music generation engine
 pub struct MusicEngine {
     config: MusicConfig,
+    #[cfg(feature = "audio")]
+    _stream: Option<OutputStream>,
+    #[cfg(feature = "audio")]
+    sink: Option<Arc<Sink>>,
 }
 
 impl MusicEngine {
     /// Create a new music engine with default configuration
     pub fn new() -> Self {
-        Self {
-            config: MusicConfig::default(),
+        #[cfg(feature = "audio")]
+        {
+            match Self::with_config(MusicConfig::default()) {
+                Ok(engine) => engine,
+                Err(_) => Self {
+                    config: MusicConfig::default(),
+                    _stream: None,
+                    sink: None,
+                }
+            }
+        }
+        #[cfg(not(feature = "audio"))]
+        {
+            Self {
+                config: MusicConfig::default(),
+            }
         }
     }
 
     /// Create a new music engine with custom configuration
-    pub fn with_config(config: MusicConfig) -> Self {
-        Self { config }
+    pub fn with_config(config: MusicConfig) -> Result<Self, Box<dyn std::error::Error>> {
+        #[cfg(feature = "audio")]
+        {
+            let (stream, stream_handle) = OutputStream::try_default()?;
+            let sink = Arc::new(Sink::try_new(&stream_handle)?);
+            
+            Ok(Self {
+                config,
+                _stream: Some(stream),
+                sink: Some(sink),
+            })
+        }
+        #[cfg(not(feature = "audio"))]
+        {
+            Ok(Self { config })
+        }
+    }
+    
+    /// Play generated music
+    #[cfg(feature = "audio")]
+    pub fn play_music(&self, music: &GeneratedMusic) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(sink) = &self.sink {
+            // Create a source from the audio data
+            let source = MusicSource::new(&music.audio_data, 44100);
+            sink.append(source);
+            Ok(())
+        } else {
+            Err("Audio system not available".into())
+        }
+    }
+    
+    /// Stop playback
+    #[cfg(feature = "audio")]
+    pub fn stop(&self) {
+        if let Some(sink) = &self.sink {
+            sink.stop();
+        }
+    }
+    
+    /// Check if currently playing
+    #[cfg(feature = "audio")]
+    pub fn is_playing(&self) -> bool {
+        if let Some(sink) = &self.sink {
+            !sink.empty()
+        } else {
+            false
+        }
     }
 
     /// Generate music based on emotional input
@@ -156,26 +294,84 @@ impl MusicEngine {
         dominance_clamped // Direct mapping for now
     }
 
-    /// Generate audio data (placeholder implementation)
+    /// Generate audio data using the tunes crate
     fn generate_audio_data(&self, config: &MusicConfig) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        // This would integrate with the actual tunes crate
-        // For now, generate placeholder audio data
-        let sample_rate = 44100;
-        let duration_seconds = 30; // 30 seconds of audio
-        let total_samples = sample_rate * duration_seconds;
-        
-        // Generate simple sine wave based on tempo and key
-        let frequency = self.key_to_frequency(&config.key);
-        let mut audio_data = Vec::with_capacity(total_samples * 2); // 16-bit audio
-
-        for i in 0..total_samples {
-            let t = i as f32 / sample_rate as f32;
-            let sample = (t * frequency * 2.0 * std::f32::consts::PI).sin();
-            let sample_i16 = (sample * 32767.0) as i16;
-            audio_data.extend_from_slice(&sample_i16.to_le_bytes());
+        #[cfg(feature = "audio")]
+        {
+            // Create a composition based on emotional parameters
+            let mut composition = Composition::new();
+            
+            // Set the scale based on valence (positive/negative emotion)
+            let scale = match config.key.as_str() {
+                "C" => Scale::major(),
+                "A" => Scale::minor(),
+                "G" => Scale::major(),
+                "D" => Scale::minor(),
+                _ => Scale::major(),
+            };
+            
+            // Create a chord progression based on the scale
+            let progression = Progression::from_scale(&scale, 4);
+            
+            // Generate melody based on emotional complexity
+            let complexity = (config.complexity * 10.0) as usize + 1;
+            let mut melody = Vec::new();
+            
+            // Create notes based on emotional input
+            for i in 0..complexity {
+                let note_index = i % scale.notes().count();
+                if let Some(note) = scale.notes().nth(note_index) {
+                    // Vary note duration based on tempo
+                    let duration = match config.tempo {
+                        t if t < 80 => 1.0,      // Slow tempo = longer notes
+                        t if t < 120 => 0.5,     // Medium tempo = medium notes
+                        _ => 0.25,                // Fast tempo = shorter notes
+                    };
+                    melody.push((note, duration));
+                }
+            }
+            
+            // Add the melody to the composition
+            for (note, duration) in melody {
+                composition.add_note(note, duration);
+            }
+            
+            // Set rhythm based on tempo
+            let rhythm = Rhythm::from_bpm(config.tempo as f64);
+            composition.set_rhythm(rhythm);
+            
+            // Render the composition to audio data
+            let audio_samples = composition.render(44100, 30.0)?; // 30 seconds at 44.1kHz
+            
+            // Convert samples to 16-bit PCM data
+            let mut audio_data = Vec::with_capacity(audio_samples.len() * 2);
+            for sample in audio_samples {
+                let sample_i16 = (sample * 32767.0) as i16;
+                audio_data.extend_from_slice(&sample_i16.to_le_bytes());
+            }
+            
+            Ok(audio_data)
         }
-
-        Ok(audio_data)
+        
+        #[cfg(not(feature = "audio"))]
+        {
+            // Fallback to simple sine wave when audio feature is disabled
+            let sample_rate = 44100;
+            let duration_seconds = 30;
+            let total_samples = sample_rate * duration_seconds;
+            let frequency = self.key_to_frequency(&config.key);
+            
+            let mut audio_data = Vec::with_capacity(total_samples * 2);
+            
+            for i in 0..total_samples {
+                let t = i as f32 / sample_rate as f32;
+                let sample = (t * frequency * 2.0 * std::f32::consts::PI).sin();
+                let sample_i16 = (sample * 32767.0) as i16;
+                audio_data.extend_from_slice(&sample_i16.to_le_bytes());
+            }
+            
+            Ok(audio_data)
+        }
     }
 
     /// Convert musical key to frequency (simplified)
