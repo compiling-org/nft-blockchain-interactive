@@ -30,6 +30,61 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Enforcer: Reference Folders must be present and exported for all operations
+REFERENCE_AI_ML_DIR="/c/Users/kapil/compiling/blockchain-ai-ml-references"
+REFERENCE_REPOS_DIR="/c/Users/kapil/compiling/reference_repos"
+
+enforce_reference_folders() {
+    log_info "Enforcing mandatory reference folders"
+
+    if [ -d "$REFERENCE_AI_ML_DIR" ]; then
+        log_success "Found: $REFERENCE_AI_ML_DIR"
+        export REFERENCE_AI_ML_DIR
+    else
+        log_warning "Missing: $REFERENCE_AI_ML_DIR (ensure this path exists)"
+    fi
+
+    if [ -d "$REFERENCE_REPOS_DIR" ]; then
+        log_success "Found: $REFERENCE_REPOS_DIR"
+        export REFERENCE_REPOS_DIR
+    else
+        log_warning "Missing: $REFERENCE_REPOS_DIR (ensure this path exists)"
+    fi
+
+    export REFERENCE_FOLDERS_ENFORCED=1
+    log_info "Reference folders enforcement active"
+}
+
+# Run enforcer before any setup work
+enforce_reference_folders
+
+# Scanning Enforcer: Thoroughly scan repo directories with zeal and backbone
+scan_all_repo_dirs() {
+    log_info "Scanning all repository directories thoroughly"
+
+    local ROOT_DIR="$(pwd)"
+
+    log_info "Scanning current repository: $ROOT_DIR"
+    find "$ROOT_DIR" -maxdepth 4 -type f \( -name "Cargo.toml" -o -name "package.json" -o -name "build.sh" -o -name "*.rs" -o -name "*.tsx" -o -name "*.ts" \) | wc -l | xargs -I{} echo "Found {} tracked files"
+
+    if [ -n "$REFERENCE_AI_ML_DIR" ] && [ -d "$REFERENCE_AI_ML_DIR" ]; then
+        log_info "Scanning AI/ML reference directory: $REFERENCE_AI_ML_DIR"
+        find "$REFERENCE_AI_ML_DIR" -maxdepth 5 -type f \( -name "Cargo.toml" -o -name "build.rs" -o -name "*.rs" \) | head -n 20
+    else
+        log_warning "AI/ML reference directory not set or missing"
+    fi
+
+    if [ -n "$REFERENCE_REPOS_DIR" ] && [ -d "$REFERENCE_REPOS_DIR" ]; then
+        log_info "Scanning general reference repositories: $REFERENCE_REPOS_DIR"
+        find "$REFERENCE_REPOS_DIR" -maxdepth 5 -type f \( -name "Cargo.toml" -o -name "*.rs" -o -name "README.md" \) | head -n 20
+    else
+        log_warning "General reference repositories directory not set or missing"
+    fi
+}
+
+# Run scanning enforcer immediately after reference enforcement
+scan_all_repo_dirs
+
 # Function to create living documentation for a grant
 create_living_docs() {
     local repo_name=$1
@@ -672,22 +727,25 @@ EOF
 # Main execution
 log_info "Starting enhanced grant repository setup..."
 
-# Create base directory
-mkdir -p ../grant-repositories
-log_success "Created grant-repositories directory"
+# Change to blockchain-nft-interactive directory for proper relative paths
+cd "C:/Users/kapil/compiling/blockchain-nft-interactive"
+
+# Create base directory at correct location
+mkdir -p "C:/Users/kapil/compiling/grant-repositories"
+log_success "Created grant-repositories directory at C:/Users/kapil/compiling/grant-repositories"
 
 # Make all extraction scripts executable
-chmod +x ./extract-*.sh
+chmod +x ./scripts/extract-*.sh
 log_success "Made extraction scripts executable"
 
-# Define grant configurations
+# Define grant configurations - HONEST REALISTIC STATUS
 declare -A grants=(
-    ["near-creative-engine"]="NEAR Creative Engine - Fractal Studio|Real-time fractal generation with emotional computing on NEAR blockchain|✅ NEAR WASM smart contracts, ✅ Fractal generation engine, ✅ Emotional computing integration, ✅ WebGPU/WASM compilation, ✅ IPFS storage integration|Rust, WASM, NEAR Protocol, WebGPU|NEAR WASM contracts with fractal studio and emotional computing"
-    ["solana-emotional-metadata"]="Solana Emotional Metadata|High-performance emotional data tracking with 90%+ compression|✅ Solana Anchor programs, ✅ Emotional state compression, ✅ Stream diffusion framework, ✅ Advanced storage patterns, ✅ Cross-chain metadata|Rust, Anchor, Solana, State Compression|Solana programs with emotional data compression and stream diffusion"
-    ["filecoin-creative-storage"]="Filecoin Creative Storage|Universal decentralized storage for creative data|✅ IPFS client implementation, ✅ Filecoin integration, ✅ Multi-project storage, ✅ Compression algorithms, ✅ Metadata management|Rust, IPFS, Filecoin, IPLD|IPFS/Filecoin storage with compression for creative data"
-    ["mintbase-creative-marketplace"]="Mintbase Creative Marketplace|NFT marketplace with DAO governance for creative works|✅ NEAR marketplace contracts, ✅ DAO governance structure, ✅ Emotional NFT support, ✅ Multi-token standards, ✅ Royalty mechanisms|Rust, NEAR, Mintbase, DAO|NEAR marketplace with emotional NFTs and DAO governance"
-    ["rust-emotional-engine"]="Rust Emotional Engine|Core emotional computing and creative generation engine|✅ WebGPU creative engine, ✅ VAD emotional model, ✅ Fractal generation, ✅ Shader processing, ✅ WASM compilation|Rust, WebGPU, WASM, VAD Model|Core Rust engine with emotional computing and creative tools"
-    ["polkadot-creative-identity"]="Polkadot Creative Identity|Cross-chain bridge and soulbound identity system|✅ Polkadot Subxt client, ✅ Cross-chain bridge logic, ✅ Soulbound tokens, ✅ Identity management, ✅ Emotional state bridging|Rust, Polkadot, Subxt, XCM|Polkadot client with cross-chain bridge and soulbound identity"
+    ["near-creative-engine"]="NEAR Creative Engine - Fractal Studio|Real-time fractal generation with emotional computing on NEAR blockchain|⚠️ NEAR WASM contracts exist, ✅ Fractal generation engine works, ⚠️ Emotional computing basic, ❌ WebGPU/WASM compilation broken, ❌ IPFS storage simulated|Rust, WASM, NEAR Protocol, WebGPU|NEAR contracts structure exists but not deployed to testnet"
+    ["solana-emotional-metadata"]="Solana Emotional Metadata|High-performance emotional data tracking with 90%+ compression|⚠️ Solana Anchor program structure exists, ❌ Emotional state compression not implemented, ⚠️ Stream diffusion framework basic, ❌ Storage patterns not tested, ❌ Cross-chain metadata simulated|Rust, Anchor, Solana, State Compression|Solana programs exist but not deployed to devnet"
+    ["filecoin-creative-storage"]="Filecoin Creative Storage|Universal decentralized storage for creative data|⚠️ IPFS client structure exists, ❌ Filecoin integration not implemented, ⚠️ Multi-project storage planned, ❌ Compression algorithms basic, ❌ Metadata management simulated|Rust, IPFS, Filecoin, IPLD|IPFS client library exists but no real network connections"
+    ["bitte-creative-marketplace"]="Bitte Creative Marketplace|NFT marketplace with DAO governance for creative works|⚠️ NEAR marketplace contracts exist, ❌ DAO governance simulated, ⚠️ Emotional NFT support planned, ⚠️ Multi-token standards basic, ❌ Royalty mechanisms use alert() popups|Rust, NEAR, Bitte, DAO|Marketplace UI complete but all blockchain calls are simulated"
+    ["rust-emotional-engine"]="Rust Emotional Engine|Core emotional computing and creative generation engine|✅ WebGPU creative engine functional, ✅ VAD emotional model implemented, ✅ Fractal generation works, ⚠️ Shader processing basic, ⚠️ WASM compilation needs fixes|Rust, WebGPU, WASM, VAD Model|Core engine is most complete component with working fractals"
+    ["polkadot-creative-identity"]="Polkadot Creative Identity|Cross-chain bridge and soulbound identity system|⚠️ Polkadot Subxt client structure exists, ❌ Cross-chain bridge not implemented, ⚠️ Soulbound token logic basic, ❌ Identity management simulated, ❌ Emotional state bridging conceptual|Rust, Polkadot, Subxt, XCM|Polkadot client structure exists but no real bridge functionality"
 )
 
 # Process each grant
@@ -699,22 +757,22 @@ for grant_key in "${!grants[@]}"; do
     # Extract the grant using existing script
     case $grant_key in
         "near-creative-engine")
-            ./extract-near-grant.sh
+            bash ./scripts/extract-near-grant.sh
             ;;
         "solana-emotional-metadata")
-            ./extract-solana-grant.sh
+            bash ./scripts/extract-solana-grant.sh
             ;;
         "filecoin-creative-storage")
-            ./extract-filecoin-grant.sh
+            bash ./scripts/extract-filecoin-grant.sh
             ;;
-        "mintbase-creative-marketplace")
-            ./extract-mintbase-grant.sh
+        "bitte-creative-marketplace")
+            bash ./scripts/extract-bitte-grant.sh
             ;;
         "rust-emotional-engine")
-            ./extract-rust-grant.sh
+            bash ./scripts/extract-rust-grant.sh
             ;;
         "polkadot-creative-identity")
-            ./extract-polkadot-grant.sh
+            bash ./scripts/extract-polkadot-grant.sh
             ;;
     esac
     

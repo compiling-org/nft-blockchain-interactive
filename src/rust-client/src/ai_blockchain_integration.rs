@@ -224,20 +224,23 @@ impl AIBlockchainIntegration {
                     weights: training_data.clone(),
                     biases: vec![0.0; 64],
                     activation: "relu".to_string(),
-                    parameters: HashMap::new(),
+                    dropout_rate: 0.1,
                 },
                 ModelLayer {
                     layer_type: "output".to_string(),
                     weights: vec![0.1; 192], // 64 * 3
                     biases: vec![0.0; 3],
                     activation: "tanh".to_string(),
-                    parameters: HashMap::new(),
+                    dropout_rate: 0.0,
                 },
             ],
             quantization_level: QuantizationLevel::Float16,
         };
         
-        self.gpu_engine.load_ai_model(model)?;
+        let model_json = serde_json::to_string(&model)
+            .map_err(|e| JsValue::from_str(&format!("Failed to serialize model: {}", e)))?;
+        let model_js_value = JsValue::from_str(&model_json);
+        self.gpu_engine.load_ai_model(model_name.to_string(), model_js_value)?;
         self.active_model = Some(model_name.to_string());
         
         Ok(format!("AI model '{}' trained with {} data points", model_name, training_data.len()))

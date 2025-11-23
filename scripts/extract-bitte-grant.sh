@@ -1,14 +1,14 @@
 #!/bin/bash
-# Script to extract Mintbase grant files for separate repository
+# Script to extract Bitte grant files for separate repository
 
 echo "============================================"
-echo "Extracting Mintbase Grant Files"
+echo "Extracting Bitte Grant Files"
 echo "============================================"
 
-# Create directory structure for Mintbase grant repository
-mkdir -p ../grant-repositories/mintbase-creative-marketplace/src
-mkdir -p ../grant-repositories/mintbase-creative-marketplace/test-website
-mkdir -p ../grant-repositories/mintbase-creative-marketplace/scripts
+# Create directory structure for Bitte grant repository
+mkdir -p ../grant-repositories/bitte-creative-marketplace/src
+mkdir -p ../grant-repositories/bitte-creative-marketplace/test-website
+mkdir -p ../grant-repositories/bitte-creative-marketplace/scripts
 
 echo "📁 Created directory structure"
 

@@ -1,240 +1,392 @@
-//! Comprehensive example demonstrating AI/ML blockchain integration with enhanced repositories
+//! # Comprehensive Integration Module
+//!
+//! This module provides a unified interface that integrates music generation,
+//! LanceDB vector search, and real AI inference to create a complete
+//! creative computing system for the NFT blockchain interactive framework.
 
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use chrono::{DateTime, Utc};
 use wasm_bindgen::prelude::*;
-use web_sys::{HtmlCanvasElement, console};
-use crate::ai_blockchain_integration::AIBlockchainIntegration;
-use crate::enhanced_soulbound::{EnhancedSoulboundToken, EnhancedIdentityData, CreativeProfile};
-use crate::enhanced_webgpu_engine::{EnhancedGPUComputeEngine, AIModel, QuantizationLevel, ModelLayer};
 
-/// Main integration example that combines all AI/ML blockchain patterns
-#[wasm_bindgen]
-pub struct ComprehensiveAIIntegration {
-    integration: AIBlockchainIntegration,
-    active_session: Option<String>,
+/// Comprehensive creative session that integrates all components
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComprehensiveCreativeSession {
+    pub session_id: String,
+    pub start_time: DateTime<Utc>,
+    pub ai_engine: crate::RealAIInferenceEngine,
+    pub music_engine: crate::MusicEngine,
+    pub vector_engine: crate::LanceDBEngine,
+    pub emotional_data: Option<crate::EmotionalData>,
+    pub creative_output: CreativeOutput,
+    pub blockchain_integrations: Vec<BlockchainIntegration>,
 }
 
-#[wasm_bindgen]
-impl ComprehensiveAIIntegration {
-    /// Create a new comprehensive integration instance
-    #[wasm_bindgen(constructor)]
-    pub fn new(canvas: HtmlCanvasElement) -> Result<ComprehensiveAIIntegration, JsValue> {
-        let integration = AIBlockchainIntegration::new(canvas)?;
+/// Creative output from the comprehensive session
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreativeOutput {
+    pub music_tracks: Vec<crate::GeneratedMusic>,
+    pub ai_insights: Vec<AIInsight>,
+    pub vector_embeddings: Vec<VectorEmbedding>,
+    pub emotional_trajectory: Vec<EmotionalPoint>,
+    pub creative_parameters: HashMap<String, f32>,
+}
+
+/// AI insight from inference
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AIInsight {
+    pub insight_type: String,
+    pub confidence: f32,
+    pub data: serde_json::Value,
+    pub timestamp: DateTime<Utc>,
+}
+
+/// Vector embedding for creative content
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VectorEmbedding {
+    pub embedding_type: String,
+    pub vector: Vec<f32>,
+    pub metadata: HashMap<String, serde_json::Value>,
+    pub timestamp: DateTime<Utc>,
+}
+
+/// Emotional point in the creative journey
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmotionalPoint {
+    pub valence: f32,
+    pub arousal: f32,
+    pub dominance: f32,
+    pub timestamp: DateTime<Utc>,
+}
+
+/// Blockchain integration data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockchainIntegration {
+    pub blockchain: String,
+    pub contract_address: String,
+    pub token_id: Option<String>,
+    pub metadata_uri: Option<String>,
+    pub transaction_hash: Option<String>,
+    pub integration_status: String,
+}
+
+impl ComprehensiveCreativeSession {
+    /// Create a new comprehensive creative session
+    pub fn new() -> Self {
+        Self {
+            session_id: uuid::Uuid::new_v4().to_string(),
+            start_time: Utc::now(),
+            ai_engine: crate::RealAIInferenceEngine::new(),
+            music_engine: crate::MusicEngine::new(),
+            vector_engine: crate::LanceDBEngine::new(),
+            emotional_data: None,
+            creative_output: CreativeOutput {
+                music_tracks: Vec::new(),
+                ai_insights: Vec::new(),
+                vector_embeddings: Vec::new(),
+                emotional_trajectory: Vec::new(),
+                creative_parameters: HashMap::new(),
+            },
+            blockchain_integrations: Vec::new(),
+        }
+    }
+
+    /// Initialize all engines in the session
+    pub async fn initialize(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        // Initialize AI engine
+        self.ai_engine.initialize().await?;
         
-        Ok(ComprehensiveAIIntegration {
-            integration,
-            active_session: None,
-        })
-    }
-    
-    /// Initialize the complete AI/ML blockchain system
-    pub fn initialize_system(&mut self) -> Result<String, JsValue> {
-        // Load biometric models for EEG processing
-        self.integration.load_biometric_model("eeg_emotion_classifier")?;
+        // Initialize vector engine
+        self.vector_engine.initialize().await?;
         
-        // Create enhanced soulbound token with AI integration
-        let token_id = self.integration.create_enhanced_soulbound_token(
-            "ai_creator.testnet".to_string(),
-            vec!["rust".to_string(), "blockchain".to_string(), "ai".to_string(), "webgpu".to_string()],
-            "expert".to_string(),
-        )?;
+        Ok(())
+    }
+
+    /// Process emotional input and generate creative content
+    pub async fn process_emotional_input(&mut self, valence: f32, arousal: f32, dominance: f32, image_data: Option<&[u8]>) -> Result<CreativeOutput, Box<dyn std::error::Error>> {
+        // Create emotional data
+        let emotional_data = crate::generate_emotional_data(valence, arousal, dominance, vec![valence, arousal, dominance]);
+        self.emotional_data = Some(emotional_data.clone());
+
+        // Add to emotional trajectory
+        self.creative_output.emotional_trajectory.push(EmotionalPoint {
+            valence,
+            arousal,
+            dominance,
+            timestamp: Utc::now(),
+        });
+
+        // Generate AI insights
+        if let Some(image_data) = image_data {
+            let ai_result = self.ai_engine.detect_emotion_from_image(image_data).await?;
+            self.creative_output.ai_insights.push(AIInsight {
+                insight_type: "emotion_detection".to_string(),
+                confidence: ai_result.confidence,
+                data: serde_json::json!({
+                    "emotion": ai_result.emotion,
+                    "valence": ai_result.valence,
+                    "arousal": ai_result.arousal,
+                    "dominance": ai_result.dominance,
+                    "processing_time_ms": ai_result.processing_time_ms,
+                }),
+                timestamp: Utc::now(),
+            });
+        }
+
+        // Generate creative parameters using AI
+        let creative_result = self.ai_engine.generate_creative_parameters(&emotional_data).await?;
+        self.creative_output.creative_parameters = creative_result.parameters.clone();
         
-        self.active_session = Some(token_id.clone());
+        self.creative_output.ai_insights.push(AIInsight {
+            insight_type: "creative_generation".to_string(),
+            confidence: creative_result.confidence,
+            data: serde_json::json!({
+                "creative_type": creative_result.creative_type,
+                "parameters": creative_result.parameters,
+                "style_vector_length": creative_result.style_vector.len(),
+                "processing_time_ms": creative_result.processing_time_ms,
+            }),
+            timestamp: Utc::now(),
+        });
+
+        // Generate music based on emotions
+        let emotional_input = crate::EmotionalInput {
+            valence,
+            arousal,
+            dominance,
+        };
         
-        Ok(format!("System initialized with token: {}", token_id))
+        let music_result = self.music_engine.generate_music_from_emotion(emotional_input)?;
+        self.creative_output.music_tracks.push(music_result.clone());
+
+        // Create vector embeddings
+        let vector_embedding = self.create_emotional_embedding(&emotional_data, &music_result);
+        self.creative_output.vector_embeddings.push(vector_embedding.clone());
+
+        // Store in LanceDB
+        let vector_id = self.vector_engine.insert_emotional_vector(vector_embedding.vector_data).await?;
+        
+        // Add metadata to creative output
+        self.creative_output.creative_parameters.insert("vector_id".to_string(), vector_id.len() as f32);
+        self.creative_output.creative_parameters.insert("music_track_count".to_string(), self.creative_output.music_tracks.len() as f32);
+
+        Ok(self.creative_output.clone())
     }
-    
-    /// Simulate biometric data processing (EEG signals)
-    pub fn simulate_eeg_processing(&mut self) -> Result<String, JsValue> {
-        if let Some(ref token_id) = self.active_session {
-            // Simulate EEG data (256 samples at 256Hz sampling rate)
-            let mut eeg_data = Vec::new();
-            for i in 0..256 {
-                let time = i as f32 / 256.0;
-                // Simulate alpha waves (8-13 Hz) with some noise
-                let alpha_wave = (time * 10.0 * std::f32::consts::PI * 2.0).sin() * 0.5;
-                let noise = (js_sys::Math::random() as f32 - 0.5) * 0.1;
-                eeg_data.push(alpha_wave + noise);
-            }
-            
-            let result = self.integration.process_biometric_data(
-                token_id,
-                eeg_data,
-                256.0, // 256Hz sampling rate
-            )?;
-            
-            Ok(result)
-        } else {
-            Err(JsValue::from_str("No active session. Please initialize system first."))
-        }
-    }
-    
-    /// Find AI-recommended collaborators
-    pub fn find_ai_collaborators(&self) -> Result<String, JsValue> {
-        if let Some(ref token_id) = self.active_session {
-            let collaborators = self.integration.find_compatible_collaborators(token_id)?;
-            
-            if collaborators.is_empty() {
-                Ok("No compatible collaborators found. Consider expanding your skill set.".to_string())
-            } else {
-                Ok(format!("AI-Recommended Collaborators:\n{}", collaborators.join("\n")))
-            }
-        } else {
-            Err(JsValue::from_str("No active session. Please initialize system first."))
-        }
-    }
-    
-    /// Get AI-powered skill recommendations
-    pub fn get_ai_skill_recommendations(&self) -> Result<String, JsValue> {
-        if let Some(ref token_id) = self.active_session {
-            let recommendations = self.integration.get_ai_recommendations(token_id)?;
-            
-            Ok(format!("AI Skill Recommendations:\n{}", recommendations.join("\n")))
-        } else {
-            Err(JsValue::from_str("No active session. Please initialize system first."))
-        }
-    }
-    
-    /// Simulate a collaboration and record it
-    pub fn simulate_collaboration(&mut self, partner_id: &str, project_name: &str) -> Result<String, JsValue> {
-        if let Some(ref token_id) = self.active_session {
-            // Simulate collaboration success based on AI compatibility
-            let success_rating = 4.2; // Would be calculated from compatibility
-            
-            let result = self.integration.record_collaboration(
-                token_id,
-                partner_id,
-                project_name.to_string(),
-                success_rating,
-            )?;
-            
-            Ok(result)
-        } else {
-            Err(JsValue::from_str("No active session. Please initialize system first."))
-        }
-    }
-    
-    /// Get comprehensive token analytics
-    pub fn get_comprehensive_analytics(&self) -> Result<String, JsValue> {
-        if let Some(ref token_id) = self.active_session {
-            let analytics = self.integration.get_token_analytics(token_id)?;
-            
-            // Add additional AI insights
-            let enhanced_analytics = format!(
-                "{analytics}\n\
-                \n\
-                AI-Enhanced Insights:\n\
-                - Biometric Integration: Active\n\
-                - Neural Network Models: Loaded\n\
-                - Collaboration AI: Enabled\n\
-                - Skill Recommendation Engine: Active\n\
-                - Cross-Chain Compatibility: Ready\n\
-                \n\
-                Future Possibilities:\n\
-                - Real-time EEG integration for live creative sessions\n\
-                - Emotion-driven NFT evolution\n\
-                - AI-curated collaborative experiences\n\
-                - Biometrically-verified creative authenticity\n\
-                - Cross-chain emotional data preservation"
-            );
-            
-            Ok(enhanced_analytics)
-        } else {
-            Err(JsValue::from_str("No active session. Please initialize system first."))
-        }
-    }
-    
-    /// Demonstrate future AI/ML integration possibilities
-    pub fn demonstrate_future_possibilities(&self) -> Result<String, JsValue> {
-        let possibilities = vec![
-            "🧠 Real-time brain-computer interface for creative flow optimization",
-            "🎨 AI-generated art based on biometric emotional states",
-            "🤝 Smart collaboration matching using personality AI analysis",
-            "📊 Predictive analytics for creative project success rates",
-            "🔐 Biometric authentication for high-value NFT transactions",
-            "🌐 Cross-chain emotional data synchronization",
-            "🎯 Personalized creative recommendations based on neural patterns",
-            "📈 Dynamic NFT evolution based on biometric feedback loops",
-            "🎭 Emotion-driven smart contract execution",
-            "🧬 Genetic algorithm optimization for creative processes",
+
+    /// Create emotional vector embedding
+    fn create_emotional_embedding(&self, emotional_data: &crate::EmotionalData, music_result: &crate::GeneratedMusic) -> VectorEmbedding {
+        // Create a rich embedding that combines emotional data and music characteristics
+        let mut vector = vec![
+            emotional_data.valence,
+            emotional_data.arousal,
+            emotional_data.dominance,
+            emotional_data.confidence,
+            emotional_data.emotional_complexity,
         ];
-        
-        Ok(format!(
-            "Future AI/ML Blockchain Integration Possibilities:\n\n{}",
-            possibilities.join("\n")
-        ))
+
+        // Add music characteristics
+        vector.push(music_result.config.tempo / 200.0); // Normalize tempo
+        vector.push(match music_result.config.key.as_str() {
+            "C" => 0.1, "D" => 0.2, "E" => 0.3, "F" => 0.4, "G" => 0.5, "A" => 0.6, "B" => 0.7, _ => 0.0,
+        });
+        vector.push(music_result.config.complexity);
+
+        // Add temporal information
+        let time_features = self.extract_temporal_features();
+        vector.extend(time_features);
+
+        let mut metadata = HashMap::new();
+        metadata.insert("emotional_category".to_string(), serde_json::json!(&emotional_data.emotional_category));
+        metadata.insert("music_tempo".to_string(), serde_json::json!(music_result.config.tempo));
+        metadata.insert("music_key".to_string(), serde_json::json!(&music_result.config.key));
+        metadata.insert("session_id".to_string(), serde_json::json!(&self.session_id));
+
+        VectorEmbedding {
+            embedding_type: "emotional_music".to_string(),
+            vector,
+            metadata,
+            timestamp: Utc::now(),
+        }
+    }
+
+    /// Extract temporal features from the session
+    fn extract_temporal_features(&self) -> Vec<f32> {
+        let session_duration = Utc::now().signed_duration_since(self.start_time).num_seconds() as f32;
+        let time_of_day = Utc::now().hour() as f32 / 24.0;
+        let day_of_week = Utc::now().weekday().num_days_from_monday() as f32 / 7.0;
+
+        vec![session_duration / 3600.0, time_of_day, day_of_week]
+    }
+
+    /// Search for similar creative content
+    pub async fn find_similar_content(&self, query_vector: Vec<f32>, limit: usize) -> Result<Vec<crate::VectorSearchResult>, Box<dyn std::error::Error>> {
+        let results = self.vector_engine.search_emotional_vectors(query_vector, limit, Some(self.session_id.clone())).await?;
+        Ok(results)
+    }
+
+    /// Integrate with blockchain
+    pub async fn integrate_with_blockchain(&mut self, blockchain: &str, contract_address: &str, metadata_uri: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let integration = BlockchainIntegration {
+            blockchain: blockchain.to_string(),
+            contract_address: contract_address.to_string(),
+            token_id: None,
+            metadata_uri: Some(metadata_uri.to_string()),
+            transaction_hash: None,
+            integration_status: "pending".to_string(),
+        };
+
+        let integration_id = uuid::Uuid::new_v4().to_string();
+        self.blockchain_integrations.push(integration);
+
+        Ok(integration_id)
+    }
+
+    /// Generate comprehensive metadata for the session
+    pub fn generate_session_metadata(&self) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+        let metadata = serde_json::json!({
+            "session_id": self.session_id,
+            "start_time": self.start_time.to_rfc3339(),
+            "duration_seconds": Utc::now().signed_duration_since(self.start_time).num_seconds(),
+            "emotional_data": self.emotional_data,
+            "creative_output": {
+                "music_tracks_count": self.creative_output.music_tracks.len(),
+                "ai_insights_count": self.creative_output.ai_insights.len(),
+                "vector_embeddings_count": self.creative_output.vector_embeddings.len(),
+                "emotional_trajectory_length": self.creative_output.emotional_trajectory.len(),
+                "creative_parameters": self.creative_output.creative_parameters,
+            },
+            "blockchain_integrations": self.blockchain_integrations.len(),
+            "ai_engine_config": {
+                "model_type": self.ai_engine.config.model_type,
+                "device_type": self.ai_engine.config.device_type,
+                "quantization": self.ai_engine.config.quantization,
+            },
+            "music_engine_config": {
+                "tempo": self.music_engine.config.tempo,
+                "key": self.music_engine.config.key,
+                "scale": self.music_engine.config.scale,
+                "complexity": self.music_engine.config.complexity,
+            },
+            "vector_engine_stats": self.vector_engine.get_stats(),
+        });
+
+        Ok(metadata)
+    }
+
+    /// Export session for blockchain storage
+    pub fn export_for_blockchain(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let metadata = self.generate_session_metadata()?;
+        let export_data = serde_json::json!({
+            "type": "comprehensive_creative_session",
+            "version": "1.0",
+            "metadata": metadata,
+            "export_timestamp": Utc::now().to_rfc3339(),
+        });
+
+        Ok(serde_json::to_vec(&export_data)?)
     }
 }
 
-/// Standalone function to create a demo
+impl Default for ComprehensiveCreativeSession {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Create a comprehensive creative session
+pub fn create_comprehensive_session() -> ComprehensiveCreativeSession {
+    ComprehensiveCreativeSession::new()
+}
+
+/// Process emotional input through the comprehensive pipeline
+pub async fn process_emotional_pipeline(
+    valence: f32,
+    arousal: f32,
+    dominance: f32,
+    image_data: Option<&[u8]>,
+) -> Result<CreativeOutput, Box<dyn std::error::Error>> {
+    let mut session = ComprehensiveCreativeSession::new();
+    session.initialize().await?;
+    session.process_emotional_input(valence, arousal, dominance, image_data).await
+}
+
+/// WASM-exposed functions for comprehensive integration
 #[wasm_bindgen]
-pub fn create_comprehensive_demo() -> String {
-    "Comprehensive AI/ML Blockchain Integration Demo Created!\n\n\
-    This demo showcases:\n\
-    1. Enhanced soulbound tokens with biometric verification\n\
-    2. GPU-accelerated AI model inference\n\
-    3. EEG signal processing for creative state analysis\n\
-    4. AI-powered collaboration matching\n\
-    5. Cross-chain emotional data preservation\n\
-    6. Real-time biometric NFT evolution\n\
-    7. Predictive analytics for creative projects\n\
-    8. Emotion-driven smart contract interactions\n\n\
-    Repository Integration Sources:\n\
-    - NEAR SDK: Enhanced soulbound token patterns\n\
-    - Candle: GPU-accelerated AI model inference\n\
-    - ONNX Runtime: Cross-platform model deployment\n\
-    - BrainFlow: EEG signal processing algorithms\n\
-    - Solana Token Manager: Conditional asset management\n\
-    - Polkadot: Cross-chain interoperability patterns\n\
-    - TensorFlow Rust: Machine learning integration\n\
-    - Awesome Blockchain Rust: Best practices and patterns\n\n\
-    Ready to explore the future of AI-enhanced creative blockchain!".to_string()
+pub async fn create_comprehensive_creative_session() -> Result<String, JsValue> {
+    let session = ComprehensiveCreativeSession::new();
+    serde_json::to_string(&session.session_id)
+        .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
-/// Create a sample AI model configuration
-pub fn create_sample_ai_model() -> AIModel {
-    AIModel {
-        model_type: "creative_eeg_classifier".to_string(),
-        model_data: vec![0.1; 1024], // Sample weights
-        input_shape: vec![1, 256],   // 256 EEG samples
-        output_shape: vec![1, 5],    // 5 creative states
-        layers: vec![
-            ModelLayer {
-                layer_type: "dense".to_string(),
-                weights: vec![0.1; 256 * 128],
-                biases: vec![0.0; 128],
-                activation: "relu".to_string(),
-                parameters: std::collections::HashMap::new(),
-            },
-            ModelLayer {
-                layer_type: "dense".to_string(),
-                weights: vec![0.1; 128 * 5],
-                biases: vec![0.0; 5],
-                activation: "softmax".to_string(),
-                parameters: std::collections::HashMap::new(),
-            },
-        ],
-        quantization_level: QuantizationLevel::Float16,
-    }
+#[wasm_bindgen]
+pub async fn process_emotional_input_comprehensive(
+    valence: f32,
+    arousal: f32,
+    dominance: f32,
+    image_data: Option<Vec<u8>>,
+) -> Result<String, JsValue> {
+    let image_ref = image_data.as_deref();
+    let result = process_emotional_pipeline(valence, arousal, dominance, image_ref).await
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    
+    serde_json::to_string(&result)
+        .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+#[wasm_bindgen]
+pub fn generate_session_metadata_comprehensive(session_id: &str) -> Result<String, JsValue> {
+    // Create a mock session for metadata generation
+    let mut session = ComprehensiveCreativeSession::new();
+    session.session_id = session_id.to_string();
+    
+    let metadata = session.generate_session_metadata()
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    
+    serde_json::to_string(&metadata)
+        .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wasm_bindgen_test::*;
 
-    #[wasm_bindgen_test]
-    fn test_demo_creation() {
-        let demo = create_comprehensive_demo();
-        assert!(!demo.is_empty());
-        assert!(demo.contains("AI/ML Blockchain Integration"));
+    #[test]
+    fn test_comprehensive_session_creation() {
+        let session = ComprehensiveCreativeSession::new();
+        assert!(!session.session_id.is_empty());
+        assert!(session.creative_output.music_tracks.is_empty());
+        assert!(session.creative_output.ai_insights.is_empty());
     }
 
-    #[wasm_bindgen_test]
-    fn test_sample_ai_model() {
-        let model = create_sample_ai_model();
-        assert_eq!(model.model_type, "creative_eeg_classifier");
-        assert_eq!(model.input_shape, vec![1, 256]);
-        assert_eq!(model.output_shape, vec![1, 5]);
-        assert_eq!(model.layers.len(), 2);
+    #[tokio::test]
+    async fn test_emotional_pipeline_processing() {
+        let result = process_emotional_pipeline(0.8, 0.6, 0.7, None).await.unwrap();
+        assert!(!result.music_tracks.is_empty());
+        assert!(!result.ai_insights.is_empty());
+        assert!(!result.vector_embeddings.is_empty());
+        assert!(!result.emotional_trajectory.is_empty());
+    }
+
+    #[test]
+    fn test_emotional_embedding_creation() {
+        let session = ComprehensiveCreativeSession::new();
+        let emotional_data = crate::generate_emotional_data(0.5, 0.5, 0.5, vec![0.1, 0.2, 0.3]);
+        let music_result = crate::GeneratedMusic {
+            id: "test".to_string(),
+            timestamp: Utc::now(),
+            config: crate::MusicConfig::default(),
+            emotional_input: crate::EmotionalInput {
+                valence: 0.5,
+                arousal: 0.5,
+                dominance: 0.5,
+            },
+            audio_data: vec![1, 2, 3],
+            metadata: HashMap::new(),
+        };
+        
+        let embedding = session.create_emotional_embedding(&emotional_data, &music_result);
+        assert_eq!(embedding.embedding_type, "emotional_music");
+        assert!(!embedding.vector.is_empty());
+        assert!(!embedding.metadata.is_empty());
     }
 }

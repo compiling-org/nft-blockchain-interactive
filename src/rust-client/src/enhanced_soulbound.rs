@@ -1,151 +1,124 @@
-//! Enhanced soulbound token implementation with AI/ML integration
+//! Enhanced soulbound token implementation with AI/ML integration and biometric authentication
 
+use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
 use std::collections::HashMap;
+use chrono::{DateTime, Utc};
 
-/// Enhanced soulbound token with AI/ML capabilities
+/// Enhanced soulbound token with AI-powered features and biometric authentication
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnhancedSoulboundToken {
     pub token_id: String,
     pub owner_id: String,
     pub identity_data: IdentityData,
-    pub collaboration_history: Vec<CollaborationRecord>,
-    pub ai_recommendations: Vec<String>,
-    pub created_at: DateTime<Utc>,
-    pub last_updated: DateTime<Utc>,
-}
-
-/// Identity data for enhanced soulbound tokens
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IdentityData {
-    pub biometric_profile: BiometricProfile,
     pub creative_profile: CreativeProfile,
     pub reputation_score: f32,
+    pub collaboration_history: Vec<CollaborationRecord>,
+    pub ai_recommendations: Vec<String>,
+    pub biometric_profile: BiometricProfile,
 }
 
-/// Biometric profile data
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BiometricProfile {
-    pub fingerprint_hash: String,
-    pub facial_recognition_hash: String,
-    pub voice_pattern_hash: String,
-    pub behavioral_patterns: Vec<BehavioralPattern>,
+pub struct IdentityData {
+    pub creative_profile: CreativeProfile,
+    pub achievements: Vec<String>,
+    pub verified: bool,
+    pub reputation_score: f32,
+    pub collaboration_history: Vec<CollaborationRecord>,
+    pub biometric_profile: BiometricProfile,
 }
 
-/// Creative profile data
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreativeProfile {
-    pub skill_tags: Vec<String>,
+    pub primary_skill: String,
     pub experience_level: String,
     pub creative_style: String,
-    pub preferred_mediums: Vec<String>,
-    pub collaboration_preferences: CollaborationPreferences,
+    pub skill_tags: Vec<String>,
 }
 
-/// Collaboration preferences
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CollaborationPreferences {
-    pub preferred_partners: Vec<String>,
-    pub skill_complementarity: f32,
-    pub emotional_compatibility: f32,
-    pub creative_alignment: f32,
-}
-
-/// Behavioral pattern data
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BehavioralPattern {
-    pub pattern_type: String,
-    pub confidence: f32,
-    pub frequency: f32,
-    pub last_observed: DateTime<Utc>,
-}
-
-/// Collaboration record
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CollaborationRecord {
     pub partner_id: String,
     pub project_id: String,
     pub success_rating: f32,
-    pub timestamp: i64,
+    pub timestamp: u64,
     pub skills_contributed: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BiometricProfile {
+    pub eeg_fingerprint: Option<Vec<f32>>,
+    pub emotional_signature: Option<Vec<f32>>,
+    pub fingerprint_hash: Vec<u8>,
+}
+
 impl EnhancedSoulboundToken {
-    /// Create a new enhanced soulbound token
-    pub fn new(token_id: String, owner_id: String, creative_skills: Vec<String>, experience_level: String) -> Self {
-        let now = Utc::now();
-        
+    pub fn new_full(
+        token_id: String,
+        owner_id: String,
+        identity_data: IdentityData,
+        creative_profile: CreativeProfile,
+        reputation_score: f32,
+        collaboration_history: Vec<CollaborationRecord>,
+        ai_recommendations: Vec<String>,
+        biometric_profile: BiometricProfile,
+    ) -> Self {
         Self {
-            token_id: token_id.clone(),
-            owner_id: owner_id.clone(),
-            identity_data: IdentityData {
-                biometric_profile: BiometricProfile {
-                    fingerprint_hash: format!("fp_{}", token_id),
-                    facial_recognition_hash: format!("face_{}", token_id),
-                    voice_pattern_hash: format!("voice_{}", token_id),
-                    behavioral_patterns: vec![],
-                },
-                creative_profile: CreativeProfile {
-                    skill_tags: creative_skills,
-                    experience_level,
-                    creative_style: "experimental".to_string(),
-                    preferred_mediums: vec!["digital".to_string(), "interactive".to_string()],
-                    collaboration_preferences: CollaborationPreferences {
-                        preferred_partners: vec![],
-                        skill_complementarity: 0.7,
-                        emotional_compatibility: 0.6,
-                        creative_alignment: 0.8,
-                    },
-                },
-                reputation_score: 0.5,
-            },
+            token_id,
+            owner_id,
+            identity_data,
+            creative_profile,
+            reputation_score,
+            collaboration_history,
+            ai_recommendations,
+            biometric_profile,
+        }
+    }
+
+    pub fn new(token_id: String, owner_id: String, creative_skills: Vec<String>, experience_level: String) -> Self {
+        let primary_skill = creative_skills.first().unwrap_or(&"general".to_string()).clone();
+        let creative_profile = CreativeProfile {
+            primary_skill: primary_skill.clone(),
+            experience_level,
+            creative_style: "modern".to_string(),
+            skill_tags: creative_skills,
+        };
+        let identity_data = IdentityData {
+            creative_profile: creative_profile.clone(),
+            achievements: vec![],
+            verified: false,
+            reputation_score: 0.0,
+            collaboration_history: vec![],
+            biometric_profile: BiometricProfile { eeg_fingerprint: None, emotional_signature: None, fingerprint_hash: vec![] },
+        };
+        Self {
+            token_id,
+            owner_id,
+            identity_data,
+            creative_profile,
+            reputation_score: 0.0,
             collaboration_history: vec![],
             ai_recommendations: vec![],
-            created_at: now,
-            last_updated: now,
+            biometric_profile: BiometricProfile { eeg_fingerprint: None, emotional_signature: None, fingerprint_hash: vec![] },
         }
     }
-    
-    /// Record a collaboration
+
+    pub fn update_reputation(&mut self, delta: f32) {
+        self.reputation_score = (self.reputation_score + delta).clamp(0.0, 1.0);
+    }
+
     pub fn record_collaboration(&mut self, record: CollaborationRecord) {
         self.collaboration_history.push(record);
-        self.last_updated = Utc::now();
+        let avg = if self.collaboration_history.is_empty() {
+            0.0
+        } else {
+            self.collaboration_history.iter().map(|r| r.success_rating).sum::<f32>()
+                / (self.collaboration_history.len() as f32)
+        };
+        self.reputation_score = (self.reputation_score * 0.8) + (avg * 0.2);
     }
-    
-    /// Get skill recommendations based on collaboration history
+
     pub fn get_skill_recommendations(&self) -> Vec<String> {
-        let mut skill_counts = HashMap::new();
-        
-        for collaboration in &self.collaboration_history {
-            if collaboration.success_rating > 3.0 {
-                for skill in &collaboration.skills_contributed {
-                    *skill_counts.entry(skill.clone()).or_insert(0) += 1;
-                }
-            }
-        }
-        
-        let mut recommendations: Vec<String> = skill_counts
-            .iter()
-            .filter(|(_, &count)| count >= 2)
-            .map(|(skill, _)| skill.clone())
-            .collect();
-            
-        recommendations.extend(self.ai_recommendations.clone());
-        recommendations
-    }
-    
-    /// Add AI recommendation
-    pub fn add_ai_recommendation(&mut self, recommendation: String) {
-        if !self.ai_recommendations.contains(&recommendation) {
-            self.ai_recommendations.push(recommendation);
-            self.last_updated = Utc::now();
-        }
-    }
-    
-    /// Update reputation score
-    pub fn update_reputation(&mut self, delta: f32) {
-        self.identity_data.reputation_score = (self.identity_data.reputation_score + delta).clamp(0.0, 1.0);
-        self.last_updated = Utc::now();
+        self.ai_recommendations.clone()
     }
 }

@@ -3,6 +3,11 @@
 ## Purpose
 This document establishes strict behavioral protocols to prevent destructive loops, hallucinations, and feature creep that derail actual project development.
 
+## CRITICAL REFERENCE FOLDER LOCATIONS (MANDATORY CHECK)
+**REFERENCE_REPOS**: `/c/Users/kapil/compiling/reference_repos/`
+**BLOCKCHAIN_AI_ML_REFERENCES**: `/c/Users/kapil/compiling/blockchain-ai-ml-references/`
+**ENFORCEMENT**: These paths MUST be checked before any integration work
+
 ## Destructive Loop Patterns (RECORDED)
 
 ### 1. Documentation Loop Hallucination
@@ -38,6 +43,23 @@ This document establishes strict behavioral protocols to prevent destructive loo
 - Enterprise patterns for simple scripts
 **Force Exit**: Implement simplest working solution first
 
+### 5. Reference Folder Ignorance Loop ⭐ CRITICAL
+**Pattern**: Ignoring existing reference implementations and creating new files
+**Symptoms**:
+- Not checking `/c/Users/kapil/compiling/reference_repos/` for working code
+- Ignoring `/c/Users/kapil/compiling/blockchain-ai-ml-references/` for AI/ML patterns
+- Creating new implementations when working ones exist
+**Force Exit**: ALWAYS check reference folders first, integrate existing working code
+
+### 6. Repository Directory Scanning Incompetence Loop ⭐ NEW CRITICAL RULE
+**Pattern**: Failing to thoroughly scan repository directories with proper zeal and backbone
+**Symptoms**:
+- Using LS tool instead of terminal commands to explore directories
+- Not finding Rust bindings in C++ projects (like brainflow/rust_package/)
+- Missing obvious working implementations due to lazy scanning
+- Not checking subdirectories thoroughly for working code examples
+**Force Exit**: Use `find`, `ls -la`, and terminal commands with ENTHUSIASM and BACKBONE to discover ALL working implementations
+
 ## Hallucination Recognition Protocol
 
 ### Red Flags (IMMEDIATE STOP)
@@ -45,9 +67,12 @@ This document establishes strict behavioral protocols to prevent destructive loo
 2. **"Let me document this architecture..."** → NO. Make it work first.
 3. **"We should implement a full CI/CD pipeline..."** → NO. Get basic functionality working.
 4. **"I'll create a sophisticated build system..."** → NO. Use existing tools.
+5. **"I will create new files..."** → CHECK REFERENCE FOLDERS FIRST.
 
 ### Reality Check Questions
 1. **"Does this compile and run RIGHT NOW?"** If no, fix that first.
+2. **"Have I checked the reference folders for working implementations?"** If no, check them.
+3. **"Am I integrating existing working code or creating new broken code?"** Must integrate.
 2. **"Can a user interact with this feature?"** If no, it's not done.
 3. **"Am I adding complexity without functionality?"** If yes, stop immediately.
 4. **"Is this blocking other work?"** If yes, simplify or defer.
@@ -100,3 +125,11 @@ git stash && git checkout HEAD~1 # Revert to simpler state
 **ACHIEVABLE**: Incremental improvements to working baseline
 **RELEVANT**: Directly addresses grant requirements
 **TIME-BOUNDED**: Daily deliverable of working functionality
+
+## Always-On Enforcement
+**MANDATE**: Enforcement stays ON at all times and is re-enabled if stopped.
+**CHECKPOINTS**:
+- Reference folders exist: `/c/Users/kapil/compiling/reference_repos/`, `/c/Users/kapil/compiling/blockchain-ai-ml-references/`
+- Protocol includes these paths before any integration work
+- Core scripts invoke enforcement at start of execution
+**RUNTIME CHECK**: Run the project-wide validation script; it asserts protocol compliance at startup.
