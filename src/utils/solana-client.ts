@@ -113,11 +113,11 @@ const idl = {
     }
   ],
   "metadata": {
-    "address": "BiometricNftProgram1111111111111111111111"
+    "address": "3BRGASWgfiPsxwVQq2W6JKLuWvZRBRSd3gkgfeDt9yoA"
   }
 };
 
-const PROGRAM_ID = new PublicKey('BiometricNftProgram1111111111111111111111');
+const PROGRAM_ID = new PublicKey('3BRGASWgfiPsxwVQq2W6JKLuWvZRBRSd3gkgfeDt9yoA');
 
 interface EmotionData {
   valence: number;
