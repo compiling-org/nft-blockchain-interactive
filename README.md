@@ -27,15 +27,15 @@ This project integrates advanced emotional computing capabilities with leading b
 
 | Component | Status | Implementation Level |
 |-----------|--------|---------------------|
-| 🧠 **Emotional Computing** | ✅ **Working** | AI fractal generation with emotion parameters |
-| 🔗 **Multi-Chain Contracts** | ✅ **Working** | NEAR deployed, Solana/Polkadot contracts working |
+| 🧠 **Emotional Computing** | ⚠️ **Partial** | UI parameters modulate visuals; no ML inference |
+| 🔗 **Multi-Chain Contracts** | ⚠️ **Partial** | NEAR present; Solana/Polkadot not deployed |
 | 🎨 **Creative Engine** | ✅ **Working** | WebGPU fractal generation with emotion parameters |
 | 📱 **Test UI** | ✅ **Working** | Frontend runs at localhost:3000 |
-| 🏪 **Marketplace** | ✅ **Working** | Bitte Protocol AI marketplace integrated |
-| 👛 **Wallet Integration** | ✅ **Working** | NEAR, Solana wallet adapters connected |
-| 🌉 **Cross-Chain Bridge** | ✅ **Working** | AI blockchain integration complete |
-| 📸 **Emotion Detection** | ✅ **Working** | Canvas-based emotional art generation |
-| 🔗 **AI Blockchain Integration** | ✅ **BREAKTHROUGH** | AI outputs → Filecoin → Solana NFT → Polkadot ID |
+| 🏪 **Marketplace** | ⚠️ **Partial** | UI present; SDK wiring and real IDs needed |
+| 👛 **Wallet Integration** | ⚠️ **Partial** | NEAR works; others partially wired/mocked |
+| 🌉 **Cross-Chain Bridge** | ❌ **Not Implemented** | Metadata-only; no asset transfers |
+| 📸 **Emotion Detection** | ❌ **Placeholder** | No camera-based detection |
+| 🔗 **AI Blockchain Integration** | ❌ **Not Functional** | Storage and cross-chain paths mocked |
 
 </div>
 
