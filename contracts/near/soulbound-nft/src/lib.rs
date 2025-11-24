@@ -4,11 +4,11 @@
  * Integrates with AI/ML emotion detection and biometric verification
  */
 
-use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LazyOption, LookupMap, UnorderedMap, UnorderedSet};
 use near_sdk::json_types::{Base64VecU8, U128, U64};
-use near_sdk::serde::Serialize;
-use near_sdk::{env, near, AccountId, PanicOnDefault, PromiseOrValue};
+use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault, PromiseOrValue};
 mod metadata;
 
 /// This spec can be treated like a version of the standard.
@@ -16,8 +16,8 @@ pub const NFT_METADATA_SPEC: &str = "nft-1.0.0";
 /// This is the name of the NFT standard we're using
 pub const NFT_STANDARD_NAME: &str = "nep171";
 
-#[near(contract_state)]
-#[derive(PanicOnDefault)]
+#[near_bindgen]
+#[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct BiometricSoulboundNFT {
     pub owner_id: AccountId,
     pub tokens_per_owner: LookupMap<AccountId, UnorderedSet<TokenId>>,
@@ -31,14 +31,12 @@ pub struct BiometricSoulboundNFT {
 
 /// Note that token IDs for NFTs are strings on NEAR
 pub type TokenId = String;
-/// Balance is a type for storing amounts of tokens
-pub type Balance = U128;
 /// Timestamp in nanoseconds
 pub type Timestamp = u64;
 
 /// Custom biometric data structure
-#[near(serializers = [borsh, json])]
-#[derive(Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
 pub struct BiometricData {
     pub biometric_hash: String,      // Hash of biometric features
     pub emotion_data: EmotionData,   // AI-detected emotion data
@@ -49,8 +47,8 @@ pub struct BiometricData {
 }
 
 /// Emotion data from AI inference
-#[near(serializers = [borsh, json])]
-#[derive(Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
 pub struct EmotionData {
     pub primary_emotion: String,     // "Happy", "Sad", "Focused", etc.
     pub confidence: f64,             // AI confidence (0.0 - 1.0)
@@ -60,8 +58,8 @@ pub struct EmotionData {
 }
 
 /// Historical emotion record
-#[near(serializers = [borsh, json])]
-#[derive(Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
 pub struct EmotionRecord {
     pub timestamp: Timestamp,
     pub emotion_data: EmotionData,
@@ -69,13 +67,15 @@ pub struct EmotionRecord {
 }
 
 /// Standard Token structure for NEP-171
-#[near(serializers = [borsh, json])]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
 pub struct Token {
     pub owner_id: AccountId,
 }
 
 /// Structure for token metadata
-#[near(serializers = [borsh, json])]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
 pub struct TokenMetadata {
     pub title: Option<String>, // ex. "Arch Nemesis: Mail Carrier" or "Parcel #5055"
     pub description: Option<String>, // free-form description
@@ -100,10 +100,10 @@ impl Token {
     }
 }
 
-/// Implementation of main contract
-#[near]
+#[near_bindgen]
 impl BiometricSoulboundNFT {
     #[init]
+    #[private]
     pub fn new(owner_id: AccountId, metadata: NFTContractMetadata) -> Self {
         assert!(!env::state_exists(), "Already initialized");
         
@@ -120,7 +120,6 @@ impl BiometricSoulboundNFT {
         this
     }
 
-    /// Mint a new soulbound NFT with biometric authentication
     #[payable]
     pub fn mint_soulbound(
         &mut self,
@@ -214,6 +213,7 @@ impl BiometricSoulboundNFT {
     }
 
     /// Override transfer to make tokens soulbound (non-transferable)
+    #[payable]
     pub fn nft_transfer(
         &mut self,
         _receiver_id: AccountId,
@@ -225,6 +225,7 @@ impl BiometricSoulboundNFT {
     }
 
     /// Override transfer call to make tokens soulbound (non-transferable)
+    #[payable]
     pub fn nft_transfer_call(
         &mut self,
         _receiver_id: AccountId,
@@ -316,7 +317,8 @@ impl BiometricSoulboundNFT {
 }
 
 /// Helper structure for JSON serialization
-#[near(serializers = [json])]
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
 pub struct JsonToken {
     pub token_id: TokenId,
     pub owner_id: AccountId,
@@ -325,8 +327,8 @@ pub struct JsonToken {
 }
 
 /// Metadata for the contract itself
-#[near(serializers = [borsh, json])]
-#[derive(Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
 pub struct NFTContractMetadata {
     pub spec: String,              // required, essentially a version like "nft-1.0.0"
     pub name: String,              // required, ex. "Mochi Rising - Digital Edition" or "Metaverse 3"
