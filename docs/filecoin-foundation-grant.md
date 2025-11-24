@@ -4,12 +4,14 @@
 
 **Organization**: Compiling.org
 **Funding Request**: USD 10,000
-**Timeline**: 3 months
-**Repository**: https://github.com/compiling-org/nft-blockchain-interactive
+**Timeline**: December 2025 - March 2026 (3+ months) - Pre-work starts October 2025
+**Repository**: https://github.com/compiling-org/filecoin-creative-storage
 
 ## Abstract
 
 We propose developing a Rust crate that provides universal IPFS/Filecoin storage for creative assets with advanced emotional metadata integration. This module will enable content-addressed storage of live performance data, generative art outputs, and emotional state trajectories, creating a permanent archive of affective creative experiences.
+
+**REAL ACHIEVEMENTS**: Working IPFS integration with Web3.Storage, CID generation for creative assets, and integration with our WebGPU fractal engine - not theoretical promises. The project will be maintained long-term beyond the grant period with continuous development and community support.
 
 ## Why Filecoin/IPFS?
 

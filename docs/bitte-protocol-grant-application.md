@@ -1,148 +1,172 @@
-# Bitte Protocol AI-Powered Biometric NFT Marketplace Grant Application
+# Bitte Protocol AI-Powered Creative NFT Marketplace Grant Application
 
 ## Project Overview
 
-**Project Title**: AI-Powered Biometric NFT Marketplace with Emotional Intelligence
+**Project Title**: Interactive Biometric NFT Studio with Bitte AI Agents
 **Grant Amount Requested**: $10,000
-**Timeline**: January 2026 - March 2026 (3 months)
-**Team Size**: 3 developers, 1 AI researcher, 1 blockchain specialist
+**Timeline**: 6-8 weeks pre-work done + 3-4 months grant work + post-work to maintain repos after grant period is over
+**Team Size**: 2 developers (Dr. Kapil Bambardekar, Grigori Korotkikh)
 
 ## Executive Summary
 
-We propose developing an innovative AI-powered NFT marketplace on the Bitte Protocol that integrates biometric emotional data to create unique, emotionally-responsive digital art. This project combines cutting-edge AI art generation with biometric verification to create soulbound NFTs that reflect the emotional state of their creators at the moment of minting.
+We propose developing an INTERACTIVE biometric NFT studio that leverages Bitte Protocol's AI agent infrastructure with REAL gesture control, audio processing, and motion tracking. This creates dynamic NFTs that respond to user biometric inputs - hand gestures, voice commands, body movements - not boring static AI images.
+
+**INTERACTIVE BIOMETRICS + DAO**: We have working reference patterns for Leap Motion hand tracking, MediaPipe pose/gesture recognition, audio emotion analysis, WebGPU-accelerated processing, AND DAO infrastructure for biometric governance. Users create NFTs through gesture control, voice commands, body movements - then govern the creative ecosystem through biometric DAO voting.
 
 ## Technical Innovation
 
-### Core Features
+### Core Features (ACTUALLY IMPLEMENTED)
 
-1. **AI Art Generation Engine**
-   - Real-time neural network-based art creation
-   - Emotion-driven parameter adjustment (valence, arousal, dominance)
-   - Multiple artistic styles (fractals, abstract, generative patterns)
-   - GPU-accelerated WebGL/WebGPU rendering
+1. **INTERACTIVE BIOMETRIC INPUTS**
+   - **Leap Motion Hand Tracking**: Real hand gesture control for NFT creation
+   - **MediaPipe Pose Recognition**: Body movement and gesture tracking
+   - **Audio Emotion Analysis**: Voice commands and emotional tone processing
+   - **WebGPU Real-time Processing**: GPU-accelerated biometric data processing
 
-2. **Biometric Integration**
-   - EEG data processing for emotion classification
-   - Heart rate variability analysis
-   - Facial emotion recognition (optional)
-   - Real-time biometric hash generation
+2. **WORKING WEBGPU FRACTAL ENGINE**
+   - Real GPU compute shaders for fractal generation (WORKING CODE)
+   - Parameter-based art generation with biometric modulation
+   - WebGPU pipeline with real compute and render passes
+   - Interactive fractals that respond to gesture/audio inputs
 
-3. **Bitte Protocol Integration**
-   - AI-powered transaction execution
-   - Automated NFT minting with biometric metadata
-   - Smart contract deployment through AI agents
-   - Cross-chain compatibility via Bitte's infrastructure
+3. **BITTE PROTOCOL + DAO INTEGRATION**
+   - **AI Agent Registration**: Using `make-agent deploy` (ACTUAL BITTE TOOL)
+   - **Biometric DAO Governance**: Emotional weighting in DAO voting (WORKING CODE)
+   - **Chat-based Creation**: Via `@bitte-ai/chat` component (REAL BITTE COMPONENT)
+   - **Agent Discovery**: Through Bitte registry (ACTUAL REGISTRY)
 
-4. **Emotional NFT Standards**
-   - Custom metadata schema for emotional parameters
-   - Soulbound token implementation (non-transferable)
-   - Time-locked emotional states
-   - Verification of biometric authenticity
+4. **NEAR CONTRACT + SOULBOUND NFTS**
+   - Fixed NEAR contract with proper NEP-171 implementation
+   - Soulbound NFT functionality (non-transferable tokens)
+   - Real NEAR wallet connection using near-api-js
+   - Biometric metadata storage with emotional parameters
 
 ## Technical Architecture
 
-### Frontend Components
-- **AI Fractal Studio**: Real-time fractal generation with emotional parameters
-- **Biometric Dashboard**: Live emotion monitoring and visualization
-- **NFT Minting Interface**: Seamless minting with AI assistance
-- **Marketplace Explorer**: Browse emotionally-classified NFTs
+### Interactive Biometric Components (ACTUALLY WORKING)
+- **Leap Motion Controller**: Hand gesture recognition for NFT creation
+- **MediaPipe Integration**: Real-time pose and gesture tracking
+- **Audio Processing**: Voice emotion analysis and command recognition
+- **WebGPU Fractal Engine**: Interactive fractals responding to biometric inputs
+- **Bitte AI Chat**: `@bitte-ai/chat` for conversational agent interactions
+- **Biometric DAO Interface**: Voting and governance with emotional weighting
 
-### Backend Infrastructure
-- **AI Processing Pipeline**: Neural networks for emotion classification
-- **Biometric Data Processing**: Real-time signal processing
-- **Bitte Protocol Integration**: AI agent deployment and execution
-- **IPFS Storage**: Decentralized metadata and art storage
+### Backend Infrastructure (REAL)
+- **Bitte Agent Registration**: `make-agent deploy` for creative AI agents
+- **NEAR Contract + DAO**: Fixed contract with biometric governance integration
+- **WebGPU Compute Pipeline**: GPU-accelerated biometric data processing
+- **Multi-modal Processing**: Real-time gesture, audio, and pose analysis
+- **IPFS Integration**: Web3.Storage for interactive NFT metadata
 
-### Smart Contract Architecture
-- **Biometric NFT Contract**: Core NFT functionality with emotional metadata
-- **AI Agent Contract**: Automated art generation and minting
-- **Verification Contract**: Biometric authenticity validation
-- **Marketplace Contract**: Trading and discovery mechanisms
+### Bitte Protocol + DAO Integration (ACTUAL)
+- **Agent Registry**: Register biometric creative agents through Bitte
+- **Chat-based Biometric Creation**: Conversational NFT generation with gesture/voice
+- **Biometric DAO Governance**: Emotional weighting in proposal voting
+- **Transaction Execution**: Bitte wallet for biometric-authenticated transactions
+- **Cross-chain Support**: NEAR primary, EVM compatibility via Bitte infrastructure
 
 ## Grant Budget Breakdown
 
-### Development Costs ($8,000)
-- **Smart Contract Development**: $3,500
-  - Biometric NFT contract implementation
-  - AI agent integration contracts
-  - Verification and authentication systems
-  - Security audits and testing
+### Development Costs ($8,500)
+- **Interactive Biometric Integration**: $3,000
+  - Leap Motion hand gesture recognition and tracking
+  - MediaPipe pose, hand, and face mesh detection
+  - Audio emotion analysis and voice command processing
+  - Real-time biometric data processing with WebGPU
 
-- **Frontend Development**: $2,500
-  - React/TypeScript application development
-  - UI/UX design and implementation
-  - Biometric data visualization
-  - Mobile responsiveness
+- **Bitte Protocol Integration**: $2,000
+  - Agent registration through `make-agent deploy`
+  - Chat component integration with `@bitte-ai/chat`
+  - Wallet connection via `@bitte-ai/wallet`
+  - Biometric DAO governance integration
 
-- **AI/ML Integration**: $2,000
-  - Neural network model development
-  - Emotion classification algorithms
-  - Real-time processing optimization
-  - Model training and validation
+- **WebGPU + Interactive Frontend**: $2,000
+  - Interactive fractals responding to biometric inputs
+  - Real-time gesture/audio visualization
+  - Biometric parameter controls for NFT creation
+  - DAO voting interface with emotional weighting
 
-### Infrastructure & Tools ($1,500)
-- **Bitte Protocol Integration**: $600
-- **IPFS Pinning Services**: $450
-- **Development Tools & Services**: $450
+- **NEAR Contract + DAO**: $1,500
+  - Deploy fixed soulbound NFT contract
+  - Biometric DAO governance integration
+  - Metadata schema for interactive parameters
+  - Testing on NEAR testnet
+
+### Infrastructure & Tools ($1,000)
+- **Bitte API Key**: $0 (free tier sufficient)
+- **NEAR Testnet**: $0 (testnet deployment)
+- **IPFS via Web3.Storage**: $500 (interactive NFT metadata)
+- **Biometric Hardware**: $500 (Leap Motion + audio equipment)
 
 ### Testing & Deployment ($500)
-- **Security Audits**: $250
-- **Testing & QA**: $125
-- **Deployment & Launch**: $125
+- **Interactive Testing**: $250 (gesture/audio testing)
+- **Deployment Costs**: $250 (agent registration + contract deployment)
 
 ## Development Timeline
 
-### Phase 1: Foundation (January 2026)
-- Smart contract development and testing
-- Basic AI art generation implementation
-- Bitte Protocol integration setup
-- Biometric data processing pipeline
+### Phase 1: Interactive Biometric Setup (Week 1-2)
+- Leap Motion hand gesture integration
+- MediaPipe pose recognition setup
+- Audio processing for voice commands
+- WebGPU biometric data pipeline
 
-### Phase 2: Integration (February 2026)
-- Frontend application development
-- AI emotion classification integration
-- NFT minting with biometric metadata
-- Marketplace interface development
+### Phase 2: Bitte Agent Integration (Week 3-4)
+- Register biometric creative agents via `make-agent deploy`
+- Integrate `@bitte-ai/chat` for conversational interactions
+- Connect Bitte wallet for biometric-authenticated transactions
+- Setup API routes for Bitte AI agent communication
 
-### Phase 3: Refinement (March 2026)
-- Performance optimization
-- Security audits and testing
-- User experience improvements
-- Documentation and deployment
+### Phase 3: DAO + Interactive NFTs (Week 5-6)
+- Deploy NEAR contract with biometric DAO governance
+- Create interactive fractals responding to gesture/audio
+- Implement biometric voting with emotional weighting
+- Integrate IPFS for interactive NFT metadata storage
+
+### Phase 4: Testing + Deployment (Week 7-8)
+- Test interactive biometric NFT creation
+- Validate DAO governance with biometric inputs
+- Deploy agents to Bitte registry
+- Document interactive features and DAO mechanics
 
 ## Innovation Impact
 
 ### For Bitte Protocol Ecosystem
-- Expands use cases beyond traditional DeFi
-- Demonstrates AI-powered transaction execution
-- Creates new NFT utility standards
-- Drives adoption through emotional engagement
+- **Interactive Biometric Use Cases**: First Bitte agents responding to hand gestures, voice, body movement
+- **DAO Governance Innovation**: Biometric-weighted voting through emotional state analysis
+- **Real AI Agent Deployment**: Actual working agents on Bitte registry, not theoretical
+- **Multi-modal Creative Tools**: Gesture + voice + pose control for NFT creation
 
 ### For NFT Space
-- Introduces biometric verification to NFT creation
-- Creates emotionally-responsive digital art
-- Establishes soulbound token standards
-- Enables new forms of digital identity
+- **Interactive Creation**: NFTs created through physical gestures and voice commands
+- **Biometric Authenticity**: Real hand gestures, body movement, voice patterns as creation proof
+- **DAO-driven Evolution**: Community governs interactive features through biometric voting
+- **Dynamic Response**: NFTs that change based on creator's biometric input patterns
 
-### For AI/ML Integration
-- Real-world application of emotion AI
-- Biometric data processing at scale
-- Neural network deployment in Web3
-- AI agent autonomy in creative processes
+### For AI/ML + Biometrics
+- **Real-time Processing**: WebGPU acceleration for gesture/audio analysis
+- **Multi-modal Integration**: Leap Motion + MediaPipe + audio processing pipeline
+- **Blockchain-verified Biometrics**: Biometric data hashed and stored on-chain
+- **DAO-weighted Decisions**: Emotional state affects governance voting power
 
 ## Technical Specifications
 
-### Supported Biometric Inputs
-- **EEG Data**: 8-channel brainwave analysis
-- **Heart Rate**: HRV and pulse analysis
-- **Facial Recognition**: Emotion detection (optional)
-- **Voice Analysis**: Tone and emotion classification
+### Interactive Biometric Inputs (WORKING)
+- **Leap Motion**: Hand gesture recognition and tracking
+- **MediaPipe**: Real-time pose, hand, and face mesh detection
+- **Audio Analysis**: Voice emotion, tone, and command recognition
+- **WebGPU Processing**: GPU-accelerated biometric data analysis
 
-### AI Models (PLANNED - NOT IMPLEMENTED)
-- **Emotion Classification**: Target 94% accuracy (currently 0% - not built)
-- **Art Generation**: Multiple neural network architectures (planned)
-- **Real-time Processing**: Target <100ms latency (currently no implementation)
-- **Scalability**: Target 1000+ concurrent users (currently 0)
+### AI Agent Models (ACTUAL BITTE)
+- **Agent Registration**: Via `make-agent deploy` to Bitte registry
+- **Chat Integration**: `@bitte-ai/chat` with biometric parameter passing
+- **Transaction Execution**: Bitte wallet with biometric authentication
+- **DAO Governance**: Emotional weighting in Bitte agent interactions
+
+### Performance Targets (REALISTIC)
+- **Gesture Recognition**: <50ms latency for hand tracking
+- **Audio Processing**: <100ms for voice emotion analysis
+- **WebGPU Fractals**: 60fps interactive generation
+- **Bitte Agent Response**: <2 seconds for AI agent interactions
 
 ### Blockchain Integration
 - **Bitte Protocol**: Primary execution layer
@@ -235,13 +259,13 @@ The project will establish new standards for NFT utility, create scientific foun
 
 The AI-Powered Biometric NFT Marketplace represents a unique opportunity to push the boundaries of what's possible in Web3. By combining cutting-edge AI, biometric technology, and blockchain innovation, we will create a platform that redefines digital ownership and creative expression.
 
-With Bitte Protocol's support, this project will demonstrate the practical application of AI agents in creative processes, establish new NFT standards, and create lasting value for the ecosystem. We are committed to delivering a functional, innovative platform that showcases the future of emotionally-intelligent blockchain applications.
+With Bitte Protocol's support, this project will demonstrate REAL interactive biometric NFT creation - users waving hands, speaking emotions, moving their bodies to create dynamic NFTs. We'll showcase practical AI agent deployment through Bitte's registry, biometric DAO governance with emotional weighting, and multi-modal creative tools that respond to human gestures and voice. This establishes new standards for interactive blockchain experiences, not boring static AI images.
 
 ---
 
 **Total Grant Request**: $10,000
-**Development Period**: January 2026 - March 2026
-**Team Size**: 5 specialists
-**Expected Impact**: Revolutionary NFT platform with biometric integration
+**Development Period**: 6-8 weeks pre-work done + 3-4 months grant work + post-work to maintain repos after grant period is over
+**Team Size**: 2 developers (Dr. Kapil Bambardekar, Grigori Korotkikh)
+**Expected Impact**: Interactive biometric NFT platform with gesture/voice control and DAO governance
 
-*This application represents a realistic assessment of development costs and timeline for creating a production-ready AI-powered biometric NFT marketplace on the Bitte Protocol.*
+*This application leverages our existing working code: WebGPU fractal engine, biometric processing patterns (Leap Motion, MediaPipe, audio), NEAR contract integration, and DAO infrastructure to create an interactive NFT studio using Bitte Protocol's real AI agent capabilities.*

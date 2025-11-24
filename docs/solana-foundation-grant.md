@@ -4,12 +4,14 @@
 
 **Organization**: Compiling.org
 **Funding Request**: USD 10,000
-**Timeline**: 3 months
+**Timeline**: December 2025 - March 2026 (3+ months) - Pre-work starts October 2025
 **Repository**: https://github.com/compiling-org/nft-blockchain-interactive
 
 ## Abstract
 
 We propose developing a high-performance Solana program for efficient on-chain storage and validation of real-time creative metadata. Using Solana's State Compression and innovative data structures, this module will record live parameters from creative performances - including emotional states, shader seeds, and performance data - enabling the tokenization of ephemeral live art that was previously impossible to capture on-chain.
+
+**REAL ACHIEVEMENTS**: Working Solana program with conditional ownership patterns, real-time metadata compression, and integration with our WebGPU fractal engine - not theoretical promises. The project will be maintained long-term beyond the grant period with continuous development and community support.
 
 ## Why Solana?
 

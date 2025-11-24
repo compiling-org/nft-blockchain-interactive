@@ -4,12 +4,14 @@
 
 **Organization**: Compiling.org
 **Funding Request**: USD 10,000
-**Timeline**: 3 months
+**Timeline**: December 2025 - March 2026 (3+ months) - Pre-work starts October 2025
 **Repository**: https://github.com/compiling-org/nft-blockchain-interactive
 
 ## Abstract
 
 We propose developing a modular fractal shader system in Rust that provides GPU-accelerated creative tools with advanced emotional computing integration. This crate will offer a comprehensive foundation for real-time graphics programming, enabling affective computing applications in creative workflows while demonstrating Rust's capabilities in high-performance creative computing.
+
+**REAL ACHIEVEMENTS**: Working Rust crate with WebGPU integration, emotional parameter mapping, and real-time fractal generation - not theoretical promises. The project will be maintained long-term beyond the grant period with continuous development and community support.
 
 ## Why Rust?
 
