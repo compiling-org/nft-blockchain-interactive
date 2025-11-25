@@ -1,55 +1,59 @@
-# 🦀 Rust Emotional Engine - Technical Architecture
+# 🦀 Rust Web-Based Audiovisual System - Technical Architecture
 
 ## 🏗️ System Architecture Overview
 
-The Rust Emotional Engine serves as the **core computational foundation** for the entire blockchain-nft-interactive ecosystem. This document details the technical architecture of the WASM/WebGPU-based creative engine that powers emotional fractal generation and the MODURUST modular tool system.
+The Rust Web-Based Audiovisual System serves as the **WASM/Web implementation foundation** for our NUWE and Modurust creative ecosystem. This document details the technical architecture of the browser-native creative engine that combines Shader Studio visual tools with Modurust audio tools.
 
 ## 🎯 Core Components
 
 ```mermaid
 graph TB
-    subgraph "Browser Runtime"
+    subgraph "Web Browser Runtime"
         WASM[WASM Module]
         WG[WebGPU Context]
+        WA[Web Audio API]
         JS[JavaScript Interface]
     end
     
-    subgraph "Core Engine"
-        FE[Fractal Engine]
-        EM[Emotional Modulation]
-        MM[Memory Management]
-        PM[Parameter Mapping]
+    subgraph "Creative Engine Core"
+        AE[Audio Engine]
+        GE[Graphics Engine]
+        GH[Gesture Handler]
+        WB[WASM Bindings]
     end
     
-    subgraph "MODURUST System"
-        MT[Tool Architecture]
-        MP[Patch System]
-        MS[Storage Layer]
-        MMKT[Marketplace]
+    subgraph "Tool Systems"
+        VS[Visual Tools]
+        AT[Audio Tools]
+        MT[Modular Tools]
+        CT[Creative Tools]
     end
     
-    subgraph "Integration Layer"
+    subgraph "Blockchain Bridge"
         NC[NEAR Client]
         SC[Solana Client]
-        MC[Mintbase Client]
-        IC[IPFS Client]
+        IP[IPFS Client]
+        BC[Blockchain Interface]
     end
     
-    WASM --> FE
-    WG --> FE
+    WASM --> AE
+    WASM --> GE
+    WG --> GE
+    WA --> AE
     JS --> WASM
-    FE --> EM
-    EM --> PM
-    PM --> MM
     
-    MT --> MS
-    MP --> MS
-    MS --> IC
-    MMKT --> MT
+    GH --> AE
+    GH --> GE
     
-    WASM --> NC
-    WASM --> SC
-    WASM --> MC
+    AE --> AT
+    GE --> VS
+    
+    WB --> NC
+    WB --> SC
+    WB --> IP
+    
+    MT --> CT
+    CT --> BC
 ```
 
 ## 🔧 Technical Stack
@@ -57,7 +61,8 @@ graph TB
 ### Core Technologies
 - **Language**: Rust (Edition 2021)
 - **Compilation Target**: WebAssembly (WASM)
-- **GPU Acceleration**: WebGPU API
+- **Graphics**: WebGPU API with WebGL fallback
+- **Audio**: Web Audio API integration
 - **Build Tool**: wasm-pack
 - **Testing**: Built-in Rust test framework
 
@@ -65,291 +70,438 @@ graph TB
 ```toml
 [dependencies]
 wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["WebGpu"] }
+web-sys = { version = "0.3", features = ["WebGpu", "AudioContext"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
+wgpu = { version = "0.18", features = ["webgl"] }
+cpal = "0.15"  # Audio processing
 ```
 
-## 🎨 Fractal Engine Architecture
+## 🎨 Graphics Engine Architecture
 
-### GPU Compute Pipeline
+### WebGPU Shader System
 ```rust
-// WebGPU compute shader for Mandelbrot set generation
-@compute @workgroup_size(8, 8)
-fn compute_mandelbrot(@builtin(global_invocation_id) global_id: vec3<u32>) {
-    let width = fractal_params.width;
-    let height = fractal_params.height;
-    let max_iter = fractal_params.max_iterations;
-    
-    let x = global_id.x;
-    let y = global_id.y;
-    
-    if (x >= width || y >= height) {
-        return;
-    }
-    
-    // Complex number calculations for fractal generation
-    let cx = fractal_params.center_x + (f32(x) - f32(width) * 0.5) * fractal_params.zoom;
-    let cy = fractal_params.center_y + (f32(y) - f32(height) * 0.5) * fractal_params.zoom;
-    
-    var zx = 0.0;
-    var zy = 0.0;
-    var iter = 0u;
-    
-    while (zx * zx + zy * zy < 4.0 && iter < max_iter) {
-        let tmp = zx * zx - zy * zy + cx;
-        zy = 2.0 * zx * zy + cy;
-        zx = tmp;
-        iter = iter + 1u;
-    }
-    
-    // Store result with emotional color mapping
-    let pixel_index = y * width + x;
-    fractal_output[pixel_index] = map_emotion_to_color(iter, max_iter, emotional_state);
-}
-```
-
-### WASM Memory Management
-```rust
-// Efficient memory allocation for large fractal datasets
-pub struct FractalBuffer {
-    width: u32,
-    height: u32,
-    data: Vec<u32>,
-    gpu_buffer: Option<wgpu::Buffer>,
+// Simple shader compilation for web deployment
+pub struct GraphicsEngine {
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+    shader_modules: HashMap<String, wgpu::ShaderModule>,
+    render_pipelines: HashMap<String, wgpu::RenderPipeline>,
 }
 
-impl FractalBuffer {
-    pub fn new(width: u32, height: u32) -> Self {
-        let size = (width * height) as usize;
-        Self {
-            width,
-            height,
-            data: vec![0u32; size],
-            gpu_buffer: None,
-        }
-    }
-    
-    pub fn update_gpu_buffer(&mut self, device: &wgpu::Device, queue: &wgpu::Queue) {
-        let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Fractal Data Buffer"),
-            contents: bytemuck::cast_slice(&self.data),
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+impl GraphicsEngine {
+    pub async fn new() -> Result<Self, GraphicsError> {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::BROWSER_WEBGPU | wgpu::Backends::GL,
+            ..Default::default()
         });
         
-        self.gpu_buffer = Some(buffer);
-    }
-}
-```
-
-## 🧠 Emotional Modulation System
-
-### VAD Parameter Mapping
-```rust
-pub struct EmotionalState {
-    pub valence: f32,    // -1.0 (negative) to 1.0 (positive)
-    pub arousal: f32,    // 0.0 (calm) to 1.0 (excited)
-    pub dominance: f32,  // 0.0 (submissive) to 1.0 (dominant)
-}
-
-impl EmotionalState {
-    pub fn map_to_fractal_params(&self) -> FractalParameters {
-        FractalParameters {
-            // Valence affects color palette
-            color_shift: self.valence * 180.0,
-            
-            // Arousal affects complexity and iteration count
-            max_iterations: (100 + (self.arousal * 900.0) as u32),
-            
-            // Dominance affects zoom level and detail
-            zoom: 0.5 + (self.dominance * 2.0),
-            
-            // Combined emotional intensity
-            intensity: (self.valence.abs() + self.arousal) / 2.0,
-        }
-    }
-}
-```
-
-## 🔧 MODURUST Tool System
-
-### Tool Architecture (`src/marketplace/src/modurust_marketplace.rs:11-26`)
-```rust
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-pub struct ModurustToolNFT {
-    pub token_id: TokenId,
-    pub tool_id: String,
-    pub tool_name: String,
-    pub version: String,
-    pub creator: AccountId,
-    pub owner: AccountId,
-    pub created_at: Timestamp,
-    pub tool_type: ToolType,
-    pub ipfs_cid: String,
-    pub usage_stats: UsageStats,  // Usage tracking for reputation
-    pub license: LicenseType,
-}
-
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-pub enum ToolType {
-    ShaderModule,      // GPU shader programs
-    AudioProcessor,    // Audio processing tools
-    VisualEffect,      // Visual effects generators
-    DataTransform,     // Data transformation utilities
-    ControlInterface,  // User interface components
-    CustomModule,      // User-defined modules
-}
-```
-
-### IPFS Storage Integration (`src/ipfs-integration/src/modurust_storage.rs:144-204`)
-```rust
-impl ModurustTool {
-    /// Store complete tool definition to IPFS
-    pub async fn store_to_ipfs(&self, client: &IpfsClient) -> Result<String, Box<dyn Error>> {
-        let json = serde_json::to_string_pretty(self)?;
-        let cid = client.add_json(&json).await?;
+        let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            compatible_surface: None,
+            force_fallback_adapter: false,
+        }).await.ok_or(GraphicsError::NoAdapter)?;
         
-        // Store additional assets separately for efficient retrieval
-        for asset in &self.module_assets {
-            client.pin_cid(&asset.cid).await?;
-        }
+        let (device, queue) = adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                features: wgpu::Features::empty(),
+                limits: wgpu::Limits::downlevel_webgl2_defaults(),
+                label: None,
+            },
+            None,
+        ).await?;
         
-        Ok(cid)
-    }
-    
-    /// Calculate total storage requirements
-    pub fn total_asset_size(&self) -> u64 {
-        self.module_assets.iter().map(|a| a.size_bytes).sum()
-    }
-}
-```
-
-### Patch System Architecture
-```rust
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ModurustPatch {
-    pub patch_id: String,
-    pub name: String,
-    pub creator: String,
-    pub created_at: u64,
-    pub tools: Vec<String>,                    // Connected tool IDs
-    pub connections: Vec<Connection>,         // Tool interconnections
-    pub parameter_states: Vec<ParameterState>, // Runtime parameter values
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct Connection {
-    pub from_tool: String,
-    pub from_output: String,
-    pub to_tool: String,
-    pub to_input: String,
-}
-```
-
-## 🌐 Cross-Chain Integration
-
-### WASM Bridge Architecture
-```rust
-#[wasm_bindgen]
-pub struct EmotionalEngine {
-    fractal_engine: FractalEngine,
-    emotion_processor: EmotionProcessor,
-    tool_manager: ToolManager,
-}
-
-#[wasm_bindgen]
-impl EmotionalEngine {
-    #[wasm_bindgen(constructor)]
-    pub fn new() -> Result<EmotionalEngine, JsValue> {
-        // Initialize WebGPU context
-        let gpu_context = GpuContext::new()?;
-        
-        Ok(EmotionalEngine {
-            fractal_engine: FractalEngine::new(gpu_context),
-            emotion_processor: EmotionProcessor::new(),
-            tool_manager: ToolManager::new(),
+        Ok(Self {
+            device,
+            queue,
+            shader_modules: HashMap::new(),
+            render_pipelines: HashMap::new(),
         })
     }
     
-    /// Generate fractal with emotional parameters
-    #[wasm_bindgen]
-    pub fn generate_emotional_fractal(&mut self, 
-        valence: f32, arousal: f32, dominance: f32
-    ) -> Result<JsValue, JsValue> {
-        let emotion = EmotionalState { valence, arousal, dominance };
-        let fractal = self.fractal_engine.generate_with_emotion(emotion)?;
+    /// Compile simple shader for web deployment
+    pub fn compile_shader(&mut self, name: &str, wgsl_code: &str) -> Result<(), GraphicsError> {
+        let shader = self.device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some(name),
+            source: wgpu::ShaderSource::Wgsl(wgsl_code.into()),
+        });
         
-        Ok(serde_wasm_bindgen::to_value(&fractal)?)
+        self.shader_modules.insert(name.to_string(), shader);
+        Ok(())
     }
+}
+```
+
+### Basic Pattern Generation
+```rust
+// Simple pattern shaders for web visual tools
+const BASIC_PATTERN_SHADER: &str = r#"
+@vertex
+fn vs_main(@builtin(vertex_index) vertex_index: u32) -> @builtin(position) vec4<f32> {
+    let x = f32(vertex_index) * 0.1;
+    let y = sin(x * 10.0) * 0.5;
+    return vec4<f32>(x - 0.5, y, 0.0, 1.0);
+}
+
+@fragment
+fn fs_main() -> @location(0) vec4<f32> {
+    return vec4<f32>(0.5, 0.8, 1.0, 1.0);
+}
+"#;
+```
+
+## 🎵 Audio Engine Architecture
+
+### Web Audio API Integration
+```rust
+use wasm_bindgen::prelude::*;
+use web_sys::{AudioContext, OscillatorType, GainNode};
+
+pub struct AudioEngine {
+    context: AudioContext,
+    oscillators: Vec<web_sys::OscillatorNode>,
+    gain_nodes: Vec<GainNode>,
+}
+
+impl AudioEngine {
+    pub fn new() -> Result<Self, AudioError> {
+        let context = AudioContext::new()?;
+        
+        Ok(Self {
+            context,
+            oscillators: Vec::new(),
+            gain_nodes: Vec::new(),
+        })
+    }
+    
+    /// Create simple oscillator for web audio
+    pub fn create_oscillator(&mut self, frequency: f32, osc_type: OscillatorType) -> Result<(), AudioError> {
+        let oscillator = self.context.create_oscillator()?;
+        oscillator.set_type(osc_type);
+        oscillator.frequency().set_value(frequency);
+        
+        let gain_node = self.context.create_gain()?;
+        gain_node.gain().set_value(0.1);
+        
+        oscillator.connect_with_audio_node(&gain_node)?;
+        gain_node.connect_with_audio_node(&self.context.destination())?;
+        
+        oscillator.start()?;
+        
+        self.oscillators.push(oscillator);
+        self.gain_nodes.push(gain_node);
+        
+        Ok(())
+    }
+}
+```
+
+## 🤏 Gesture Control System
+
+### Gesture-to-Parameter Mapping
+```rust
+#[derive(Debug, Clone)]
+pub struct GestureData {
+    pub x: f32,
+    pub y: f32,
+    pub pressure: f32,
+    pub velocity: f32,
+    pub gesture_type: GestureType,
+}
+
+#[derive(Debug, Clone)]
+pub enum GestureType {
+    Point,
+    Swipe,
+    Pinch,
+    Rotate,
+    Tap,
+}
+
+pub struct GestureHandler {
+    current_gesture: Option<GestureData>,
+    gesture_history: Vec<GestureData>,
+}
+
+impl GestureHandler {
+    pub fn new() -> Self {
+        Self {
+            current_gesture: None,
+            gesture_history: Vec::new(),
+        }
+    }
+    
+    /// Map gesture to audio parameters
+    pub fn map_to_audio(&self, gesture: &GestureData) -> AudioParameters {
+        AudioParameters {
+            frequency: 200.0 + (gesture.x * 800.0),
+            gain: gesture.pressure * 0.5,
+            filter_cutoff: 1000.0 + (gesture.velocity * 4000.0),
+        }
+    }
+    
+    /// Map gesture to visual parameters
+    pub fn map_to_visual(&self, gesture: &GestureData) -> VisualParameters {
+        VisualParameters {
+            color_hue: (gesture.x * 360.0) % 360.0,
+            scale: 0.5 + (gesture.pressure * 2.0),
+            rotation: gesture.velocity * 180.0,
+            opacity: gesture.y,
+        }
+    }
+}
+```
+
+## 🔧 WASM Compilation System
+
+### WASM Bindings Architecture
+```rust
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub struct CreativeEngine {
+    audio_engine: AudioEngine,
+    graphics_engine: GraphicsEngine,
+    gesture_handler: GestureHandler,
+}
+
+#[wasm_bindgen]
+impl CreativeEngine {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Result<CreativeEngine, JsValue> {
+        let audio_engine = AudioEngine::new()
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        
+        let graphics_engine = GraphicsEngine::new()
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        
+        let gesture_handler = GestureHandler::new();
+        
+        Ok(CreativeEngine {
+            audio_engine,
+            graphics_engine,
+            gesture_handler,
+        })
+    }
+    
+    /// Process gesture input from JavaScript
+    #[wasm_bindgen]
+    pub fn process_gesture(&mut self, x: f32, y: f32, pressure: f32, velocity: f32) -> Result<(), JsValue> {
+        let gesture = GestureData {
+            x,
+            y,
+            pressure,
+            velocity,
+            gesture_type: GestureType::Point,
+        };
+        
+        let audio_params = self.gesture_handler.map_to_audio(&gesture);
+        let visual_params = self.gesture_handler.map_to_visual(&gesture);
+        
+        // Apply parameters to engines
+        self.audio_engine.update_parameters(audio_params)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        
+        self.graphics_engine.update_parameters(visual_params)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        
+        Ok(())
+    }
+    
+    /// Compile and register a simple shader
+    #[wasm_bindgen]
+    pub fn register_shader(&mut self, name: &str, shader_code: &str) -> Result<(), JsValue> {
+        self.graphics_engine.compile_shader(name, shader_code)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        
+        Ok(())
+    }
+}
+```
+
+## 🌐 Cross-Platform Integration
+
+### Build Pipeline Configuration
+```rust
+// wasm-pack configuration for web deployment
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen(start)]
+pub fn main() {
+    console_error_panic_hook::set_once();
+    
+    // Initialize the creative engine
+    let engine = CreativeEngine::new().expect("Failed to create creative engine");
+    
+    // Make engine available to JavaScript
+    wasm_bindgen::throw_val(engine.into());
+}
+
+// Build configuration for different targets
+#[cfg(target_arch = "wasm32")]
+pub mod web_config {
+    pub const MAX_SHADER_SIZE: usize = 1024 * 1024; // 1MB for web
+    pub const MAX_AUDIO_VOICES: usize = 16; // Limited for browser performance
+    pub const WEBGPU_FALLBACK: bool = true;
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub mod native_config {
+    pub const MAX_SHADER_SIZE: usize = 10 * 1024 * 1024; // 10MB for native
+    pub const MAX_AUDIO_VOICES: usize = 128; // Full polyphony
+    pub const WEBGPU_FALLBACK: bool = false;
 }
 ```
 
 ## 📊 Performance Optimization
 
-### Memory Management Strategy
+### Memory Management for Web
 ```rust
-// Pre-allocate buffers for real-time performance
-pub struct PerformancePool {
-    fractal_buffers: Vec<FractalBuffer>,
-    gpu_pipelines: Vec<wgpu::ComputePipeline>,
-    staging_buffers: Vec<wgpu::Buffer>,
+pub struct WebMemoryPool {
+    shader_buffers: Vec<wgpu::Buffer>,
+    audio_buffers: Vec<web_sys::AudioBuffer>,
+    max_memory_mb: usize,
 }
 
-impl PerformancePool {
-    pub fn preallocate_resources(&mut self, device: &wgpu::Device, config: &RenderConfig) {
-        // Pre-create GPU pipelines for common operations
-        for i in 0..10 {
-            let pipeline = self.create_fractal_pipeline(device, i);
-            self.gpu_pipelines.push(pipeline);
+impl WebMemoryPool {
+    pub fn new(max_memory_mb: usize) -> Self {
+        Self {
+            shader_buffers: Vec::new(),
+            audio_buffers: Vec::new(),
+            max_memory_mb,
+        }
+    }
+    
+    /// Check memory usage and cleanup if needed
+    pub fn check_memory_usage(&mut self) -> Result<(), MemoryError> {
+        let current_usage = self.calculate_current_usage();
+        
+        if current_usage > self.max_memory_mb * 1024 * 1024 {
+            // Cleanup oldest buffers
+            self.cleanup_old_buffers();
         }
         
-        // Pre-allocate fractal buffers of various sizes
-        for size in [256, 512, 1024, 2048] {
-            let buffer = FractalBuffer::new(size, size);
-            self.fractal_buffers.push(buffer);
+        Ok(())
+    }
+    
+    fn cleanup_old_buffers(&mut self) {
+        // Remove oldest shader buffers
+        while self.shader_buffers.len() > 4 {
+            self.shader_buffers.remove(0);
+        }
+        
+        // Remove oldest audio buffers
+        while self.audio_buffers.len() > 2 {
+            self.audio_buffers.remove(0);
         }
     }
 }
 ```
 
-### WebGPU Optimization
+## 🔒 Security & Sandboxing
+
+### WASM Security Measures
 ```rust
-// Efficient compute dispatch with workgroup optimization
-pub fn optimal_workgroup_size(width: u32, height: u32) -> (u32, u32) {
-    // Optimize for GPU architecture
-    match (width, height) {
-        (w, h) if w <= 256 && h <= 256 => (8, 8),
-        (w, h) if w <= 1024 && h <= 1024 => (16, 16),
-        _ => (32, 32),  // Large textures
-    }
+pub struct SecurityValidator {
+    max_shader_instructions: usize,
+    max_audio_frequency: f32,
+    allowed_gesture_range: (f32, f32),
 }
 
-pub fn dispatch_compute(&self, encoder: &mut wgpu::CommandEncoder, 
-    width: u32, height: u32) {
-    let (wx, wy) = optimal_workgroup_size(width, height);
-    let dispatch_x = (width + wx - 1) / wx;
-    let dispatch_y = (height + wy - 1) / wy;
+impl SecurityValidator {
+    pub fn new() -> Self {
+        Self {
+            max_shader_instructions: 10000,
+            max_audio_frequency: 20000.0, // Prevent ultrasonic frequencies
+            allowed_gesture_range: (0.0, 1.0),
+        }
+    }
     
-    encoder.dispatch_workgroups(dispatch_x, dispatch_y, 1);
+    /// Validate shader code for security
+    pub fn validate_shader(&self, code: &str) -> Result<(), SecurityError> {
+        // Check for potentially harmful operations
+        if code.contains("unsafe") || code.contains("transmute") {
+            return Err(SecurityError::UnsafeOperations);
+        }
+        
+        // Check instruction count
+        let instruction_count = code.lines().count();
+        if instruction_count > self.max_shader_instructions {
+            return Err(SecurityError::ShaderTooComplex);
+        }
+        
+        Ok(())
+    }
+    
+    /// Validate audio parameters
+    pub fn validate_audio(&self, frequency: f32, gain: f32) -> Result<(), SecurityError> {
+        if frequency > self.max_audio_frequency {
+            return Err(SecurityError::FrequencyTooHigh);
+        }
+        
+        if gain > 1.0 || gain < 0.0 {
+            return Err(SecurityError::InvalidGain);
+        }
+        
+        Ok(())
+    }
 }
 ```
 
-## 🔒 Security Considerations
+## 🚀 Deployment Architecture
 
-### WASM Sandboxing
-- Memory access bounds checking
-- No direct file system access
-- Controlled GPU resource allocation
-- Input validation for emotional parameters
+### Build & Deployment Pipeline
+```bash
+# Development build with debug symbols
+wasm-pack build --dev --target web --out-dir dist/dev
 
-### IPFS Content Validation
+# Production build with optimizations  
+wasm-pack build --release --target web --out-dir dist/prod
+
+# Bundle size optimization
+wasm-opt -Oz -o dist/prod/creative_engine_opt.wasm dist/prod/creative_engine.wasm
+
+# Generate TypeScript definitions
+wasm-bindgen-typescript-definition dist/prod/creative_engine.wasm
+```
+
+### Cross-Platform Distribution
+- **Browser**: Direct WASM import with ES6 modules
+- **Node.js**: WASM with Node.js compatibility layer  
+- **Native**: Direct Rust library integration
+- **Mobile**: WASM via React Native WebView or similar
+
+## 🔗 Integration Points
+
+### NEAR Protocol Integration
 ```rust
-pub fn validate_tool_content(cid: &str, expected_hash: &str) -> Result<bool, Error> {
-    let content = ipfs_client.get_json(cid).await?;
-    let calculated_hash = calculate_content_hash(&content)?;
+pub struct NearBridge {
+    contract_id: String,
+    tool_registry: HashMap<String, ToolMetadata>,
+}
+
+impl NearBridge {
+    pub async fn publish_tool(&self, tool: CreativeTool) -> Result<String, BlockchainError> {
+        // Serialize tool metadata
+        let metadata = serde_json::to_string(&tool.metadata)?;
+        
+        // Call NEAR contract to register tool
+        let result = near_contract::publish_tool({
+            tool_id: tool.id,
+            metadata: metadata,
+            creator: tool.creator,
+        }).await?;
+        
+        Ok(result.transaction_hash)
+    }
     
-    Ok(calculated_hash == expected_hash)
+    pub async fn get_tool(&self, tool_id: &str) -> Result<CreativeTool, BlockchainError> {
+        let metadata = near_contract::get_tool_metadata(tool_id).await?;
+        let tool = CreativeTool::from_metadata(metadata)?;
+        
+        Ok(tool)
+    }
 }
 ```
 
@@ -357,60 +509,36 @@ pub fn validate_tool_content(cid: &str, expected_hash: &str) -> Result<bool, Err
 
 ### Performance Metrics Collection
 ```rust
-pub struct PerformanceMetrics {
-    pub fractal_generation_time: Duration,
-    pub gpu_utilization: f32,
-    pub memory_usage: usize,
-    pub wasm_calls_per_second: u32,
+pub struct WebPerformanceMonitor {
+    wasm_load_time: Duration,
+    audio_latency: Duration,
+    graphics_fps: f32,
+    memory_usage: usize,
 }
 
-impl PerformanceMetrics {
-    pub fn record_fractal_generation(&mut self, duration: Duration) {
-        self.fractal_generation_time = duration;
-        
-        // Log for analytics
-        log::info!("Fractal generation: {:?}", duration);
+impl WebPerformanceMonitor {
+    pub fn new() -> Self {
+        Self {
+            wasm_load_time: Duration::default(),
+            audio_latency: Duration::default(),
+            graphics_fps: 0.0,
+            memory_usage: 0,
+        }
+    }
+    
+    /// Collect performance metrics for web analytics
+    pub fn collect_metrics(&mut self) -> WebMetrics {
+        WebMetrics {
+            wasm_load_time_ms: self.wasm_load_time.as_millis(),
+            audio_latency_ms: self.audio_latency.as_millis(),
+            graphics_fps: self.graphics_fps,
+            memory_usage_mb: self.memory_usage / (1024 * 1024),
+            timestamp: js_sys::Date::now(),
+        }
     }
 }
 ```
 
-## 🚀 Deployment Architecture
-
-### Build Pipeline
-```bash
-# Development build with debug symbols
-wasm-pack build --dev --target web
-
-# Production build with optimizations
-wasm-pack build --release --target web --out-dir dist/wasm
-
-# Bundle size optimization
-wasm-opt -Oz -o dist/wasm/nft_rust_client_opt.wasm dist/wasm/nft_rust_client.wasm
-```
-
-### Cross-Platform Distribution
-- **Browser**: Direct WASM import with ES6 modules
-- **Node.js**: WASM with Node.js compatibility layer
-- **Native**: Direct Rust library integration
-- **Mobile**: WASM via React Native WebView
-
-## 🔗 Integration Points
-
-### NEAR Protocol (`src/near-wasm/src/lib.rs`)
-- Fractal generation for NFT metadata
-- Emotional state tracking integration
-- Tool marketplace contract calls
-
-### Solana Program (`src/solana-client/src/lib.rs`)
-- Creative session account structures
-- Emotional metadata encoding
-- Performance recording integration
-
-### IPFS Storage (`src/ipfs-integration/src/lib.rs`)
-- Tool asset persistence
-- Patch configuration storage
-- Fractal result caching
-
 ---
 
-*Architecture designed for high-performance creative computing with emotional intelligence and cross-chain compatibility.*
+*Architecture designed for simple, web-based creative computing with WASM compilation and blockchain integration for our NUWE and Modurust ecosystem foundation.*

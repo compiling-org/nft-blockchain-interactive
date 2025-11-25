@@ -1,170 +1,217 @@
-# Modular Fractal Shader System with Emotional Computing
+# Rust Foundation: Web-Based Audiovisual Creative System
 
 ## Project Overview
 
-**Organization**: Compiling.org
-**Funding Request**: USD 10,000
-**Timeline**: December 2025 - March 2026 (3+ months) - Pre-work starts October 2025
-**Repository**: https://github.com/compiling-org/nft-blockchain-interactive
+**Organization**: Compiling.org  
+**Funding Request**: USD 10,000  
+**Timeline**: 2025-Q4 to 2026-Q1 (3+ months) - Pre-work starts 2025-Q3  
+**Repository**: https://github.com/compiling-org/rust-foundation-audiovisual  
 
 ## Abstract
 
-We propose developing a modular fractal shader system in Rust that provides GPU-accelerated creative tools with advanced emotional computing integration. This crate will offer a comprehensive foundation for real-time graphics programming, enabling affective computing applications in creative workflows while demonstrating Rust's capabilities in high-performance creative computing.
+We propose developing a simple web-based audiovisual creative system that combines core aspects of our Shader Studio (visual tools) and Modurust (modular audio tools) projects. This system will provide WASM-compiled creative tools for browser-based audio and visual creation, with blockchain compatibility for collaboration and publishing. The project demonstrates Rust's capabilities in web-based creative computing while serving as a foundation for our long-term NUWE and Modurust ecosystems.
 
-**REAL ACHIEVEMENTS**: Working Rust crate with WebGPU integration, emotional parameter mapping, and real-time fractal generation - not theoretical promises. The project will be maintained long-term beyond the grant period with continuous development and community support.
+**PROJECT CONTEXT**: This is part of our broader creative computing ecosystem, serving as the WASM/Web implementation foundation for our NUWE and Modurust projects. The system will provide simple, functional creative tools that can be extended to our more elaborate long-term projects.
 
 ## Why Rust?
 
-Rust's unique combination of performance, safety, and expressiveness makes it ideal for our creative computing vision:
+Rust's unique combination of performance, safety, and expressiveness makes it ideal for web-based creative computing:
 
-- **Zero-Cost Abstractions**: High-level shader composition without performance penalties
-- **Memory Safety**: Thread-safe creative tools without garbage collection overhead
-- **GPU Integration**: Seamless WebGPU/WebGL integration with wgpu crate
-- **Emotional Computing**: Advanced affective computing capabilities with predictive modeling
-- **Cross-Platform**: Native performance on desktop, mobile, and web targets
-
-Rust's growing ecosystem for creative computing perfectly aligns with our vision of democratizing professional creative tools.
+- **WASM Compilation**: Compile to WebAssembly for near-native performance in browsers
+- **Memory Safety**: Thread-safe creative tools without garbage collection overhead  
+- **Cross-Platform**: Single codebase runs natively and in web browsers
+- **Audio Processing**: Real-time audio synthesis and processing capabilities
+- **GPU Integration**: WebGPU support for hardware-accelerated graphics
+- **Blockchain Compatibility**: Seamless integration with blockchain technologies for creative collaboration
 
 ## Technical Approach
 
 ### Core Architecture
 
-1. **Modular Shader Composition**
-   - Component-based shader system for flexible creative workflows
-   - Real-time parameter modulation with emotional mapping
-   - Feedback loop shaders for complex visual effects
-   - Plugin architecture for community extensions
+1. **Shader Studio Visual Tools**
+   - Simple shader compilation and rendering system
+   - Basic fractal and pattern generation  
+   - Gesture-driven controls for interactive creation
+   - WebGPU/WebGL fallback for browser compatibility
 
-2. **GPU Acceleration**
-   - WebGPU integration with wgpu for cross-platform compatibility
-   - SIMD-optimized fractal calculations
-   - Lock-free data structures for real-time performance
-   - Memory-efficient resource management
+2. **Modurust Audio Tools**
+   - Modular audio synthesis and processing
+   - Real-time audio effects and filters
+   - Web Audio API integration
+   - Simple parameter controls for creative expression
 
-3. **Emotional Computing Integration**
-   - Valence-Arousal-Dominance (VAD) emotional model
-   - Real-time emotional state mapping to visual parameters
-   - Affective computing data structures
-   - Predictive modeling for emotional trajectory analysis
+3. **WASM Compilation System**
+   - Rust to WebAssembly compilation pipeline
+   - Browser-native performance without plugins
+   - Cross-platform compatibility (desktop/mobile/web)
+   - Integration with existing blockchain infrastructure
 
 ### Implementation Details
 
 ```rust
-// Modular shader system with emotional computing
-pub struct ShaderEngine {
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    shaders: HashMap<String, ShaderProgram>,
-    emotional_mapper: EmotionalMapper,
+// Simple audiovisual creative system
+pub struct CreativeEngine {
+    audio_context: AudioContext,
+    graphics_context: GraphicsContext, 
+    wasm_bindings: WasmBindings,
 }
 
-impl ShaderEngine {
-    /// Create new shader engine with emotional computing integration
-    pub async fn new_with_emotion() -> Result<Self, ShaderError> {
-        let (device, queue) = create_gpu_context().await?;
-        let emotional_mapper = EmotionalMapper::new();
+impl CreativeEngine {
+    /// Create new creative engine for web deployment
+    pub fn new() -> Result<Self, CreativeError> {
+        let audio_context = AudioContext::new()?;
+        let graphics_context = GraphicsContext::new()?;
+        let wasm_bindings = WasmBindings::new();
         
         Ok(Self {
-            device,
-            queue,
-            shaders: HashMap::new(),
-            emotional_mapper,
+            audio_context,
+            graphics_context,
+            wasm_bindings,
         })
     }
     
-    /// Render with emotional parameter modulation
-    pub fn render_with_emotion(
-        &mut self, 
-        delta_time: f32, 
-        emotional_state: Option<EmotionalState>
-    ) -> Result<(), ShaderError> {
-        // Map emotional state to visual parameters
-        let params = if let Some(state) = emotional_state {
-            self.emotional_mapper.map_to_parameters(&state)
-        } else {
-            VisualParameters::default()
-        };
+    /// Process gesture input for creative control
+    pub fn handle_gesture(&mut self, gesture: GestureData) -> Result<(), CreativeError> {
+        // Map gesture to audio/visual parameters
+        let audio_params = self.map_gesture_to_audio(&gesture);
+        let visual_params = self.map_gesture_to_visual(&gesture);
         
-        // Apply parameters and render
-        self.apply_parameters(&params);
-        self.render(delta_time)
+        self.audio_context.update_parameters(audio_params)?;
+        self.graphics_context.update_parameters(visual_params)?;
+        
+        Ok(())
     }
 }
 
-/// Emotional mapper for creative computing
-pub struct EmotionalMapper {
-    vad_model: VadModel,
-    predictor: EmotionalPredictor,
+/// WASM bindings for web integration
+pub struct WasmBindings {
+    memory: Memory,
+    exports: HashMap<String, WasmFunction>,
 }
 
-impl EmotionalMapper {
-    /// Map emotional state to visual parameters
-    pub fn map_to_parameters(&self, state: &EmotionalState) -> VisualParameters {
-        // Map VAD values to visual properties
-        let scale = state.valence * 2.0 + 0.5;
-        let speed = state.arousal * 3.0;
-        let complexity = state.dominance * 100.0;
+impl WasmBindings {
+    /// Compile creative tools to WASM
+    pub fn compile_tool(&mut self, tool: CreativeTool) -> Result<WasmModule, CompileError> {
+        // Compile Rust creative tool to WebAssembly
+        let module = wasmtime::Module::new(&engine, tool.code)?;
+        let instance = wasmtime::Instance::new(&store, &module, &imports)?;
         
-        // Apply predictive modeling for enhanced creativity
-        let predicted_params = self.predictor.predict_next_parameters(state);
-        
-        VisualParameters {
-            scale: scale * predicted_params.scale_multiplier,
-            speed,
-            complexity,
-            color_saturation: state.confidence,
-        }
+        Ok(WasmModule {
+            instance,
+            memory: instance.get_memory("memory").unwrap(),
+        })
     }
 }
 ```
 
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph "Web Browser"
+        WASM[WASM Module]
+        WEBGPU[WebGPU Context]
+        WEBAUDIO[Web Audio API]
+        JS[JavaScript Interface]
+    end
+    
+    subgraph "Creative Engine"
+        AUDIO[Audio Engine]
+        GRAPHICS[Graphics Engine]
+        GESTURE[Gesture Handler]
+        WASM_BIND[WASM Bindings]
+    end
+    
+    subgraph "Blockchain Integration"
+        NEAR[NEAR Protocol]
+        SOL[Solana]
+        IPFS[IPFS Storage]
+    end
+    
+    WASM --> AUDIO
+    WASM --> GRAPHICS
+    WEBGPU --> GRAPHICS
+    WEBAUDIO --> AUDIO
+    JS --> WASM
+    
+    GESTURE --> AUDIO
+    GESTURE --> GRAPHICS
+    
+    WASM_BIND --> NEAR
+    WASM_BIND --> SOL
+    WASM_BIND --> IPFS
+```
+
 ## Deliverables
 
-### Milestone 1: Core Shader System (Month 1)
-- [x] Modular shader composition system
-- [x] Basic fractal shader implementations (Mandelbrot, Julia, Burning Ship)
-- [x] GPU acceleration with WGPU
-- [x] Real-time parameter controls
-- [x] Comprehensive unit tests
-- [x] **Advanced Emotional Computing**: Implemented Valence-Arousal-Dominance (VAD) model with real-time emotional mapping
+### Milestone 1: Core Audio System (Month 1)
+- [ ] Basic audio synthesis engine (WASM-compiled)
+- [ ] Simple oscillator and filter implementations
+- [ ] Web Audio API integration
+- [ ] Gesture-driven parameter control
+- [ ] Basic unit tests
 
-### Milestone 2: Advanced Features (Month 2)
-- [x] Feedback loop shaders
-- [x] Real-time parameter modulation
-- [x] Plugin architecture for extensibility
-- [x] Performance profiling tools
-- [x] **Predictive Modeling**: Implemented emotional trajectory prediction and advanced parameter modulation
+### Milestone 2: Visual Tools (Month 2)
+- [ ] Simple shader compilation system
+- [ ] Basic pattern and fractal generation
+- [ ] WebGPU/WebGL fallback implementation
+- [ ] Gesture-driven visual controls
+- [ ] Cross-browser compatibility testing
 
-### Milestone 3: Ecosystem Integration (Month 3)
-- [x] Crate publication on crates.io
-- [x] Documentation and examples
-- [x] NUWE integration demo
-- [x] Community contribution guidelines
-- [x] **Advanced Analytics**: Implemented emotional complexity scoring and creativity indexing
+### Milestone 3: WASM Integration & Blockchain (Month 3)
+- [ ] Complete WASM compilation pipeline
+- [ ] Blockchain compatibility for tool publishing
+- [ ] Simple collaboration features
+- [ ] Integration with existing NEAR/Solana contracts
+- [ ] Documentation and examples
+
+## Project Integration
+
+```mermaid
+graph LR
+    subgraph "Long-term Projects"
+        NUWE[NUWE Ecosystem]
+        MODURUST[Modurust Platform]
+        SHADER[Shader Studio]
+    end
+    
+    subgraph "Rust Foundation Project"
+        WASM_SYS[WASM Audio System]
+        WEB_SYS[Web Visual System]
+        BLOCKCHAIN[Blockchain Bridge]
+    end
+    
+    WASM_SYS --> NUWE
+    WEB_SYS --> SHADER
+    BLOCKCHAIN --> MODURUST
+    
+    WASM_SYS --> WEB_SYS
+    WEB_SYS --> BLOCKCHAIN
+```
 
 ## Impact & Innovation
 
 ### Technical Innovation
-- **Modular Shader Architecture**: First comprehensive modular shader system in Rust
-- **Real-Time Creative Tools**: GPU-accelerated tools for live performance
-- **Emotional Integration**: Novel mapping of affective data to visual parameters
-- **Advanced Predictive Analytics**: Cutting-edge emotional computing with trajectory analysis
+- **Web-Based Creative Tools**: Browser-native audiovisual creation without plugins
+- **WASM Compilation**: Rust-to-WebAssembly pipeline for performance-critical creative code
+- **Gesture-Driven Controls**: Intuitive interaction model for creative expression
+- **Blockchain Integration**: Decentralized tool sharing and collaboration capabilities
 
 ### Ecosystem Value
-- **Creative Coding Tools**: Professional-grade tools for Rust developers
-- **Educational Resources**: Well-documented examples for learning graphics programming
-- **Research Platform**: Foundation for computational creativity research
-- **Emotional Computing Foundation**: Advanced affective computing capabilities for creative applications
+- **Long-term NUWE Integration**: Foundation for our comprehensive creative platform
+- **Modurust Compatibility**: Modular tool system that extends to our broader platform
+- **Educational Platform**: Simple examples for learning Rust creative programming
+- **Cross-Platform Foundation**: Single codebase for web, desktop, and mobile deployment
 
 ## Team & Experience
 
 ### Core Team
 - **Dr. Kapil Bambardekar**: Lead Rust developer with graphics and performance expertise
-- **Grigori Korotkikh**: Creative technologist specializing in shader systems and live performance
+- **Grigori Korotkikh**: Creative technologist specializing in audio/visual systems
 
 ### Relevant Experience
-- **Existing Shader Work**: Fractal shader implementations in multiple languages
-- **Rust Expertise**: Multiple published crates and contributions to Rust ecosystem
+- **Existing Creative Tools**: Shader Studio and Modurust implementations
+- **Rust Expertise**: WASM compilation and web integration
 - **Creative Computing**: Live performance systems and real-time graphics
 - **Open Source**: Active contributor to creative coding communities
 
@@ -172,43 +219,43 @@ impl EmotionalMapper {
 
 | Category | Amount | Description |
 |----------|--------|-------------|
-| Development | $7,000 | Core implementation and advanced features |
+| Development | $7,000 | Core WASM audio/visual systems |
 | Documentation | $1,500 | Technical writing and tutorials |
-| Testing | $1,000 | Hardware testing and performance validation |
-| Community | $500 | crates.io publication and outreach |
+| Testing | $1,000 | Cross-browser compatibility and performance |
+| Community | $500 | Open-source outreach and examples |
 
 ## Success Metrics
 
-- **Crate Quality**: Published on crates.io with high documentation coverage
-- **Performance**: Real-time rendering at 60fps on target hardware
-- **Adoption**: Downloads and community contributions
-- **Integration**: Successful integration with NUWE system
-- **Advanced Emotional Computing**: Real-time emotional mapping with 95%+ accuracy
+- **WASM Performance**: Real-time audio/visual processing at 60fps
+- **Browser Compatibility**: Support for major modern browsers
+- **Blockchain Integration**: Successful tool publishing on NEAR/Solana
+- **Community Adoption**: Downloads and developer contributions
+- **Educational Value**: Clear examples and documentation
 
 ## Long-term Vision
 
-This crate establishes a foundation for Rust-based creative computing:
+This project establishes a foundation for our broader creative computing ecosystem:
 
-- **Expanded Shader Library**: Additional shader types and effects
-- **Cross-Platform Support**: Mobile and web deployment capabilities
-- **ML Integration**: Machine learning enhanced shader generation
-- **Educational Platform**: Learning tools for shader programming
-- **Advanced Emotional Ecosystems**: Comprehensive emotional computing with cross-platform identity
+- **NUWE Integration**: Core component of our comprehensive creative platform
+- **Modurust Extension**: Modular tool system that scales to professional applications
+- **Cross-Platform Deployment**: Foundation for desktop and mobile applications
+- **Educational Resources**: Teaching materials for Rust creative programming
+- **Community Platform**: Open collaboration tools for creative developers
 
 ## Why This Benefits the Rust Ecosystem
 
-Our modular shader system will:
+Our web-based audiovisual system will:
 
-- **Showcase Rust's Strengths**: Demonstrate performance and safety in graphics applications
-- **Fill an Ecosystem Gap**: Provide high-quality graphics libraries for creative coding
-- **Set Documentation Standards**: Exemplary documentation and testing practices
-- **Enable New Use Cases**: Creative applications that leverage Rust's unique advantages
-- **Advance Emotional Computing**: Cutting-edge affective computing capabilities that showcase Rust's potential
+- **Showcase WASM Capabilities**: Demonstrate Rust-to-WebAssembly compilation for creative applications
+- **Fill Web Creative Gap**: Provide browser-native creative tools without JavaScript overhead
+- **Enable Cross-Platform Development**: Single Rust codebase for web, desktop, and mobile
+- **Support Creative Communities**: Open-source tools for artistic expression and collaboration
+- **Bridge Blockchain Integration**: Showcase Rust's potential for decentralized creative applications
 
 ## License & Sustainability
 
 - **Open Source**: MIT/Apache 2.0 dual license
-- **Maintenance**: Long-term commitment to crate maintenance
+- **Maintenance**: Long-term commitment to project maintenance
 - **Community**: Open to contributions and feature requests
 
 ## Contact Information
@@ -219,4 +266,4 @@ Our modular shader system will:
 
 ---
 
-*This Rust crate represents our commitment to contributing high-quality, innovative tools back to the Rust ecosystem while advancing our creative computing vision with advanced emotional AI capabilities.*
+*This Rust Foundation project represents our commitment to creating accessible, web-based creative tools that bridge the gap between Rust's performance capabilities and browser-based creative expression.*

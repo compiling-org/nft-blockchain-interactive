@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASM Test - Rust Foundation Audiovisual System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <h1>🦀 Rust Foundation: WASM Audiovisual System Test</h1>
+    
+    <div class="test-section">
+        <h2>WASM Module Tests</h2>
+        <button id="test-init">Test WASM Initialization</button>
+        <button id="test-engine">Test Creative Engine</button>
+        <button id="test-audio">Test Audio Engine</button>
+        <button id="test-gestures">Test Gesture Processing</button>
+        <button id="test-shader">Test Shader Compilation</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Performance Tests</h2>
+        <button id="test-performance">Run Performance Test</button>
+        <div id="performance-results"></div>
+    </div>
+
+    <script type="module">
+        import init, { CreativeEngine, get_version, get_build_info } from './pkg/rust_foundation_audiovisual.js';
+        
+        let engine = null;
+        let wasmInitialized = false;
+        
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const result = document.createElement('div');
+            result.className = `test-result ${type}`;
+            result.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(result);
+        }
+        
+        // Test WASM Initialization
+        document.getElementById('test-init').addEventListener('click', async () => {
+            try {
+                addResult('test-results', 'Initializing WASM module...', 'info');
+                await init();
+                wasmInitialized = true;
+                addResult('test-results', 'WASM module initialized successfully', 'success');
+                
+                // Test version functions
+                const version = get_version();
+                const buildInfo = get_build_info();
+                addResult('test-results', `Version: ${version}`, 'success');
+                addResult('test-results', `Build Info: ${buildInfo}`, 'success');
+                
+            } catch (error) {
+                addResult('test-results', `WASM initialization failed: ${error.message}`, 'error');
+            }
+        });
+        
+        // Test Creative Engine
+        document.getElementById('test-engine').addEventListener('click', async () => {
+            if (!wasmInitialized) {
+                addResult('test-results', 'WASM not initialized. Run initialization test first.', 'error');
+                return;
+            }
+            
+            try {
+                addResult('test-results', 'Creating Creative Engine...', 'info');
+                engine = new CreativeEngine();
+                addResult('test-results', 'Creative Engine created successfully', 'success');
+                
+                // Test engine status
+                const status = engine.get_status();
+                addResult('test-results', `Engine Status: ${status}`, 'success');
+                
+            } catch (error) {
+                addResult('test-results', `Engine creation failed: ${error.message}`, 'error');
+            }
+        });
+        
+        // Test Audio Engine
+        document.getElementById('test-audio').addEventListener('click', async () => {
+            if (!engine) {
+                addResult('test-results', 'Engine not created. Run engine test first.', 'error');
+                return;
+            }
+            
+            try {
+                addResult('test-results', 'Testing audio engine...', 'info');
+                
+                // Create multiple oscillators with different parameters
+                const frequencies = [220, 440, 660, 880];
+                const waveTypes = ['sine', 'square', 'sawtooth', 'triangle'];
+                
+                for (let i = 0; i < frequencies.length; i++) {
+                    engine.create_oscillator(frequencies[i], waveTypes[i]);
+                    addResult('test-results', `Created ${waveTypes[i]} oscillator at ${frequencies[i]}Hz`, 'success');
+                }
+                
+                // Test gesture-based audio parameter updates
+                engine.process_gesture(0.5, 0.5, 0.8, 0.3);
+                addResult('test-results', 'Gesture-based audio update successful', 'success');
+                
+                // Stop audio after a short delay
+                setTimeout(() => {
+                    try {
+                        engine.stop_all_audio();
+                        addResult('test-results', 'Audio stopped successfully', 'success');
+                    } catch (error) {
+                        addResult('test-results', `Audio stop failed: ${error.message}`, 'error');
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                addResult('test-results', `Audio test failed: ${error.message}`, 'error');
+            }
+        });
+        
+        // Test Gesture Processing
+        document.getElementById('test-gestures').addEventListener('click', async () => {
+            if (!engine) {
+                addResult('test-results', 'Engine not created. Run engine test first.', 'error');
+                return;
+            }
+            
+            try {
+                addResult('test-results', 'Testing gesture processing...', 'info');
+                
+                // Test various gesture patterns
+                const gestures = [
+                    { x: 0.1, y: 0.1, pressure: 0.2, velocity: 0.1 },
+                    { x: 0.5, y: 0.5, pressure: 0.8, velocity: 0.5 },
+                    { x: 0.9, y: 0.9, pressure: 0.3, velocity: 0.8 },
+                    { x: 0.3, y: 0.7, pressure: 0.6, velocity: 0.2 },
+                    { x: 0.7, y: 0.3, pressure: 0.9, velocity: 0.6 }
+                ];
+                
+                for (const gesture of gestures) {
+                    engine.process_gesture(gesture.x, gesture.y, gesture.pressure, gesture.velocity);
+                    addResult('test-results', `Processed gesture: x=${gesture.x}, y=${gesture.y}, pressure=${gesture.pressure}, velocity=${gesture.velocity}`, 'success');
+                }
+                
+                addResult('test-results', 'All gesture tests completed successfully', 'success');
+                
+            } catch (error) {
+                addResult('test-results', `Gesture test failed: ${error.message}`, 'error');
+            }
+        });
+        
+        // Test Shader Compilation
+        document.getElementById('test-shader').addEventListener('click', async () => {
+            if (!engine) {
+                addResult('test-results', 'Engine not created. Run engine test first.', 'error');
+                return;
+            }
+            
+            try {
+                addResult('test-results', 'Testing shader compilation...', 'info');
+                
+                const testShaders = [
+                    {
+                        name: 'simple_vertex',
+                        code: `
+@vertex
+fn vs_main(@builtin(vertex_index) vertex_index: u32) -> @builtin(position) vec4<f32> {
+    let x = f32(vertex_index) * 0.1;
+    let y = sin(x * 10.0) * 0.5;
+    return vec4<f32>(x - 0.5, y, 0.0, 1.0);
+}
+
+@fragment
+fn fs_main() -> @location(0) vec4<f32> {
+    return vec4<f32>(0.5, 0.8, 1.0, 1.0);
+}
+                        `
+                    },
+                    {
+                        name: 'gradient_shader',
+                        code: `
+@vertex
+fn vs_main(@builtin(vertex_index) vertex_index: u32) -> @builtin(position) vec4<f32> {
+    var positions = array<vec2<f32>, 3>(
+        vec2<f32>(-0.5, -0.5),
+        vec2<f32>( 0.5, -0.5),
+        vec2<f32>( 0.0,  0.5)
+    );
+    return vec4<f32>(positions[vertex_index], 0.0, 1.0);
+}
+
+@fragment
+fn fs_main(@builtin(position) pos: vec4<f32>) -> @location(0) vec4<f32> {
+    return vec4<f32>(pos.x / 100.0, pos.y / 100.0, 0.5, 1.0);
+}
+                        `
+                    }
+                ];
+                
+                for (const shader of testShaders) {
+                    engine.register_shader(shader.name, shader.code.trim());
+                    addResult('test-results', `Compiled shader: ${shader.name}`, 'success');
+                }
+                
+                addResult('test-results', 'All shader compilation tests completed successfully', 'success');
+                
+            } catch (error) {
+                addResult('test-results', `Shader test failed: ${error.message}`, 'error');
+            }
+        });
+        
+        // Performance Test
+        document.getElementById('test-performance').addEventListener('click', async () => {
+            if (!engine) {
+                addResult('performance-results', 'Engine not created. Run engine test first.', 'error');
+                return;
+            }
+            
+            try {
+                addResult('performance-results', 'Running performance tests...', 'info');
+                
+                const iterations = 1000;
+                const startTime = performance.now();
+                
+                // Test gesture processing performance
+                for (let i = 0; i < iterations; i++) {
+                    const x = Math.random();
+                    const y = Math.random();
+                    const pressure = Math.random();
+                    const velocity = Math.random();
+                    engine.process_gesture(x, y, pressure, velocity);
+                }
+                
+                const gestureTime = performance.now() - startTime;
+                addResult('performance-results', `Processed ${iterations} gestures in ${gestureTime.toFixed(2)}ms (${(iterations / gestureTime * 1000).toFixed(0)} ops/sec)`, 'success');
+                
+                // Test shader compilation performance
+                const shaderStartTime = performance.now();
+                for (let i = 0; i < 100; i++) {
+                    const shaderName = `perf_test_${i}`;
+                    const shaderCode = `
+@vertex
+fn vs_main() -> @builtin(position) vec4<f32> {
+    return vec4<f32>(0.0, 0.0, 0.0, 1.0);
+}
+
+@fragment
+fn fs_main() -> @location(0) vec4<f32> {
+    return vec4<f32>(1.0, 0.0, 0.0, 1.0);
+}
+                    `;
+                    engine.register_shader(shaderName, shaderCode.trim());
+                }
+                
+                const shaderTime = performance.now() - shaderStartTime;
+                addResult('performance-results', `Compiled 100 shaders in ${shaderTime.toFixed(2)}ms (${(100 / shaderTime * 1000).toFixed(0)} ops/sec)`, 'success');
+                
+                addResult('performance-results', 'Performance tests completed successfully', 'success');
+                
+            } catch (error) {
+                addResult('performance-results', `Performance test failed: ${error.message}`, 'error');
+            }
+        });
+        
+        // Auto-initialize on page load
+        window.addEventListener('load', async () => {
+            addResult('test-results', 'Page loaded, ready for testing', 'info');
+        });
+    </script>
+</body>
+</html>
