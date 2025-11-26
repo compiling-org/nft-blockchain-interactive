@@ -4,7 +4,7 @@
 
 **Organization**: Compiling.org  
 **Funding Request**: USD 10,000  
-**Timeline**: 2025-Q4 to 2026-Q1 (3+ months) - Pre-work starts 2025-Q3  
+**Timeline**: 6-8 weeks pre-work done + 3-4 months grant work + post-work to maintain repos after grant period is over  
 **Repository**: https://github.com/compiling-org/rust-foundation-audiovisual  
 
 ## Abstract
@@ -203,17 +203,7 @@ graph LR
 - **Educational Platform**: Simple examples for learning Rust creative programming
 - **Cross-Platform Foundation**: Single codebase for web, desktop, and mobile deployment
 
-## Team & Experience
 
-### Core Team
-- **Dr. Kapil Bambardekar**: Lead Rust developer with graphics and performance expertise
-- **Grigori Korotkikh**: Creative technologist specializing in audio/visual systems
-
-### Relevant Experience
-- **Existing Creative Tools**: Shader Studio and Modurust implementations
-- **Rust Expertise**: WASM compilation and web integration
-- **Creative Computing**: Live performance systems and real-time graphics
-- **Open Source**: Active contributor to creative coding communities
 
 ## Budget Breakdown
 

@@ -4,8 +4,9 @@
 
 **Organization**: Compiling.org
 **Funding Request**: USD 10,000
-**Timeline**: December 2025 - March 2026 (3+ months) - Pre-work starts October 2025
-**Repository**: https://github.com/compiling-org/nft-blockchain-interactive
+**Timeline**: 6-8 weeks pre-work done + 3-4 months grant work + post-work to maintain repos after grant period is over
+**Repository**: https://github.com/compiling-org/solana-emotional-metadata
+**Team**: 2 developers (Dr. Kapil Bambardekar, Grigori Korotkikh)
 
 ## Abstract
 
@@ -110,17 +111,7 @@ pub mod creative_metadata {
 - **Research Data**: Valuable datasets for creative computing research
 - **Emotional Analytics**: Advanced emotional state analysis and predictive modeling
 
-## Team & Experience
 
-### Core Team
-- **Dr. Kapil Bambardekar**: Lead blockchain developer with Solana and Anchor expertise
-- **Grigori Korotkikh**: Performance systems architect with real-time computing experience
-
-### Relevant Experience
-- **Solana Development**: Multiple programs deployed on mainnet
-- **Real-Time Systems**: Live performance and streaming architectures
-- **Creative Computing**: NUWE engine and emotional computing systems
-- **State Compression**: Advanced data structures and compression algorithms
 
 ## Budget Breakdown
 

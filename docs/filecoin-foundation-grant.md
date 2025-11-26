@@ -4,7 +4,7 @@
 
 **Organization**: Compiling.org
 **Funding Request**: USD 10,000
-**Timeline**: December 2025 - March 2026 (3+ months) - Pre-work starts October 2025
+**Timeline**:  6-8 weeks pre-work done + 3-4 months grant work + post-work to maintain repos after grant period is over
 **Repository**: https://github.com/compiling-org/filecoin-creative-storage
 
 ## Abstract
@@ -137,17 +137,6 @@ impl IpfsPersistenceLayer {
 - **Interoperability**: Standards for cross-platform creative data exchange
 - **Advanced Emotional Archives**: Permanent storage of emotional state trajectories and predictive models
 
-## Team & Experience
-
-### Core Team
-- **Dr. Kapil Bambardekar**: Lead developer with expertise in Rust, real-time systems, and creative coding
-- **Grigori Korotkikh**: Co-founder specializing in audiovisual performance and ML/AI integration
-
-### Relevant Experience
-- **Neuro-Emotive AI**: Real-time emotional intelligence framework (Rust-based)
-- **NUWE**: Modular audiovisual engine for live performance
-- **Fractal Shader System**: GPU-accelerated creative coding tools
-- **Open-source Contributions**: Multiple Rust crates for creative computing
 
 ## Budget Breakdown
 

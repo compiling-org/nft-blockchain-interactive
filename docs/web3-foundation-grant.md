@@ -4,8 +4,8 @@
 
 **Organization**: Compiling.org
 **Funding Request**: USD 10,000
-**Timeline**: December 2025 - March 2026 (3+ months) - Pre-work starts October 2025
-**Repository**: https://github.com/compiling-org/cross-chain-bridge
+**Timeline**:  6-8 weeks pre-work done + 3-4 months grant work + post-work to maintain repos after grant period is over
+**Repository**: https://github.com/compiling-org/polkadot-creative-identity 
 
 ## Abstract
 
@@ -133,17 +133,7 @@ pub mod pallet {
 - **Research Platform**: Foundation for affective computing research on blockchain
 - **Cross-Chain Emotional Sync**: Universal emotional identity across multiple blockchain networks
 
-## Team & Experience
 
-### Core Team
-- **Dr. Kapil Bambardekar**: Lead Substrate developer with pallet design expertise
-- **Grigori Korotkikh**: Research lead specializing in emotional computing and cryptography
-
-### Relevant Experience
-- **Substrate Development**: Multiple pallets and runtime modules
-- **Cryptographic Research**: Zero-knowledge proofs and privacy systems
-- **Emotional Computing**: Neuro-Emotive AI and affective state research
-- **Polkadot Ecosystem**: Active contributor to parachain development
 
 ## Budget Breakdown
 

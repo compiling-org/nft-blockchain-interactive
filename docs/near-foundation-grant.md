@@ -4,9 +4,9 @@
 
 **Organization**: Compiling.org
 **Funding Request**: USD 10,000
-**Timeline**: 10 weeks
-**Repository**: https://github.com/compiling-org/nft-blockchain-interactive
-**Team**: Dr. Kapil Bambardekar, Grigori Korotkikh
+**Timeline**: 6-8 weeks pre-work done + 3-4 months grant work + post-work to maintain repos after grant period is over
+**Repository**: https://github.com/compiling-org/near-creative-engine
+**Team**: 2 developers (Dr. Kapil Bambardekar, Grigori Korotkikh)
 
 ## Abstract
 
@@ -123,17 +123,6 @@ impl ShaderEngine {
 - **Research Platform**: Collaborative space for creative coding research
 - **Emotional Creative Computing**: Advanced affective computing for enhanced creative expression
 
-## Team & Experience
-
-### Core Team
-- **Dr. Kapil Bambardekar**: Lead developer specializing in real-time graphics and WASM
-- **Grigori Korotkikh**: Creative director with expertise in live audiovisual performance
-
-### Relevant Experience
-- **NUWE Engine**: Modular audiovisual performance system
-- **Fractal Shader System**: GPU-accelerated creative coding framework
-- **Web Technologies**: Extensive experience with WASM and web graphics
-- **NEAR Development**: Previous blockchain integration work
 
 ## Budget Breakdown
 
