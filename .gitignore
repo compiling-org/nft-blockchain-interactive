@@ -1,43 +1,104 @@
-# Rust
+# Dependencies and build artifacts
+node_modules/
+dist/
 target/
 Cargo.lock
+package-lock.json
+yarn.lock
 
-# Build artifacts
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.pid
+*.tmp
+*.temp
+nul
+
+# Blockchain and crypto files (private keys, etc)
+*.json
+!package.json
+!tsconfig.json
+!Cargo.toml
+!Anchor.toml
+*.key
+*.pem
+*.seed
+
+# Large binary files
+*.wasm
+*.zip
+*.tar.gz
 *.exe
 *.dll
 *.so
 *.dylib
-*.pdb
 
-# IDE
-.vscode/
-.idea/
+# IPFS and Lotus
+ipfs/
+kubo/
+lotus*
+lotus-
 
-# OS
-.DS_Store
-Thumbs.db
+# Rust build artifacts
+**/target/
+**/*.rs.bk
 
-# Logs
-*.log
+# Solana
+.solana/
+anchor/
 
-# Cache
+# NEAR
+.near/
+
+# Filecoin
+.filecoin/
+
+# Polkadot
+.polkadot/
+
+# Embedded git repositories (submodules)
+contracts/near/bitte-reference-repos/
+iron_learn/
+
+# Generated files
+*.stackdump
+wget-log
+
+# Environment files (except templates)
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+*.lcov
+
+# Cache directories
 .cache/
-node_modules/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
 
-# 🚨 EMERGENCY: NEVER AGAIN - BLOCK GIGANTIC REFERENCE FOLDERS
-blockchain-ai-ml-references/
-references/
-reference-repos/
-external-repos/
-
-# BLOCK ENTIRE BLOCKCHAIN/AI REPOSITORIES BY NAME
-avalanchego/
-deno/
-nearcore/
-solana/
-polkadot/
-forest/
-lotus/
-candle/
-rust/
-tensorflow/
+# Temporary files
+tmp/
+temp/
