@@ -57,6 +57,8 @@ lotus-
 # Rust build artifacts
 **/target/
 **/*.rs.bk
+**/debug/
+**/release/
 
 # Solana
 .solana/
@@ -70,10 +72,21 @@ anchor/
 
 # Polkadot
 .polkadot/
+polkadot/
 
 # Embedded git repositories (submodules)
 contracts/near/bitte-reference-repos/
 iron_learn/
+
+# Massive blockchain tools (moved to compiling directory)
+lotus/
+target/
+clang-installer.exe
+go1.21.5.linux-amd64.tar.gz*
+src-minimal/
+clean-project/
+test-website/
+pkg/
 
 # Generated files
 *.stackdump
