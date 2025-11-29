@@ -1,5 +1,6 @@
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
 import { Program, AnchorProvider, web3, BN } from '@project-serum/anchor';
+import { createHash } from 'crypto';
 
 // IDL definition inline to avoid import issues
 const idl = {
@@ -277,21 +278,15 @@ export class BiometricNFTClient {
     return Math.min(qualityScore, 1.0); // Cap at 1.0
   }
 
-  // Generate biometric hash from emotion data (mock implementation)
+  // Generate biometric hash from emotion data using SHA-256
   generateBiometricHash(emotionData: EmotionData): string {
-    // In a real implementation, this would use actual biometric data
-    // For now, we'll create a hash from the emotion data
+    // Create a deterministic hash from emotion data and timestamp
     const dataString = `${emotionData.valence}-${emotionData.arousal}-${emotionData.dominance}-${Date.now()}`;
     
-    // Simple hash function (replace with proper cryptographic hash in production)
-    let hash = 0;
-    for (let i = 0; i < dataString.length; i++) {
-      const char = dataString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
+    // Use SHA-256 for cryptographic hash
+    const hash = createHash('sha256').update(dataString).digest('hex');
     
-    return Math.abs(hash).toString(16);
+    return hash;
   }
 
   // Upload metadata to Arweave/IPFS (mock implementation)
