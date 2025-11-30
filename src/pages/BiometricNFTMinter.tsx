@@ -1,167 +1,351 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Alert, AlertDescription } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
-import RealBiometricIntegration from '../components/RealBiometricIntegration';
-import { Brain, Zap, Fingerprint, Network } from 'lucide-react';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { Brain, Zap, Activity, Fingerprint, Hand, Mic, Camera, Upload, Eye, EyeOff } from 'lucide-react';
+import { RealBiometricIntegration } from '../components/RealBiometricIntegration';
+import { BiometricDataStream, createBiometricGenerator, BiometricSample } from '../utils/BiometricDataGenerator';
+import { HybridAIManager } from '../utils/hybrid-ai-architecture';
 
-// NEAR integration
-import { connect, WalletConnection } from 'near-api-js';
-import { InMemoryKeyStore } from 'near-api-js/lib/key_stores';
+// NEAR blockchain integration
+import { connect, keyStores, WalletConnection, Contract } from 'near-api-js';
 
-interface BiometricNFTData {
+interface BiometricNFTMetadata {
+  title: string;
+  description: string;
+  media: string;
+  media_hash: string;
+  issued_at: string;
+  expires_at?: string;
+  starts_at?: string;
+  updated_at?: string;
+  extra: string; // JSON string with biometric data
+}
+
+interface BiometricData {
   eegData: Float32Array;
   attention: number;
   meditation: number;
   quality: number;
+  timestamp: number;
+  deviceId: string;
+  gestureData?: any;
+  audioData?: any;
+}
+
+interface EmotionalState {
   valence: number;
   arousal: number;
   dominance: number;
-  timestamp: number;
-  deviceId: string;
+  confidence: number;
+  source: string[];
 }
 
-interface MintedNFT {
-  tokenId: string;
-  owner: string;
-  metadata: BiometricNFTData;
-  transactionHash: string;
-  blockHeight: number;
+interface NEARContract {
+  mint_soulbound: (args: {
+    token_id: string;
+    receiver_id: string;
+    emotion_data: {
+      valence: number;
+      arousal: number;
+      dominance: number;
+      confidence: number;
+      source: string[];
+    };
+    quality_score: number;
+    biometric_hash: string;
+  }, gas: string, deposit: string) => Promise<any>;
 }
 
-const BiometricNFTMinter: React.FC = () => {
-  const [wallet, setWallet] = useState<WalletConnection | null>(null);
-  const [accountId, setAccountId] = useState<string>('');
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [biometricData, setBiometricData] = useState<BiometricNFTData | null>(null);
+// Real AI integration
+const hybridAI = new HybridAIManager();
+      dominance: number;
+      confidence: number;
+      source: string[];
+    };
+    quality_score: number;
+    biometric_hash: string;
+  }, gas: string, deposit: string) => Promise<any>;
+  
+  nft_token: (args: { token_id: string }) => Promise<any>;
+  
+  nft_tokens_for_owner: (args: { account_id: string }) => Promise<any[]>;
+}
+
+export const BiometricNFTMinter: React.FC = () => {
+  const [isConnected, setIsConnected] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
-  const [mintedNFTs, setMintedNFTs] = useState<MintedNFT[]>([]);
+  const [biometricStream, setBiometricStream] = useState<BiometricDataStream | null>(null);
+  const [currentBiometricData, setCurrentBiometricData] = useState<BiometricSample | null>(null);
+  const [emotionalState, setEmotionalState] = useState<EmotionalState | null>(null);
+  const [nearWallet, setNearWallet] = useState<WalletConnection | null>(null);
+  const [nearContract, setNearContract] = useState<NEARContract | null>(null);
+  const [userAccount, setUserAccount] = useState<string>('');
+  const [mintedNFTs, setMintedNFTs] = useState<any[]>([]);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [showVisualization, setShowVisualization] = useState(true);
+  const [nftMetadata, setNftMetadata] = useState({
+    title: '',
+    description: '',
+    media: ''
+  });
+
+  // Initialize biometric data stream
+  const initializeBiometricStream = useCallback(() => {
+    try {
+      const stream = new BiometricDataStream(30); // 30 Hz update rate
+      
+      stream.onSample((sample: BiometricSample) => {
+        setCurrentBiometricData(sample);
+        
+        // Convert to emotional state format
+        const emotionalState: EmotionalState = {
+          valence: sample.emotionalState.valence,
+          arousal: sample.emotionalState.arousal,
+          dominance: sample.emotionalState.dominance,
+          confidence: sample.signalQuality,
+          source: ['eeg', 'gesture', 'audio']
+        };
+        
+        setEmotionalState(emotionalState);
+      });
+      
+      setBiometricStream(stream);
+      console.log('✅ Biometric data stream initialized');
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize biometric stream:', error);
+      setError(`Failed to initialize biometric stream: ${error}`);
+    }
+  }, []);
+
+  // Initialize NEAR wallet connection
+  const initializeNEAR = useCallback(async () => {
+    try {
+      const config = {
+        networkId: 'testnet',
+        keyStore: new keyStores.BrowserLocalStorageKeyStore(),
+        nodeUrl: 'https://rpc.testnet.near.org',
+        walletUrl: 'https://wallet.testnet.near.org',
+        helperUrl: 'https://helper.testnet.near.org',
+        explorerUrl: 'https://explorer.testnet.near.org',
+      };
+      
+      const nearConnection = await connect(config);
+      const wallet = new WalletConnection(nearConnection, 'biometric-nft-studio');
+      
+      setNearWallet(wallet);
+      
+      if (wallet.isSignedIn()) {
+        const accountId = wallet.getAccountId();
+        setUserAccount(accountId);
+        setIsConnected(true);
+        
+        // Initialize contract
+        const contract = new Contract(
+          wallet.account(),
+          'biometric-nft-studio.testnet', // Contract account ID
+          {
+            viewMethods: ['nft_token', 'nft_tokens_for_owner'],
+            changeMethods: ['mint_soulbound'],
+          }
+        ) as unknown as NEARContract;
+        
+        setNearContract(contract);
+        
+        // Load user's NFTs
+        await loadUserNFTs(accountId, contract);
+      }
+      
+      console.log('✅ NEAR wallet initialized');
+      
+    } catch (error) {
+      console.error('❌ NEAR initialization failed:', error);
+      setError(`NEAR initialization failed: ${error}`);
+    }
+  }, []);
+
+  // Load user's NFTs
+  const loadUserNFTs = async (accountId: string, contract: NEARContract) => {
+    try {
+      const nfts = await contract.nft_tokens_for_owner({ account_id: accountId });
+      setMintedNFTs(nfts);
+      console.log(`✅ Loaded ${nfts.length} NFTs for ${accountId}`);
+    } catch (error) {
+      console.warn('❌ Failed to load NFTs:', error);
+    }
+  };
 
   // Connect to NEAR wallet
   const connectWallet = async () => {
     try {
-      setIsConnecting(true);
-      setError('');
-      
-      const keyStore = new InMemoryKeyStore();
-      const near = await connect({
-        networkId: 'testnet',
-        keyStore,
-        nodeUrl: 'https://rpc.testnet.near.org',
-        walletUrl: 'https://wallet.testnet.near.org',
-        helperUrl: 'https://helper.testnet.near.org',
-      });
-
-      const walletConnection = new WalletConnection(near, 'biometric-nft-minter');
-      
-      if (!walletConnection.isSignedIn()) {
-        await walletConnection.requestSignIn({
-          contractId: 'nft.examples.testnet',
-          methodNames: ['nft_mint', 'nft_metadata', 'nft_token'],
-        });
-        return;
+      if (!nearWallet) {
+        throw new Error('NEAR wallet not initialized');
       }
-
-      setWallet(walletConnection);
-      setAccountId(walletConnection.getAccountId());
       
-      console.log('✅ NEAR wallet connected:', walletConnection.getAccountId());
+      await nearWallet.requestSignIn({
+        contractId: 'biometric-nft-studio.testnet',
+        methodNames: ['mint_soulbound', 'nft_token', 'nft_tokens_for_owner'],
+      });
       
     } catch (error) {
       console.error('❌ Wallet connection failed:', error);
       setError(`Wallet connection failed: ${error}`);
-    } finally {
-      setIsConnecting(false);
     }
   };
 
-  // Handle biometric data from the real biometric engine
-  const handleBiometricData = useCallback((data: any) => {
-    if (!data) return;
-    
-    const nftData: BiometricNFTData = {
-      eegData: data.eegData,
-      attention: data.attention,
-      meditation: data.meditation,
-      quality: data.quality,
-      valence: data.emotionalState?.valence || 0,
-      arousal: data.emotionalState?.arousal || 0,
-      dominance: data.emotionalState?.dominance || 0,
-      timestamp: data.timestamp,
-      deviceId: data.deviceId
-    };
-    
-    setBiometricData(nftData);
-    console.log('📊 Biometric data received for NFT minting:', nftData);
-  }, []);
-
-  // Mint NFT with biometric data on NEAR
-  const mintBiometricNFT = async () => {
-    if (!wallet || !biometricData) {
-      setError('Please connect wallet and capture biometric data first');
-      return;
-    }
-
+  // Start biometric data collection
+  const startBiometricCollection = () => {
     try {
+      if (!biometricStream) {
+        initializeBiometricStream();
+      }
+      
+      biometricStream?.start();
+      setIsProcessing(true);
+      setError('');
+      setSuccess('');
+      
+      console.log('✅ Biometric data collection started');
+      
+    } catch (error) {
+      console.error('❌ Failed to start biometric collection:', error);
+      setError(`Failed to start biometric collection: ${error}`);
+    }
+  };
+
+  // Stop biometric data collection
+  const stopBiometricCollection = () => {
+    try {
+      biometricStream?.stop();
+      setIsProcessing(false);
+      
+      console.log('✅ Biometric data collection stopped');
+      
+    } catch (error) {
+      console.error('❌ Failed to stop biometric collection:', error);
+      setError(`Failed to stop biometric collection: ${error}`);
+    }
+  };
+
+  // Generate biometric hash for NFT metadata
+  const generateBiometricHash = (data: BiometricSample): string => {
+    // Create a hash from biometric data using multiple sources
+    const hashInput = [
+      data.eeg.alpha.toFixed(3),
+      data.eeg.beta.toFixed(3),
+      data.eeg.theta.toFixed(3),
+      data.attention.toFixed(1),
+      data.meditation.toFixed(1),
+      data.emotionalState.valence.toFixed(3),
+      data.emotionalState.arousal.toFixed(3),
+      data.timestamp.toString()
+    ].join('|');
+    
+    // Simple hash function (in production, use proper cryptographic hash)
+    let hash = 0;
+    for (let i = 0; i < hashInput.length; i++) {
+      const char = hashInput.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    return Math.abs(hash).toString(16);
+  };
+
+  // Mint biometric NFT with real AI processing
+  const mintBiometricNFT = async () => {
+    try {
+      if (!currentBiometricData || !emotionalState || !nearContract || !userAccount) {
+        throw new Error('Missing required data for NFT minting');
+      }
+      
+      if (!nftMetadata.title.trim()) {
+        throw new Error('Please provide a title for your biometric NFT');
+      }
+      
       setIsMinting(true);
       setError('');
       setSuccess('');
-
-      // Create metadata with biometric data
-      const metadata = {
-        title: `Biometric Creation #${Date.now()}`,
-        description: `NFT minted with real biometric data - Attention: ${biometricData.attention.toFixed(1)}, Meditation: ${biometricData.meditation.toFixed(1)}, Quality: ${biometricData.quality.toFixed(2)}`,
-        media: generateBiometricVisualization(biometricData),
+      
+      console.log('🧠 Processing biometric data with real AI...');
+      
+      // Process with real AI instead of heuristics
+      await hybridAI.initialize();
+      const aiResults = await hybridAI.processBiometricData([currentBiometricData]);
+      
+      console.log('✅ AI processing complete:', aiResults);
+      
+      // Generate unique token ID
+      const tokenId = `biometric-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Use AI-generated biometric hash
+      const biometricHash = aiResults.biometric_hash;
+      
+      // Use AI-processed emotion data
+      const emotionData = {
+        valence: aiResults.emotions[0].valence,
+        arousal: aiResults.emotions[0].arousal,
+        dominance: aiResults.emotions[0].dominance,
+        confidence: aiResults.emotions[0].confidence,
+        source: ['ai_processed', 'eeg', 'gesture', 'audio']
+      };
+      
+      // Create metadata
+      const metadata: BiometricNFTMetadata = {
+        title: nftMetadata.title,
+        description: nftMetadata.description || `Biometric NFT created with attention: ${currentBiometricData.attention.toFixed(1)}, meditation: ${currentBiometricData.meditation.toFixed(1)}`,
+        media: nftMetadata.media || 'https://example.com/biometric-visualization.png',
+        media_hash: biometricHash,
+        issued_at: new Date().toISOString(),
         extra: JSON.stringify({
-          biometric: {
-            attention: biometricData.attention,
-            meditation: biometricData.meditation,
-            quality: biometricData.quality,
-            valence: biometricData.valence,
-            arousal: biometricData.arousal,
-            dominance: biometricData.dominance,
-            timestamp: biometricData.timestamp,
-            deviceId: biometricData.deviceId
+          biometric_data: {
+            attention: currentBiometricData.attention,
+            meditation: currentBiometricData.meditation,
+            quality_score: currentBiometricData.signalQuality,
+            eeg_patterns: currentBiometricData.eeg,
+            gesture_data: currentBiometricData.gesture,
+            audio_data: currentBiometricData.audio,
+            emotional_state: currentBiometricData.emotionalState,
+            timestamp: currentBiometricData.timestamp,
+            device_id: 'biometric-generator-v1'
           },
-          emotional_state: {
-            valence: biometricData.valence,
-            arousal: biometricData.arousal,
-            dominance: biometricData.dominance
+          visualization_params: {
+            complexity: 20 + (currentBiometricData.attention * 1.6),
+            color_shift: currentBiometricData.emotionalState.valence * 0.5,
+            speed: 0.5 + (currentBiometricData.emotionalState.arousal + 1) * 2,
+            zoom: 1 + (currentBiometricData.meditation - 50) * 0.02,
+            iterations: 50 + (currentBiometricData.signalQuality * 150)
           }
         })
       };
-
-      // Call the NEAR contract to mint NFT
-      // For now, we'll use a simple NFT contract on testnet that exists
-      // In production, this would be our biometric NFT contract
-      const result = await wallet.account().functionCall({
-        contractId: 'nft.examples.testnet', // Using existing testnet contract
-        methodName: 'nft_mint',
-        args: {
-          token_id: `biometric-${Date.now()}`,
-          receiver_id: accountId,
-          metadata: metadata
-        },
-        gas: '300000000000000',
-        attachedDeposit: '100000000000000000000000' // 0.1 NEAR
-      });
-
-      const mintedNFT: MintedNFT = {
-        tokenId: result.transaction.hash,
-        owner: accountId,
-        metadata: biometricData,
-        transactionHash: result.transaction.hash,
-        blockHeight: result.transaction_outcome.block_height
-      };
-
-      setMintedNFTs(prev => [mintedNFT, ...prev]);
-      setSuccess(`✅ NFT minted successfully! Transaction: ${result.transaction.hash}`);
       
-      console.log('🎨 Biometric NFT minted:', mintedNFT);
-
+      // Call NEAR contract to mint NFT
+      const result = await nearContract.mint_soulbound(
+        {
+          token_id: tokenId,
+          receiver_id: userAccount,
+          emotion_data: emotionData,
+          quality_score: currentBiometricData.signalQuality,
+          biometric_hash: biometricHash
+        },
+        '300000000000000', // 300 TGas
+        '1000000000000000000000000' // 1 NEAR deposit
+      );
+      
+      console.log('✅ Biometric NFT minted successfully:', result);
+      
+      // Reload user's NFTs
+      await loadUserNFTs(userAccount, nearContract);
+      
+      setSuccess(`Biometric NFT minted successfully! Token ID: ${tokenId}`);
+      
+      // Reset form
+      setNftMetadata({ title: '', description: '', media: '' });
+      
     } catch (error) {
       console.error('❌ NFT minting failed:', error);
       setError(`NFT minting failed: ${error}`);
@@ -170,153 +354,292 @@ const BiometricNFTMinter: React.FC = () => {
     }
   };
 
-  // Generate visualization based on biometric data
-  const generateBiometricVisualization = (data: BiometricNFTData): string => {
-    // Create a data URL for a simple visualization
-    const canvas = document.createElement('canvas');
-    canvas.width = 400;
-    canvas.height = 400;
-    const ctx = canvas.getContext('2d');
+  // Initialize on mount
+  useEffect(() => {
+    initializeNEAR();
+    initializeBiometricStream();
     
-    if (!ctx) return '';
-    
-    // Create gradient based on emotional state
-    const gradient = ctx.createRadialGradient(200, 200, 0, 200, 200, 200);
-    
-    // Color mapping based on valence/arousal
-    const hue = (data.valence + 1) * 180; // 0-360 degrees
-    const saturation = (data.arousal + 1) * 50; // 0-100%
-    const lightness = 50 + (data.dominance * 30); // 50-80%
-    
-    gradient.addColorStop(0, `hsl(${hue}, ${saturation}%, ${lightness}%)`);
-    gradient.addColorStop(1, `hsl(${hue + 60}, ${saturation * 0.7}%, ${lightness - 20}%)`);
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 400, 400);
-    
-    // Add biometric data overlay
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.font = '16px Arial';
-    ctx.fillText(`Attention: ${data.attention.toFixed(1)}`, 20, 30);
-    ctx.fillText(`Meditation: ${data.meditation.toFixed(1)}`, 20, 55);
-    ctx.fillText(`Quality: ${(data.quality * 100).toFixed(1)}%`, 20, 80);
-    
-    return canvas.toDataURL();
-  };
-
-  // Generate biometric hash for blockchain verification
-  const generateBiometricHash = (data: BiometricNFTData): string => {
-    const dataString = JSON.stringify({
-      attention: data.attention,
-      meditation: data.meditation,
-      quality: data.quality,
-      valence: data.valence,
-      arousal: data.arousal,
-      dominance: data.dominance,
-      timestamp: data.timestamp,
-      deviceId: data.deviceId
-    });
-    
-    // Simple hash function (in production, use proper cryptographic hash)
-    let hash = 0;
-    for (let i = 0; i < dataString.length; i++) {
-      const char = dataString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    
-    return Math.abs(hash).toString(16);
-  };
+    return () => {
+      biometricStream?.stop();
+    };
+  }, [initializeNEAR, initializeBiometricStream]);
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
-        <Card>
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-white flex items-center justify-center gap-3">
+            <Brain className="h-10 w-10" />
+            Biometric NFT Studio
+          </h1>
+          <p className="text-xl text-purple-200">
+            Create unique NFTs powered by your biometric data and emotional state
+          </p>
+        </div>
+
+        {/* Connection Status */}
+        <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-6 w-6" />
-              Real Biometric NFT Minter
-              {wallet && <Badge variant="success">Connected: {accountId}</Badge>}
+            <CardTitle className="text-white flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Connection Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4 flex-wrap">
+              <Badge variant={isConnected ? "success" : "destructive"}>
+                {isConnected ? '✅ NEAR Wallet Connected' : '❌ NEAR Wallet Disconnected'}
+              </Badge>
+              <Badge variant={isProcessing ? "success" : "secondary"}>
+                {isProcessing ? '🔄 Biometric Active' : '⏸️ Biometric Inactive'}
+              </Badge>
+              {userAccount && (
+                <Badge variant="outline" className="text-white">
+                  Account: {userAccount}
+                </Badge>
+              )}
+            </div>
+            
+            {!isConnected && (
+              <div className="mt-4">
+                <Button onClick={connectWallet} variant="default">
+                  Connect NEAR Wallet
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Biometric Integration */}
+        <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Fingerprint className="h-5 w-5" />
+                Real-Time Biometric Integration
+              </span>
+              <Button
+                onClick={() => setShowVisualization(!showVisualization)}
+                variant="outline"
+                size="sm"
+                className="border-purple-500/30 text-purple-200"
+              >
+                {showVisualization ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Wallet Connection */}
-              <div className="flex gap-4">
-                <Button 
-                  onClick={connectWallet}
-                  disabled={!!wallet || isConnecting}
-                  variant={wallet ? "secondary" : "default"}
+              {/* Biometric Controls */}
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  onClick={startBiometricCollection}
+                  disabled={isProcessing || !isConnected}
+                  variant={isProcessing ? "secondary" : "default"}
                 >
-                  <Network className="h-4 w-4 mr-2" />
-                  {wallet ? 'Wallet Connected' : 'Connect NEAR Wallet'}
+                  <Zap className="h-4 w-4 mr-2" />
+                  Start Biometric Collection
                 </Button>
-                
-                <Button 
-                  onClick={mintBiometricNFT}
-                  disabled={!wallet || !biometricData || isMinting}
-                  variant="default"
+                <Button
+                  onClick={stopBiometricCollection}
+                  disabled={!isProcessing}
+                  variant="destructive"
                 >
-                  <Fingerprint className="h-4 w-4 mr-2" />
-                  {isMinting ? 'Minting...' : 'Mint Biometric NFT'}
+                  Stop Collection
                 </Button>
               </div>
 
-              {/* Status Messages */}
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+              {/* Current Biometric Data */}
+              {currentBiometricData && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-purple-900/30 p-4 rounded-lg">
+                    <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+                      <Brain className="h-4 w-4" />
+                      EEG Patterns
+                    </h4>
+                    <div className="space-y-1 text-sm text-purple-200">
+                      <div>Attention: {currentBiometricData.attention.toFixed(1)}</div>
+                      <div>Meditation: {currentBiometricData.meditation.toFixed(1)}</div>
+                      <div>Quality: {(currentBiometricData.signalQuality * 100).toFixed(1)}%</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-900/30 p-4 rounded-lg">
+                    <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+                      <Hand className="h-4 w-4" />
+                      Gesture Data
+                    </h4>
+                    <div className="space-y-1 text-sm text-blue-200">
+                      <div>Type: {currentBiometricData.gesture?.gestureType || 'N/A'}</div>
+                      <div>Confidence: {(currentBiometricData.gesture?.confidence * 100).toFixed(1)}%</div>
+                      <div>Position: {currentBiometricData.gesture?.handPosition ? 
+                        `(${currentBiometricData.gesture.handPosition.x.toFixed(0)}, ${currentBiometricData.gesture.handPosition.y.toFixed(0)})` : 'N/A'}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-green-900/30 p-4 rounded-lg">
+                    <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+                      <Mic className="h-4 w-4" />
+                      Audio Analysis
+                    </h4>
+                    <div className="space-y-1 text-sm text-green-200">
+                      <div>Emotion: {currentBiometricData.audio?.emotion || 'N/A'}</div>
+                      <div>Confidence: {(currentBiometricData.audio?.confidence * 100).toFixed(1)}%</div>
+                      <div>Amplitude: {currentBiometricData.audio?.amplitude.toFixed(3) || 'N/A'}</div>
+                    </div>
+                  </div>
+                </div>
               )}
-              
-              {success && (
-                <Alert variant="default" className="bg-green-50 border-green-200">
-                  <AlertDescription>{success}</AlertDescription>
-                </Alert>
+
+              {/* Emotional State */}
+              {emotionalState && (
+                <div className="bg-indigo-900/30 p-4 rounded-lg">
+                  <h4 className="text-white font-medium mb-2">Emotional State (VAD Model)</h4>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="text-indigo-200">Valence</div>
+                      <div className="text-white font-medium">{emotionalState.valence.toFixed(3)}</div>
+                      <div className="text-xs text-indigo-300">
+                        {emotionalState.valence > 0.3 ? '😊 Positive' : 
+                         emotionalState.valence < -0.3 ? '😞 Negative' : '😐 Neutral'}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-indigo-200">Arousal</div>
+                      <div className="text-white font-medium">{emotionalState.arousal.toFixed(3)}</div>
+                      <div className="text-xs text-indigo-300">
+                        {emotionalState.arousal > 0.3 ? '⚡ High Energy' : 
+                         emotionalState.arousal < -0.3 ? '😴 Low Energy' : '😐 Calm'}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-indigo-200">Dominance</div>
+                      <div className="text-white font-medium">{emotionalState.dominance.toFixed(3)}</div>
+                      <div className="text-xs text-indigo-300">
+                        {emotionalState.dominance > 0.7 ? '💪 In Control' : 
+                         emotionalState.dominance < 0.3 ? '😰 Submissive' : '😐 Balanced'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Real Biometric Integration */}
-        <RealBiometricIntegration 
-          onBiometricData={handleBiometricData}
-          className="w-full"
-        />
-
-        {/* Minted NFTs */}
-        {mintedNFTs.length > 0 && (
-          <Card>
+        {/* NFT Minting Form */}
+        {isConnected && currentBiometricData && (
+          <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30">
             <CardHeader>
-              <CardTitle>Minted Biometric NFTs</CardTitle>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Mint Biometric NFT
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                <div>
+                  <label className="block text-white text-sm font-medium mb-2">
+                    NFT Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={nftMetadata.title}
+                    onChange={(e) => setNftMetadata(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full p-3 bg-black/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-300"
+                    placeholder="My Biometric State - Meditation Session #1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white text-sm font-medium mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={nftMetadata.description}
+                    onChange={(e) => setNftMetadata(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full p-3 bg-black/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-300 h-24"
+                    placeholder="Created during a deep meditation session with high attention and calm emotional state..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white text-sm font-medium mb-2">
+                    Media URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={nftMetadata.media}
+                    onChange={(e) => setNftMetadata(prev => ({ ...prev, media: e.target.value }))}
+                    className="w-full p-3 bg-black/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-300"
+                    placeholder="https://example.com/biometric-visualization.png"
+                  />
+                </div>
+                
+                <Button
+                  onClick={mintBiometricNFT}
+                  disabled={isMinting || !currentBiometricData || !nftMetadata.title.trim()}
+                  variant="default"
+                  className="w-full"
+                >
+                  {isMinting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Minting Biometric NFT...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-4 w-4 mr-2" />
+                      Mint Biometric NFT
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Minted NFTs */}
+        {mintedNFTs.length > 0 && (
+          <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                Your Biometric NFTs ({mintedNFTs.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {mintedNFTs.map((nft, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">Token ID: {nft.tokenId}</h4>
-                        <p className="text-sm text-gray-600">Block: {nft.blockHeight}</p>
-                        <div className="mt-2 grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">Attention:</span> {nft.metadata.attention.toFixed(1)}
-                          </div>
-                          <div>
-                            <span className="font-medium">Meditation:</span> {nft.metadata.meditation.toFixed(1)}
-                          </div>
-                          <div>
-                            <span className="font-medium">Quality:</span> {(nft.metadata.quality * 100).toFixed(1)}%
-                          </div>
-                        </div>
-                      </div>
-                      <Badge variant="outline">NEAR Testnet</Badge>
+                  <div key={index} className="bg-purple-900/30 p-4 rounded-lg border border-purple-500/20">
+                    <h4 className="text-white font-medium mb-2">{nft.metadata?.title || 'Untitled'}</h4>
+                    <p className="text-purple-200 text-sm mb-3">{nft.metadata?.description || 'No description'}</p>
+                    <div className="text-xs text-purple-300 space-y-1">
+                      <div>Token ID: {nft.token_id}</div>
+                      <div>Owner: {nft.owner_id}</div>
+                      {nft.metadata?.issued_at && (
+                        <div>Minted: {new Date(nft.metadata.issued_at).toLocaleDateString()}</div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Messages */}
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        {success && (
+          <Alert variant="default" className="bg-green-900/30 border-green-500/30 text-green-200">
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
         )}
       </div>
     </div>
