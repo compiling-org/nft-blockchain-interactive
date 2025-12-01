@@ -2,8 +2,9 @@
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 use web_sys::{WebGlRenderingContext, WebGlProgram, WebGlShader, WebGlBuffer, WebGlUniformLocation};
-use js_sys::Float32Array;
+use js_sys::{Float32Array, JSON};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "ai-ml")]

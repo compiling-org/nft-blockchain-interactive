@@ -6,6 +6,9 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
+use js_sys::Date;
+use serde_wasm_bindgen;
 
 #[cfg(feature = "ai-ml")]
 use candle_core::{Device, Tensor, DType};
@@ -121,12 +124,19 @@ impl RealAIInferenceEngine {
         let vb = VarBuilder::from_varmap(&varmap, DType::F32, &self.device);
         
         // Simple MLP for emotion classification
+        let layer1_weight = vb.get_with_hints((10, 64), "layer1.weight", Default::default())?;
+        let layer1_bias = vb.get_with_hints(64, "layer1.bias", Default::default())?;
+        let layer2_weight = vb.get_with_hints((64, 32), "layer2.weight", Default::default())?;
+        let layer2_bias = vb.get_with_hints(32, "layer2.bias", Default::default())?;
+        let layer3_weight = vb.get_with_hints((32, 3), "layer3.weight", Default::default())?;
+        let layer3_bias = vb.get_with_hints(3, "layer3.bias", Default::default())?;
+        
         let model = candle_nn::seq()
-            .add(Linear::new(vb.get_with_hints("layer1", &[10, 64], Default::default())?, true))
+            .add(Linear::new(layer1_weight, Some(layer1_bias)))
             .add_fn(|x| x.relu())
-            .add(Linear::new(vb.get_with_hints("layer2", &[64, 32], Default::default())?, true))
+            .add(Linear::new(layer2_weight, Some(layer2_bias)))
             .add_fn(|x| x.relu())
-            .add(Linear::new(vb.get_with_hints("layer3", &[32, 3], Default::default())?, true));
+            .add(Linear::new(layer3_weight, Some(layer3_bias)));
         
         Ok(Box::new(model))
     }
@@ -139,19 +149,26 @@ impl RealAIInferenceEngine {
         let vb = VarBuilder::from_varmap(&varmap, DType::F32, &self.device);
         
         // Simple MLP for creative parameter generation
+        let layer1_weight = vb.get_with_hints((5, 64), "layer1.weight", Default::default())?;
+        let layer1_bias = vb.get_with_hints(64, "layer1.bias", Default::default())?;
+        let layer2_weight = vb.get_with_hints((64, 128), "layer2.weight", Default::default())?;
+        let layer2_bias = vb.get_with_hints(128, "layer2.bias", Default::default())?;
+        let layer3_weight = vb.get_with_hints((128, 10), "layer3.weight", Default::default())?;
+        let layer3_bias = vb.get_with_hints(10, "layer3.bias", Default::default())?;
+        
         let model = candle_nn::seq()
-            .add(Linear::new(vb.get_with_hints("layer1", &[5, 64], Default::default())?, true))
+            .add(Linear::new(layer1_weight, Some(layer1_bias)))
             .add_fn(|x| x.relu())
-            .add(Linear::new(vb.get_with_hints("layer2", &[64, 128], Default::default())?, true))
+            .add(Linear::new(layer2_weight, Some(layer2_bias)))
             .add_fn(|x| x.relu())
-            .add(Linear::new(vb.get_with_hints("layer3", &[128, 10], Default::default())?, true));
+            .add(Linear::new(layer3_weight, Some(layer3_bias)));
         
         Ok(Box::new(model))
     }
 
     /// Perform real emotion detection from image data
     pub async fn detect_emotion_from_image(&self, image_data: &[u8]) -> Result<EmotionDetectionResult, Box<dyn std::error::Error>> {
-        let start_time = js_sys::Date::now();
+        let start_time = Date::now();
         
         #[cfg(feature = "ai-ml")]
         {
@@ -165,7 +182,7 @@ impl RealAIInferenceEngine {
                 // Postprocess results
                 let result = self.postprocess_emotion_output(output)?;
                 
-                let end_time = js_sys::Date::now();
+                let end_time = Date::now();
                 let processing_time_ms = end_time - start_time;
                 
                 return Ok(EmotionDetectionResult {
@@ -185,7 +202,7 @@ impl RealAIInferenceEngine {
 
     /// Perform real creative generation from emotional input
     pub async fn generate_creative_parameters(&self, emotional_input: &crate::EmotionalData) -> Result<CreativeGenerationResult, Box<dyn std::error::Error>> {
-        let start_time = js_sys::Date::now();
+        let start_time = Date::now();
         
         #[cfg(feature = "ai-ml")]
         {
@@ -205,7 +222,7 @@ impl RealAIInferenceEngine {
                 // Postprocess results
                 let result = self.postprocess_creative_output(output)?;
                 
-                let end_time = js_sys::Date::now();
+                let end_time = Date::now();
                 let processing_time_ms = end_time - start_time;
                 
                 return Ok(CreativeGenerationResult {
@@ -245,7 +262,7 @@ impl RealAIInferenceEngine {
             processed_data.push(0.0);
         }
         
-        Tensor::new(&processed_data[..10], &self.device)
+        Ok(Tensor::new(&processed_data[..10], &self.device)?)
     }
 
     /// Postprocess emotion detection output

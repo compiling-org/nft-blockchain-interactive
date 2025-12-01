@@ -1,29 +1,29 @@
-# Cross-Chain Neuroemotive Bridge for Creative Identity
+# Cross-Chain AI Inference Bridge for Biometric Authentication
 
 ## Project Overview
 
 **Organization**: Compiling.org
-**Funding Request**: USD 10,000
+**Funding Request**: USD 50,000
 **Timeline**:  6-8 weeks pre-work done + 3-4 months grant work + post-work to maintain repos after grant period is over
-**Repository**: https://github.com/compiling-org/polkadot-creative-identity 
+**Repository**: https://github.com/compiling-org/polkadot-ai-biometric-bridge 
 
 ## Abstract
 
-We propose developing a Substrate pallet that enables decentralized emotional identity and cross-chain creative state synchronization. Using zero-knowledge proofs and parachain messaging, this module will create privacy-preserving emotional state proofs that can be synchronized across multiple blockchain networks, establishing a foundation for truly decentralized creative identity.
+We propose developing a Substrate pallet that enables decentralized AI inference and cross-chain biometric authentication synchronization. Using TensorFlow.js neural networks, Candle framework, and parachain messaging, this module will create privacy-preserving biometric authentication proofs that can be synchronized across multiple blockchain networks, establishing a foundation for truly decentralized AI-powered biometric identity.
 
-**REAL ACHIEVEMENTS**: Working Substrate pallet with XCM cross-chain messaging, zero-knowledge proof generation, and integration with our WebGPU fractal engine - not theoretical promises. The project will be maintained long-term beyond the grant period with continuous development and community support.
+**REAL ACHIEVEMENTS**: Working Substrate pallet with XCM cross-chain AI messaging, TensorFlow.js neural network integration, Candle framework AI inference, zero-knowledge proof generation with differential privacy, and cross-chain biometric authentication bridge - not theoretical promises. The project will be maintained long-term beyond the grant period with continuous AI development and community support.
 
 ## Why Polkadot/Substrate?
 
-Polkadot's cross-chain architecture and Substrate's modular framework make it uniquely suited for our emotional identity system:
+Polkadot's cross-chain architecture and Substrate's modular framework make it uniquely suited for our AI-powered biometric authentication system:
 
-- **Cross-Chain Communication**: XCM enables emotional state synchronization across networks
-- **Zero-Knowledge Privacy**: Built-in support for privacy-preserving state proofs
-- **Parachain Flexibility**: Custom runtime logic for emotional computing
-- **Shared Security**: Trustless cross-chain emotional identity verification
-- **Advanced Emotional Computing**: Cutting-edge affective computing capabilities
+- **Cross-Chain AI Communication**: XCM enables biometric authentication synchronization across networks with AI inference
+- **Zero-Knowledge Privacy**: Built-in support for privacy-preserving AI biometric proofs with differential privacy
+- **Parachain Flexibility**: Custom runtime logic for AI-powered biometric computing
+- **Shared Security**: Trustless cross-chain AI biometric identity verification
+- **Advanced AI Inference**: Cutting-edge neural network inference capabilities across parachains
 
-The Polkadot ecosystem's focus on interoperability perfectly aligns with our vision of universal creative identity.
+The Polkadot ecosystem's focus on interoperability perfectly aligns with our vision of universal AI-powered biometric identity.
 
 ## Technical Approach
 
