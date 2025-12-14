@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Wallet Test - Direct Detection</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .wallet-button {
+            background: #9945ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .wallet-button:hover {
+            background: #7c3aed;
+        }
+        .status {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #9945ff;
+        }
+        .success {
+            background: #065f46;
+            border-left-color: #10b981;
+        }
+        .error {
+            background: #7f1d1d;
+            border-left-color: #ef4444;
+        }
+        .code {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Solana Wallet Integration Test</h1>
+        <p>This page tests the real Solana wallet connection functionality using direct wallet detection.</p>
+        
+        <div class="status">
+            <h3>🔍 Wallet Detection Status</h3>
+            <div id="wallet-detection">Detecting wallets...</div>
+        </div>
+        
+        <div id="wallet-actions" style="display: none;">
+            <button class="wallet-button" onclick="connectPhantom()">
+                🔗 Connect Phantom
+            </button>
+            <button class="wallet-button" onclick="connectSolflare()">
+                🔗 Connect Solflare
+            </button>
+            <button class="wallet-button" onclick="testDevnetConnection()">
+                🧪 Test Devnet Connection
+            </button>
+        </div>
+        
+        <div id="connection-results"></div>
+        
+        <div class="status">
+            <h3>📋 Implementation Status</h3>
+            <div id="implementation-status">
+                <p>✅ <strong>COMPLETED:</strong> Replaced mocked Keypair.generate() with real wallet detection</p>
+                <p>✅ <strong>COMPLETED:</strong> Added WalletMultiButton to SolanaEmotionalNFT.tsx</p>
+                <p>✅ <strong>COMPLETED:</strong> Added real transaction methods to solana-client.ts</p>
+                <p>✅ <strong>COMPLETED:</strong> Fixed TypeScript compilation errors</p>
+                <p>🔄 <strong>TESTING:</strong> Real wallet connection functionality</p>
+            </div>
+        </div>
+        
+        <div class="status">
+            <h3>🎯 Next Steps</h3>
+            <ol>
+                <li>Test wallet connection with this page</li>
+                <li>Test devnet transaction functionality</li>
+                <li>Copy working code to individual grant repository</li>
+                <li>Update documentation with real implementation status</li>
+                <li>Move to NEAR project</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let currentWallet = null;
+        let currentPublicKey = null;
+
+        // Detect wallets on page load
+        window.onload = function() {
+            detectWallets();
+        };
+
+        function detectWallets() {
+            const wallets = [];
+            
+            if (window.solana) {
+                wallets.push('Phantom');
+            }
+            if (window.solflare) {
+                wallets.push('Solflare');
+            }
+            if (window.torus) {
+                wallets.push('Torus');
+            }
+            
+            const detectionDiv = document.getElementById('wallet-detection');
+            
+            if (wallets.length > 0) {
+                detectionDiv.innerHTML = `
+                    <div class="success">
+                        <p>✅ <strong>Wallets Detected:</strong> ${wallets.join(', ')}</p>
+                        <p>🎉 Ready to connect! Click the buttons below to test each wallet.</p>
+                    </div>
+                `;
+                document.getElementById('wallet-actions').style.display = 'block';
+            } else {
+                detectionDiv.innerHTML = `
+                    <div class="error">
+                        <p>❌ <strong>No Solana wallets detected</strong></p>
+                        <p>Please install one of these wallet extensions:</p>
+                        <ul>
+                            <li><a href="https://phantom.app/" target="_blank">Phantom Wallet</a></li>
+                            <li><a href="https://solflare.com/" target="_blank">Solflare Wallet</a></li>
+                            <li><a href="https://tor.us/" target="_blank">Torus Wallet</a></li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+
+        async function connectPhantom() {
+            try {
+                if (!window.solana) {
+                    alert('Phantom wallet not detected!');
+                    return;
+                }
+
+                const response = await window.solana.connect();
+                currentWallet = window.solana;
+                currentPublicKey = window.solana.publicKey;
+                
+                showConnectionResult('Phantom', true, currentPublicKey.toString());
+                
+                // Set up event listeners
+                window.solana.on('disconnect', handleDisconnect);
+                
+            } catch (error) {
+                showConnectionResult('Phantom', false, null, error.message);
+            }
+        }
+
+        async function connectSolflare() {
+            try {
+                if (!window.solflare) {
+                    alert('Solflare wallet not detected!');
+                    return;
+                }
+
+                const response = await window.solflare.connect();
+                currentWallet = window.solflare;
+                currentPublicKey = window.solflare.publicKey;
+                
+                showConnectionResult('Solflare', true, currentPublicKey.toString());
+                
+                // Set up event listeners
+                window.solflare.on('disconnect', handleDisconnect);
+                
+            } catch (error) {
+                showConnectionResult('Solflare', false, null, error.message);
+            }
+        }
+
+        async function testDevnetConnection() {
+            if (!currentWallet || !currentPublicKey) {
+                alert('Please connect a wallet first!');
+                return;
+            }
+
+            try {
+                // Test basic connection to devnet
+                const response = await fetch('https://api.devnet.solana.com', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: 1,
+                        method: 'getHealth',
+                        params: []
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.result === 'ok') {
+                    showDevnetResult(true, 'Devnet connection successful!');
+                } else {
+                    showDevnetResult(false, 'Devnet connection failed: ' + JSON.stringify(data));
+                }
+            } catch (error) {
+                showDevnetResult(false, 'Devnet connection error: ' + error.message);
+            }
+        }
+
+        function showConnectionResult(walletName, success, publicKey, error = null) {
+            const resultsDiv = document.getElementById('connection-results');
+            
+            if (success) {
+                resultsDiv.innerHTML = `
+                    <div class="status success">
+                        <h3>✅ ${walletName} Connection Successful!</h3>
+                        <p><strong>Public Key:</strong> ${publicKey}</p>
+                        <p><strong>Status:</strong> Ready for transactions</p>
+                        <div class="code">
+                            // This is what we implemented in SolanaEmotionalNFT.tsx
+                            const wallet = useWallet();
+                            const { connection } = useConnection();
+                            
+                            // Real wallet connection - no more mocks!
+                            if (wallet.connected && wallet.publicKey) {
+                                const client = new BiometricNFTClient(connection, wallet.adapter);
+                                setNftClient(client);
+                            }
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <h3>❌ ${walletName} Connection Failed</h3>
+                        <p><strong>Error:</strong> ${error}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function showDevnetResult(success, message) {
+            const resultsDiv = document.getElementById('connection-results');
+            
+            if (success) {
+                resultsDiv.innerHTML += `
+                    <div class="status success">
+                        <h3>🎉 Devnet Connection Test Passed!</h3>
+                        <p><strong>Result:</strong> ${message}</p>
+                        <p>✅ Ready for NFT minting on devnet!</p>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML += `
+                    <div class="status error">
+                        <h3>❌ Devnet Connection Test Failed</h3>
+                        <p><strong>Error:</strong> ${message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function handleDisconnect() {
+            currentWallet = null;
+            currentPublicKey = null;
+            document.getElementById('connection-results').innerHTML = `
+                <div class="status">
+                    <h3>👋 Wallet Disconnected</h3>
+                    <p>Connection lost. Please reconnect to continue testing.</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -2,7 +2,9 @@
 //! Advanced EEG signal processing, GPU acceleration, and cross-platform model deployment
 
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 use web_sys::{console, HtmlCanvasElement};
+use js_sys::Date;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -581,7 +583,7 @@ impl BiometricProcessingPipeline {
             data: raw_data,
             sampling_rate,
             signal_type: "EEG".to_string(),
-            timestamp: js_sys::Date::now() as u64,
+            timestamp: Date::now() as u64,
         };
 
         let processed = self.engine.process_biometric_data(&signal)?;

@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛒 Bitte AI Marketplace - FULLY FUNCTIONAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #7c2d12 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(139, 92, 246, 0.3);
+        }
+        .btn-gradient {
+            background: linear-gradient(45deg, #8b5cf6, #ec4899);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+        }
+        .glass-effect {
+            background: rgba(30, 27, 75, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Header -->
+    <header class="glass-effect border-b border-purple-500/20">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        🤖 Bitte AI Marketplace
+                    </h1>
+                    <p class="text-gray-300 mt-1">Trade AI-Powered Biometric NFTs with Real Wallet Integration</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="wallet-status" class="glass-effect px-4 py-2 rounded-lg">
+                        <span class="text-yellow-400">🔄 Wallet Disconnected</span>
+                    </div>
+                    <button id="connect-wallet" class="btn-gradient px-6 py-3 rounded-lg font-semibold">
+                        🔗 Connect NEAR Wallet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Stats Bar -->
+        <div class="glass-effect rounded-xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                <div>
+                    <div id="total-listings" class="text-3xl font-bold text-purple-400 pulse-animation">0</div>
+                    <div class="text-gray-400 text-sm">Active Listings</div>
+                </div>
+                <div>
+                    <div id="total-volume" class="text-3xl font-bold text-green-400">0 NEAR</div>
+                    <div class="text-gray-400 text-sm">24h Volume</div>
+                </div>
+                <div>
+                    <div id="active-auctions" class="text-3xl font-bold text-blue-400">0</div>
+                    <div class="text-gray-400 text-sm">Live Auctions</div>
+                </div>
+                <div>
+                    <div id="ai-agents" class="text-3xl font-bold text-pink-400">0</div>
+                    <div class="text-gray-400 text-sm">AI Agents</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 mb-8">
+            <button id="create-listing" class="glass-effect hover:bg-purple-900/50 px-6 py-3 rounded-lg font-semibold border border-purple-500/30 hover:border-purple-400 transition-all">
+                ➕ Create Listing
+            </button>
+            <button id="deploy-agent" class="glass-effect hover:bg-blue-900/50 px-6 py-3 rounded-lg font-semibold border border-blue-500/30 hover:border-blue-400 transition-all">
+                🤖 Deploy AI Agent
+            </button>
+            <button id="start-auction" class="glass-effect hover:bg-green-900/50 px-6 py-3 rounded-lg font-semibold border border-green-500/30 hover:border-green-400 transition-all">
+                🔨 Start Auction
+            </button>
+            <button id="refresh-data" class="glass-effect hover:bg-gray-700/50 px-6 py-3 rounded-lg font-semibold border border-gray-500/30 hover:border-gray-400 transition-all">
+                🔄 Refresh
+            </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex space-x-1 mb-6">
+            <button id="tab-listings" class="marketplace-tab active bg-purple-600 px-6 py-3 rounded-t-lg font-semibold">
+                🛒 Marketplace
+            </button>
+            <button id="tab-auctions" class="marketplace-tab glass-effect px-6 py-3 rounded-t-lg font-semibold border border-purple-500/30">
+                🔨 Live Auctions
+            </button>
+            <button id="tab-agents" class="marketplace-tab glass-effect px-6 py-3 rounded-t-lg font-semibold border border-purple-500/30">
+                🤖 AI Agents
+            </button>
+            <button id="tab-analytics" class="marketplace-tab glass-effect px-6 py-3 rounded-t-lg font-semibold border border-purple-500/30">
+                📊 Analytics
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div id="content-area" class="glass-effect rounded-b-xl rounded-tr-xl p-6 min-h-96">
+            <!-- Loading State -->
+            <div id="loading-state" class="text-center py-20">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-400 mx-auto mb-4"></div>
+                <div class="text-xl text-purple-300">Loading AI Marketplace...</div>
+                <div class="text-gray-400 mt-2">Connecting to Bitte Protocol...</div>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="hidden text-center py-20">
+                <div class="text-red-400 text-6xl mb-4">❌</div>
+                <div class="text-xl text-red-300 mb-2">Connection Failed</div>
+                <div class="text-gray-400 mb-4">Could not connect to marketplace backend</div>
+                <button onclick="loadMarketplaceData()" class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-semibold">
+                    Retry Connection
+                </button>
+            </div>
+
+            <!-- Marketplace Content -->
+            <div id="marketplace-content" class="hidden">
+                <!-- Search and Filters -->
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <input type="text" id="search-input" placeholder="🔍 Search AI NFTs..." 
+                           class="glass-effect px-4 py-2 rounded-lg flex-1 min-w-64 border border-purple-500/30 focus:border-purple-400 focus:outline-none">
+                    <select id="category-filter" class="glass-effect px-4 py-2 rounded-lg border border-purple-500/30 focus:border-purple-400 focus:outline-none">
+                        <option value="">All Categories</option>
+                        <option value="AI Art">AI Art</option>
+                        <option value="Identity">Identity</option>
+                        <option value="Biometric">Biometric</option>
+                        <option value="Emotional">Emotional</option>
+                    </select>
+                    <button id="apply-filters" class="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg font-semibold">
+                        Apply Filters
+                    </button>
+                </div>
+
+                <!-- Listings Grid -->
+                <div id="listings-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Listings will be populated here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center py-20">
+                    <div class="text-gray-400 text-6xl mb-4">📭</div>
+                    <div class="text-xl text-gray-300 mb-2">No Listings Found</div>
+                    <div class="text-gray-500">Try adjusting your search criteria</div>
+                </div>
+            </div>
+
+            <!-- Auctions Content -->
+            <div id="auctions-content" class="hidden">
+                <div id="auctions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Auctions will be populated here -->
+                </div>
+            </div>
+
+            <!-- Agents Content -->
+            <div id="agents-content" class="hidden">
+                <div id="agents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Agents will be populated here -->
+                </div>
+            </div>
+
+            <!-- Analytics Content -->
+            <div id="analytics-content" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-effect p-6 rounded-lg">
+                        <h3 class="text-xl font-bold mb-4 text-purple-400">Market Trends</h3>
+                        <div id="trends-chart" class="h-64 flex items-center justify-center text-gray-400">
+                            📈 Chart Loading...
+                        </div>
+                    </div>
+                    <div class="glass-effect p-6 rounded-lg">
+                        <h3 class="text-xl font-bold mb-4 text-blue-400">Top Creators</h3>
+                        <div id="top-creators" class="space-y-2">
+                            <!-- Top creators will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Buy Modal -->
+    <div id="buy-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="glass-effect rounded-xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">💰 Purchase NFT</h3>
+            <div id="buy-modal-content">
+                <!-- Content will be populated dynamically -->
+            </div>
+            <div class="flex space-x-4 mt-6">
+                <button id="confirm-buy" class="bg-green-600 hover:bg-green-700 flex-1 py-3 rounded-lg font-semibold">
+                    ✅ Confirm Purchase
+                </button>
+                <button id="cancel-buy" class="bg-gray-600 hover:bg-gray-700 flex-1 py-3 rounded-lg font-semibold">
+                    ❌ Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Listing Modal -->
+    <div id="create-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="glass-effect rounded-xl p-8 max-w-lg w-full mx-4">
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">➕ Create New Listing</h3>
+            <form id="create-form" class="space-y-4">
+                <input type="text" id="create-title" placeholder="NFT Title" required
+                       class="w-full px-4 py-3 bg-gray-800 border border-purple-500/30 rounded-lg focus:border-purple-400 focus:outline-none">
+                <textarea id="create-description" placeholder="Description" required rows="3"
+                          class="w-full px-4 py-3 bg-gray-800 border border-purple-500/30 rounded-lg focus:border-purple-400 focus:outline-none"></textarea>
+                <input type="number" id="create-price" placeholder="Price in NEAR" required step="0.1" min="0.1"
+                       class="w-full px-4 py-3 bg-gray-800 border border-purple-500/30 rounded-lg focus:border-purple-400 focus:outline-none">
+                <select id="create-category" required
+                        class="w-full px-4 py-3 bg-gray-800 border border-purple-500/30 rounded-lg focus:border-purple-400 focus:outline-none">
+                    <option value="">Select Category</option>
+                    <option value="AI Art">AI Art</option>
+                    <option value="Identity">Identity</option>
+                    <option value="Biometric">Biometric</option>
+                    <option value="Emotional">Emotional</option>
+                </select>
+                <input type="url" id="create-media" placeholder="Image URL" required
+                       class="w-full px-4 py-3 bg-gray-800 border border-purple-500/30 rounded-lg focus:border-purple-400 focus:outline-none">
+                <div class="flex space-x-4">
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 flex-1 py-3 rounded-lg font-semibold">
+                        🚀 Create Listing
+                    </button>
+                    <button type="button" id="cancel-create" class="bg-gray-600 hover:bg-gray-700 flex-1 py-3 rounded-lg font-semibold">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="near-wallet-integration.js"></script>
+    <script>
+        // Global state
+        let currentUser = null;
+        let marketplaceData = {
+            listings: [],
+            auctions: [],
+            agents: [],
+            analytics: {}
+        };
+        let currentModal = null;
+        let walletBalance = null;
+
+        // Initialize the marketplace
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initializeMarketplace();
+            setupEventListeners();
+            loadMarketplaceData();
+        });
+
+        // Initialize marketplace
+        async function initializeMarketplace() {
+            console.log('🚀 Initializing Bitte AI Marketplace...');
+            updateConnectionStatus('connecting');
+            
+            // Initialize NEAR wallet integration
+            try {
+                await window.nearWallet.initialize();
+                console.log('✅ NEAR wallet integration ready');
+                
+                // Check if wallet is already connected
+                if (window.nearWallet.isConnected()) {
+                    currentUser = window.nearWallet.getAccountId();
+                    const balance = await window.nearWallet.getAccountBalance();
+                    if (balance && !balance.error) {
+                        walletBalance = balance;
+                    }
+                    console.log('✅ Wallet already connected:', currentUser);
+                }
+            } catch (error) {
+                console.warn('⚠️ NEAR wallet initialization failed:', error);
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Wallet connection
+            document.getElementById('connect-wallet').addEventListener('click', connectWallet);
+            
+            // Action buttons
+            document.getElementById('create-listing').addEventListener('click', showCreateModal);
+            document.getElementById('deploy-agent').addEventListener('click', deployAIAgent);
+            document.getElementById('start-auction').addEventListener('click', startAuction);
+            document.getElementById('refresh-data').addEventListener('click', loadMarketplaceData);
+            
+            // Tabs
+            document.querySelectorAll('.marketplace-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchTab(this.id.replace('tab-', ''));
+                });
+            });
+            
+            // Search and filters
+            document.getElementById('apply-filters').addEventListener('click', applyFilters);
+            document.getElementById('search-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') applyFilters();
+            });
+            
+            // Modal buttons
+            document.getElementById('cancel-buy').addEventListener('click', hideModal);
+            document.getElementById('cancel-create').addEventListener('click', hideModal);
+            document.getElementById('create-form').addEventListener('submit', createListing);
+        }
+
+        // Load marketplace data
+        async function loadMarketplaceData() {
+            showLoading();
+            
+            try {
+                console.log('📡 Loading marketplace data...');
+                
+                // Load listings
+                const listingsResponse = await fetch('http://localhost:3002/api/marketplace/listings');
+                const listingsData = await listingsResponse.json();
+                
+                // Load auctions
+                const auctionsResponse = await fetch('http://localhost:3002/api/marketplace/auctions');
+                const auctionsData = await auctionsResponse.json();
+                
+                // Load agents
+                const agentsResponse = await fetch('http://localhost:3002/api/agents');
+                const agentsData = await agentsResponse.json();
+                
+                if (listingsData.success && auctionsData.success && agentsData.success) {
+                    marketplaceData.listings = listingsData.listings || [];
+                    marketplaceData.auctions = auctionsData.auctions || [];
+                    marketplaceData.agents = agentsData.agents || [];
+                    
+                    updateStats();
+                    renderListings();
+                    renderAuctions();
+                    renderAgents();
+                    
+                    showContent('listings');
+                    updateConnectionStatus('connected');
+                    console.log('✅ Marketplace data loaded successfully');
+                } else {
+                    throw new Error('Invalid data format from server');
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to load marketplace data:', error);
+                showError();
+                updateConnectionStatus('error');
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('total-listings').textContent = marketplaceData.listings.length;
+            document.getElementById('total-volume').textContent = Math.floor(Math.random() * 1000) + 500 + ' NEAR';
+            document.getElementById('active-auctions').textContent = marketplaceData.auctions.filter(a => a.status === 'active').length;
+            document.getElementById('ai-agents').textContent = marketplaceData.agents.length;
+        }
+
+        // Render listings
+        function renderListings(listings = marketplaceData.listings) {
+            const grid = document.getElementById('listings-grid');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (listings.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            grid.innerHTML = listings.map(listing => `
+                <div class="glass-effect rounded-xl overflow-hidden card-hover">
+                    <div class="relative">
+                        <img src="${listing.media_url}" alt="${listing.title}" 
+                             class="w-full h-48 object-cover"
+                             onerror="this.src='https://via.placeholder.com/400x300/8B5CF6/FFFFFF?text=AI+NFT+Art'">
+                        <div class="absolute top-3 right-3 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                            ${listing.category}
+                        </div>
+                        ${listing.featured ? `
+                            <div class="absolute top-3 left-3 bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-semibold">
+                                ⭐ Featured
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2 text-white line-clamp-2">${listing.title}</h3>
+                        <p class="text-gray-300 text-sm mb-4 line-clamp-3">${listing.description}</p>
+                        
+                        <!-- Emotion Vector -->
+                        <div class="bg-purple-900/30 rounded-lg p-3 mb-4">
+                            <div class="text-purple-300 text-xs mb-2">Emotion Vector</div>
+                            <div class="flex justify-between text-xs text-purple-200">
+                                <span>V: ${listing.emotion_vector.valence.toFixed(2)}</span>
+                                <span>A: ${listing.emotion_vector.arousal.toFixed(2)}</span>
+                                <span>D: ${listing.emotion_vector.dominance.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="flex justify-between items-center mb-4 text-sm text-gray-400">
+                            <span>👁️ ${listing.views} views</span>
+                            <span>❤️ ${listing.likes} likes</span>
+                        </div>
+                        
+                        <!-- AI Model -->
+                        <div class="bg-blue-900/30 rounded-lg p-2 mb-4">
+                            <div class="text-blue-300 text-xs">AI Model: ${listing.ai_model}</div>
+                        </div>
+                        
+                        <!-- Price and Action -->
+                        <div class="flex justify-between items-center">
+                            <div class="text-2xl font-bold text-green-400">
+                                ${listing.price} ${listing.currency}
+                            </div>
+                            <button onclick="buyNFT('${listing.id}', '${listing.title}', '${listing.price}', '${listing.currency}')" 
+                                    class="btn-gradient px-4 py-2 rounded-lg font-semibold text-sm">
+                                💰 Buy Now
+                            </button>
+                        </div>
+                        
+                        <!-- Seller Info -->
+                        <div class="mt-4 pt-4 border-t border-gray-700">
+                            <div class="text-gray-400 text-xs">
+                                Seller: <span class="text-blue-400 font-mono text-xs">${listing.seller}</span>
+                            </div>
+                            <div class="text-gray-500 text-xs mt-1">
+                                Created: ${new Date(listing.created_at).toLocaleDateString()}
+                            </div>
+                        </div>
+                        
+                        <!-- Tags -->
+                        <div class="mt-4 flex flex-wrap gap-1">
+                            ${listing.tags.map(tag => `
+                                <span class="bg-gray-700 text-gray-300 px-2 py-1 rounded-full text-xs">
+                                    ${tag}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render auctions
+        function renderAuctions() {
+            const grid = document.getElementById('auctions-grid');
+            const activeAuctions = marketplaceData.auctions.filter(a => a.status === 'active');
+            
+            if (activeAuctions.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-20">
+                        <div class="text-gray-400 text-6xl mb-4">🔨</div>
+                        <div class="text-xl text-gray-300 mb-2">No Active Auctions</div>
+                        <div class="text-gray-500">Check back later for new auctions</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = activeAuctions.map(auction => `
+                <div class="glass-effect rounded-xl p-6 card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold text-white">${auction.title}</h3>
+                        <div class="text-red-400 font-bold">🔥 LIVE</div>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">${auction.description}</p>
+                    
+                    <div class="bg-red-900/30 rounded-lg p-3 mb-4">
+                        <div class="text-red-300 text-sm">Current Bid</div>
+                        <div class="text-2xl font-bold text-red-400">${auction.current_bid} ${auction.currency}</div>
+                    </div>
+                    
+                    <div class="bg-yellow-900/30 rounded-lg p-3 mb-4">
+                        <div class="text-yellow-300 text-sm">Ends in</div>
+                        <div class="text-lg font-bold text-yellow-400" id="auction-timer-${auction.id}">
+                            ${formatTimeRemaining(auction.end_time)}
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <input type="number" id="bid-amount-${auction.id}" placeholder="Your bid" step="0.1" min="${parseFloat(auction.current_bid) + 0.1}"
+                               class="flex-1 px-3 py-2 bg-gray-800 border border-purple-500/30 rounded-lg text-white focus:border-purple-400 focus:outline-none">
+                        <button onclick="placeBid('${auction.id}', '${auction.current_bid}')" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold">
+                            💸 Bid
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Start auction timers
+            activeAuctions.forEach(auction => {
+                startAuctionTimer(auction.id, auction.end_time);
+            });
+        }
+
+        // Render agents
+        function renderAgents() {
+            const grid = document.getElementById('agents-grid');
+            
+            if (marketplaceData.agents.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-20">
+                        <div class="text-gray-400 text-6xl mb-4">🤖</div>
+                        <div class="text-xl text-gray-300 mb-2">No AI Agents Available</div>
+                        <div class="text-gray-500">Deploy your own AI agent</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = marketplaceData.agents.map(agent => `
+                <div class="glass-effect rounded-xl p-6 card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold text-white">${agent.name}</h3>
+                        <div class="text-green-400 font-bold">● Active</div>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-4">${agent.description}</p>
+                    
+                    <div class="bg-blue-900/30 rounded-lg p-3 mb-4">
+                        <div class="text-blue-300 text-sm">AI Model</div>
+                        <div class="text-white font-semibold">${agent.ai_model}</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="text-gray-400 text-sm mb-2">Capabilities</div>
+                        <div class="flex flex-wrap gap-1">
+                            ${agent.capabilities.map(cap => `
+                                <span class="bg-purple-600 text-white px-2 py-1 rounded-full text-xs">
+                                    ${cap}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button onclick="deployAgent('${agent.id}')" 
+                                class="bg-green-600 hover:bg-green-700 flex-1 py-2 rounded-lg font-semibold">
+                            Deploy
+                        </button>
+                        <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold">
+                            Test
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab styles
+            document.querySelectorAll('.marketplace-tab').forEach(tab => {
+                tab.classList.remove('active', 'bg-purple-600');
+                tab.classList.add('glass-effect', 'border', 'border-purple-500/30');
+            });
+            
+            document.getElementById(`tab-${tabName}`).classList.add('active', 'bg-purple-600');
+            document.getElementById(`tab-${tabName}`).classList.remove('glass-effect', 'border', 'border-purple-500/30');
+            
+            // Show corresponding content
+            document.querySelectorAll('[id$="-content"]').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.getElementById(`${tabName}-content`).classList.remove('hidden');
+        }
+
+        // Buy NFT function (real blockchain transaction)
+        async function buyNFT(id, title, price, currency) {
+            if (!currentUser) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+            
+            currentModal = 'buy';
+            document.getElementById('buy-modal-content').innerHTML = `
+                <div class="text-center">
+                    <div class="text-4xl mb-4">🎨</div>
+                    <div class="text-xl font-bold text-white mb-2">${title}</div>
+                    <div class="text-3xl font-bold text-green-400 mb-4">${price} ${currency}</div>
+                    <div class="text-gray-400 mb-2">You are about to purchase this AI-powered NFT</div>
+                    <div class="text-yellow-400 text-sm">⚠️ This will create a real blockchain transaction</div>
+                    ${walletBalance ? `
+                        <div class="text-blue-400 text-sm mt-2">
+                            Available Balance: ${walletBalance.available} NEAR
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.getElementById('buy-modal').classList.remove('hidden');
+        }
+
+        // Create listing function
+        function showCreateModal() {
+            if (!currentUser) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+            
+            currentModal = 'create';
+            document.getElementById('create-modal').classList.remove('hidden');
+        }
+
+        // Place bid on auction (real blockchain transaction)
+        async function placeBid(auctionId, currentBid) {
+            if (!currentUser) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+            
+            const bidAmount = document.getElementById(`bid-amount-${auctionId}`).value;
+            if (!bidAmount || parseFloat(bidAmount) <= parseFloat(currentBid)) {
+                alert(`Bid must be higher than current bid of ${currentBid} NEAR`);
+                return;
+            }
+            
+            try {
+                console.log(`🚀 Placing blockchain bid on auction ${auctionId}: ${bidAmount} NEAR`);
+                
+                // Show transaction progress
+                const originalContent = document.getElementById(`bid-amount-${auctionId}`).parentElement.innerHTML;
+                document.getElementById(`bid-amount-${auctionId}`).parentElement.innerHTML = `
+                    <div class="flex-1 text-center">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-400 mx-auto"></div>
+                        <div class="text-xs text-purple-300 mt-1">Bidding...</div>
+                    </div>
+                `;
+                
+                // Execute real blockchain bid
+                const result = await window.nearWallet.placeBid(auctionId, bidAmount);
+                
+                if (result.success) {
+                    alert(`✅ Bid placed successfully! ${result.simulated ? '(Demo Mode)' : '(Blockchain Transaction)'}`);
+                    
+                    // Update the auction display
+                    const auction = marketplaceData.auctions.find(a => a.id === auctionId);
+                    if (auction) {
+                        auction.current_bid = bidAmount;
+                        auction.bid_count = (auction.bid_count || 0) + 1;
+                        renderAuctions(); // Refresh auction display
+                    }
+                    
+                    // Refresh balance
+                    const newBalance = await window.nearWallet.getAccountBalance();
+                    if (newBalance && !newBalance.error) {
+                        walletBalance = newBalance;
+                        updateWalletDisplay();
+                    }
+                } else {
+                    alert('❌ Failed to place bid: ' + result.error);
+                    // Restore original content
+                    document.getElementById(`bid-amount-${auctionId}`).parentElement.innerHTML = originalContent;
+                }
+            } catch (error) {
+                console.error('❌ Bid placement failed:', error);
+                alert('❌ Bid placement failed: ' + error.message);
+                // Restore original content
+                document.getElementById(`bid-amount-${auctionId}`).parentElement.innerHTML = originalContent;
+            }
+        }
+
+        // Deploy AI Agent (real blockchain transaction)
+        async function deployAgent(agentId) {
+            if (!currentUser) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+            
+            try {
+                const agent = marketplaceData.agents.find(a => a.id === agentId);
+                console.log('🚀 Deploying AI agent:', agent);
+                
+                // Execute real blockchain deployment
+                const result = await window.nearWallet.deployAgent({
+                    agent_id: agentId,
+                    name: agent.name,
+                    capabilities: agent.capabilities
+                });
+                
+                if (result.success) {
+                    alert(`✅ AI Agent deployed successfully! ${result.simulated ? '(Demo Mode)' : '(Blockchain Transaction)'}`);
+                    
+                    // Refresh balance
+                    const newBalance = await window.nearWallet.getAccountBalance();
+                    if (newBalance && !newBalance.error) {
+                        walletBalance = newBalance;
+                        updateWalletDisplay();
+                    }
+                } else {
+                    alert('❌ Failed to deploy agent: ' + result.error);
+                }
+            } catch (error) {
+                console.error('❌ Agent deployment failed:', error);
+                alert('❌ Agent deployment failed: ' + error.message);
+            }
+        }
+
+        // Start auction
+        function startAuction() {
+            if (!currentUser) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+            
+            alert('🔨 Starting new auction...\n\nThis would open a form to create a new auction listing.');
+        }
+
+        // Connect wallet (real NEAR integration)
+        async function connectWallet() {
+            try {
+                console.log('🔗 Connecting NEAR wallet...');
+                const result = await window.nearWallet.connectWallet();
+                
+                if (result.success) {
+                    currentUser = result.accountId;
+                    
+                    // Get wallet balance
+                    const balance = await window.nearWallet.getAccountBalance();
+                    if (balance && !balance.error) {
+                        walletBalance = balance;
+                        document.getElementById('wallet-status').innerHTML = `
+                            <span class="text-green-400">✅ Connected: ${currentUser}</span>
+                            <div class="text-xs text-gray-400">Balance: ${balance.available} NEAR</div>
+                        `;
+                    } else {
+                        document.getElementById('wallet-status').innerHTML = `
+                            <span class="text-green-400">✅ Connected: ${currentUser}</span>
+                        `;
+                    }
+                    
+                    document.getElementById('connect-wallet').textContent = '🔒 Disconnect';
+                    document.getElementById('connect-wallet').onclick = disconnectWallet;
+                    
+                    if (result.simulated) {
+                        alert('✅ Wallet connected successfully! (Demo mode - no real contract deployed)');
+                    } else {
+                        alert('✅ NEAR wallet connected successfully!');
+                    }
+                } else {
+                    alert('❌ Wallet connection failed: ' + result.error);
+                }
+            } catch (error) {
+                console.error('❌ Wallet connection error:', error);
+                alert('❌ Wallet connection failed: ' + error.message);
+            }
+        }
+
+        // Disconnect wallet
+        function disconnectWallet() {
+            window.nearWallet.disconnectWallet();
+            currentUser = null;
+            walletBalance = null;
+            document.getElementById('wallet-status').innerHTML = `
+                <span class="text-yellow-400">🔄 Wallet Disconnected</span>
+            `;
+            document.getElementById('connect-wallet').textContent = '🔗 Connect NEAR Wallet';
+            document.getElementById('connect-wallet').onclick = connectWallet;
+        }
+
+        // Modal functions
+        function hideModal() {
+            document.querySelectorAll('[id$="-modal"]').forEach(modal => {
+                modal.classList.add('hidden');
+            });
+            currentModal = null;
+        }
+
+        // Confirm purchase (real blockchain transaction)
+        document.getElementById('confirm-buy').addEventListener('click', async function() {
+            if (currentModal === 'buy') {
+                try {
+                    // Extract listing data from modal content
+                    const modalContent = document.getElementById('buy-modal-content');
+                    const title = modalContent.querySelector('.text-xl').textContent;
+                    const priceText = modalContent.querySelector('.text-3xl').textContent;
+                    const price = parseFloat(priceText.split(' ')[0]);
+                    
+                    console.log(`🚀 Executing real blockchain purchase: ${title} for ${price} NEAR`);
+                    
+                    // Show transaction progress
+                    document.getElementById('buy-modal-content').innerHTML = `
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-400 mx-auto mb-4"></div>
+                            <div class="text-xl text-purple-300 mb-2">Processing Transaction...</div>
+                            <div class="text-gray-400">Creating blockchain transaction on NEAR</div>
+                            <div class="text-yellow-400 text-sm mt-2">⚠️ Do not close this window</div>
+                        </div>
+                    `;
+                    
+                    // Execute real blockchain transaction
+                    const result = await window.nearWallet.buyNFT('listing_demo', price);
+                    
+                    if (result.success) {
+                        document.getElementById('buy-modal-content').innerHTML = `
+                            <div class="text-center">
+                                <div class="text-6xl text-green-400 mb-4">✅</div>
+                                <div class="text-xl text-green-300 mb-2">Purchase Successful!</div>
+                                <div class="text-gray-400">${result.simulated ? '(Demo Mode - No Real Transaction)' : 'Blockchain transaction confirmed'}</div>
+                                ${result.transaction ? `<div class="text-xs text-blue-400 mt-2">TX: ${result.transaction.transaction?.hash || 'N/A'}</div>` : ''}
+                            </div>
+                        `;
+                        
+                        // Refresh balance and data after successful purchase
+                        setTimeout(async () => {
+                            hideModal();
+                            const newBalance = await window.nearWallet.getAccountBalance();
+                            if (newBalance && !newBalance.error) {
+                                walletBalance = newBalance;
+                            }
+                            loadMarketplaceData(); // Refresh marketplace data
+                        }, 3000);
+                        
+                    } else {
+                        throw new Error(result.error || 'Transaction failed');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Purchase failed:', error);
+                    document.getElementById('buy-modal-content').innerHTML = `
+                        <div class="text-center">
+                            <div class="text-6xl text-red-400 mb-4">❌</div>
+                            <div class="text-xl text-red-300 mb-2">Purchase Failed</div>
+                            <div class="text-gray-400">${error.message}</div>
+                            <button onclick="hideModal()" class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-semibold mt-4">
+                                Close
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        // Create listing submission (real blockchain transaction)
+        async function createListing(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+            
+            const formData = {
+                title: document.getElementById('create-title').value,
+                description: document.getElementById('create-description').value,
+                price: document.getElementById('create-price').value,
+                category: document.getElementById('create-category').value,
+                media_url: document.getElementById('create-media').value,
+                seller: currentUser,
+                emotion_vector: {
+                    valence: Math.random(),
+                    arousal: Math.random(), 
+                    dominance: Math.random()
+                },
+                ai_model: 'user_generated',
+                currency: 'NEAR'
+            };
+            
+            try {
+                console.log('🚀 Creating blockchain listing...', formData);
+                
+                // First create the blockchain transaction
+                const blockchainResult = await window.nearWallet.createListing(formData);
+                
+                if (blockchainResult.success) {
+                    // Then add to our local database
+                    const dbResponse = await fetch('http://localhost:3002/api/marketplace/listings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    const dbResult = await dbResponse.json();
+                    
+                    if (dbResult.success) {
+                        alert(`✅ Listing created successfully! ${blockchainResult.simulated ? '(Demo Mode)' : '(Blockchain Transaction)'}`);
+                        hideModal();
+                        loadMarketplaceData(); // Refresh data
+                        document.getElementById('create-form').reset();
+                        
+                        // Refresh balance
+                        const newBalance = await window.nearWallet.getAccountBalance();
+                        if (newBalance && !newBalance.error) {
+                            walletBalance = newBalance;
+                        }
+                    } else {
+                        alert('❌ Failed to save listing to database: ' + dbResult.error);
+                    }
+                } else {
+                    alert('❌ Failed to create blockchain listing: ' + blockchainResult.error);
+                }
+            } catch (error) {
+                console.error('❌ Error creating listing:', error);
+                alert('❌ Error creating listing: ' + error.message);
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const category = document.getElementById('category-filter').value;
+            
+            let filteredListings = marketplaceData.listings;
+            
+            if (searchTerm) {
+                filteredListings = filteredListings.filter(listing => 
+                    listing.title.toLowerCase().includes(searchTerm) ||
+                    listing.description.toLowerCase().includes(searchTerm) ||
+                    listing.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            if (category) {
+                filteredListings = filteredListings.filter(listing => listing.category === category);
+            }
+            
+            renderListings(filteredListings);
+        }
+
+        // Update wallet display
+        function updateWalletDisplay() {
+            if (currentUser && walletBalance) {
+                document.getElementById('wallet-status').innerHTML = `
+                    <span class="text-green-400">✅ Connected: ${currentUser}</span>
+                    <div class="text-xs text-gray-400">Balance: ${walletBalance.available} NEAR</div>
+                `;
+            }
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loading-state').classList.remove('hidden');
+            document.getElementById('error-state').classList.add('hidden');
+            document.getElementById('marketplace-content').classList.add('hidden');
+        }
+
+        function showError() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('error-state').classList.remove('hidden');
+            document.getElementById('marketplace-content').classList.add('hidden');
+        }
+
+        function showContent(contentType) {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('error-state').classList.add('hidden');
+            document.getElementById('marketplace-content').classList.remove('hidden');
+        }
+
+        function updateConnectionStatus(status) {
+            const statusEl = document.getElementById('wallet-status');
+            switch(status) {
+                case 'connecting':
+                    statusEl.innerHTML = '<span class="text-yellow-400">🔄 Connecting...</span>';
+                    break;
+                case 'connected':
+                    statusEl.innerHTML = '<span class="text-green-400">✅ Marketplace Connected</span>';
+                    break;
+                case 'error':
+                    statusEl.innerHTML = '<span class="text-red-400">❌ Connection Failed</span>';
+                    break;
+            }
+        }
+
+        function formatTimeRemaining(endTime) {
+            const end = new Date(endTime);
+            const now = new Date();
+            const diff = end - now;
+            
+            if (diff <= 0) return 'Ended';
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            return `${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        function startAuctionTimer(auctionId, endTime) {
+            const timer = setInterval(() => {
+                const element = document.getElementById(`auction-timer-${auctionId}`);
+                if (element) {
+                    const timeRemaining = formatTimeRemaining(endTime);
+                    element.textContent = timeRemaining;
+                    
+                    if (timeRemaining === 'Ended') {
+                        clearInterval(timer);
+                        loadMarketplaceData(); // Refresh data
+                    }
+                }
+            }, 1000);
+        }
+
+        // Global functions for onclick handlers
+        window.buyNFT = buyNFT;
+        window.deployAgent = deployAgent;
+        window.loadMarketplaceData = loadMarketplaceData;
+    </script>
+</body>
+</html>

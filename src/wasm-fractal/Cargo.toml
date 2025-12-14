@@ -4,9 +4,6 @@ version = "0.1.0"
 edition = "2021"
 description = "Simple fractal generator for WASM deployment"
 
-[workspace]
-# Empty workspace to exclude from parent
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 

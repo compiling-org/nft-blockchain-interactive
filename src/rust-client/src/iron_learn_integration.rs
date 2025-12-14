@@ -6,11 +6,12 @@
 //! - Complex number arithmetic for signal processing
 //! - Type-safe machine learning operations
 
-#[cfg(feature = "ai-ml")]
-use iron_learn::{
-    Tensor, Complex, linear_regression, logistic_regression,
-    predict_linear, predict_logistic, run_logistics_cuda
-};
+// Iron Learn crate is not available in current workspace
+// #[cfg(feature = "ai-ml")]
+// use iron_learn::{
+//     Tensor, Complex, linear_regression, logistic_regression,
+//     predict_linear, predict_logistic, run_logistics_cuda
+// };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛒 Bitte AI Marketplace - Working Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-6xl font-bold text-white mb-4">
+                🤖 Bitte AI Marketplace
+            </h1>
+            <p class="text-xl text-gray-200 mb-8">
+                Discover and Trade AI-Powered Biometric NFTs
+            </p>
+            <div id="status" class="bg-green-500 bg-opacity-20 border border-green-400 rounded-lg p-4 inline-block">
+                <div class="text-green-200 text-lg">🔄 Connecting to marketplace...</div>
+            </div>
+        </div>
+
+        <!-- Marketplace Grid -->
+        <div id="marketplace-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Loading state -->
+            <div id="loading" class="col-span-full text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                <div class="text-white text-xl">Loading AI NFTs...</div>
+            </div>
+        </div>
+
+        <!-- Error state (hidden by default) -->
+        <div id="error" class="hidden text-center">
+            <div class="bg-red-500 bg-opacity-20 border border-red-400 rounded-lg p-8 inline-block">
+                <div class="text-red-200 text-2xl mb-4">❌ Connection Failed</div>
+                <div class="text-red-300 mb-4">Could not connect to marketplace backend</div>
+                <div class="text-red-400 text-sm">Make sure the backend server is running on port 3002</div>
+                <button onclick="loadMarketplace()" class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                    Retry Connection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global marketplace data
+        let marketplaceData = [];
+
+        // Load marketplace data
+        async function loadMarketplace() {
+            console.log('🔄 Loading marketplace data...');
+            
+            try {
+                // Show loading state
+                document.getElementById('loading').classList.remove('hidden');
+                document.getElementById('error').classList.add('hidden');
+                document.getElementById('status').innerHTML = '<div class="text-green-200 text-lg">🔄 Connecting to marketplace...</div>';
+
+                const response = await fetch('http://localhost:3002/api/marketplace/listings');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Marketplace data received:', data);
+                
+                if (data.success && data.listings) {
+                    marketplaceData = data.listings;
+                    renderMarketplace();
+                    
+                    // Update status
+                    document.getElementById('status').innerHTML = `
+                        <div class="text-green-200 text-lg">✅ Connected Successfully</div>
+                        <div class="text-green-300 text-sm">${marketplaceData.length} AI NFTs loaded</div>
+                    `;
+                } else {
+                    throw new Error('Invalid data format received from server');
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to load marketplace:', error);
+                showError(error.message);
+            }
+        }
+
+        // Render marketplace listings
+        function renderMarketplace() {
+            const container = document.getElementById('marketplace-container');
+            const loading = document.getElementById('loading');
+            
+            // Hide loading
+            loading.style.display = 'none';
+            
+            if (marketplaceData.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center">
+                        <div class="bg-yellow-500 bg-opacity-20 border border-yellow-400 rounded-lg p-8 inline-block">
+                            <div class="text-yellow-200 text-2xl mb-4">📭 No Listings Found</div>
+                            <div class="text-yellow-300">The marketplace is empty right now</div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render listings
+            container.innerHTML = marketplaceData.map(listing => `
+                <div class="bg-gray-800 bg-opacity-50 backdrop-blur-lg rounded-xl overflow-hidden shadow-xl card-hover">
+                    <!-- Image -->
+                    <div class="relative">
+                        <img 
+                            src="${listing.media_url}" 
+                            alt="${listing.title}"
+                            class="w-full h-48 object-cover"
+                            onerror="this.src='https://via.placeholder.com/400x300/8B5CF6/FFFFFF?text=AI+NFT+Art'"
+                        />
+                        <div class="absolute top-2 right-2 bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                            ${listing.category}
+                        </div>
+                        ${listing.featured ? `
+                            <div class="absolute top-2 left-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-semibold">
+                                ⭐ Featured
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-white mb-2 line-clamp-2">${listing.title}</h3>
+                        <p class="text-gray-300 text-sm mb-4 line-clamp-3">${listing.description}</p>
+                        
+                        <!-- Stats -->
+                        <div class="flex justify-between items-center mb-4 text-sm text-gray-400">
+                            <span>👁️ ${listing.views} views</span>
+                            <span>❤️ ${listing.likes} likes</span>
+                        </div>
+                        
+                        <!-- AI Model -->
+                        <div class="bg-blue-900 bg-opacity-30 rounded-lg p-2 mb-4">
+                            <div class="text-blue-300 text-xs">AI Model: ${listing.ai_model}</div>
+                        </div>
+                        
+                        <!-- Emotion Vector -->
+                        <div class="bg-purple-900 bg-opacity-30 rounded-lg p-2 mb-4">
+                            <div class="text-purple-300 text-xs mb-1">Emotion Vector:</div>
+                            <div class="flex justify-between text-xs text-purple-200">
+                                <span>V: ${listing.emotion_vector.valence.toFixed(2)}</span>
+                                <span>A: ${listing.emotion_vector.arousal.toFixed(2)}</span>
+                                <span>D: ${listing.emotion_vector.dominance.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Price and Action -->
+                        <div class="flex justify-between items-center">
+                            <div class="text-2xl font-bold text-green-400">
+                                ${listing.price} ${listing.currency}
+                            </div>
+                            <button class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105">
+                                Buy Now
+                            </button>
+                        </div>
+                        
+                        <!-- Seller -->
+                        <div class="mt-4 pt-4 border-t border-gray-700">
+                            <div class="text-gray-400 text-xs">
+                                Seller: <span class="text-blue-400 font-mono">${listing.seller}</span>
+                            </div>
+                            <div class="text-gray-500 text-xs mt-1">
+                                Created: ${new Date(listing.created_at).toLocaleDateString()}
+                            </div>
+                        </div>
+                        
+                        <!-- Tags -->
+                        <div class="mt-4 flex flex-wrap gap-1">
+                            ${listing.tags.map(tag => `
+                                <span class="bg-gray-700 text-gray-300 px-2 py-1 rounded-full text-xs">
+                                    ${tag}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Show error state
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('status').innerHTML = `
+                <div class="text-red-200 text-lg">❌ Connection Failed</div>
+                <div class="text-red-300 text-sm">${message}</div>
+            `;
+        }
+
+        // Load marketplace on page load
+        window.addEventListener('load', loadMarketplace);
+
+        // Refresh every 30 seconds
+        setInterval(loadMarketplace, 30000);
+    </script>
+</body>
+</html>

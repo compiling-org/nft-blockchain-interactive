@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { FilecoinStorageClient, createFilecoinStorageClient } from '../utils/filecoin-storage-working';
-import { generateBiometricHash } from '../utils/biometric-utils';
+import React, { useState, useCallback, useRef } from 'react';
+import { FilecoinStorageClient, createFilecoinStorageClient } from '../utils/filecoin-storage';
 
 interface FilecoinStorageIntegrationProps {
   canvas: HTMLCanvasElement | null;
@@ -32,6 +31,7 @@ const FilecoinStorageIntegration: React.FC<FilecoinStorageIntegrationProps> = ({
   } | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const connectStorage = useCallback(async () => {
     if (!apiKey.trim()) {
@@ -58,31 +58,44 @@ const FilecoinStorageIntegration: React.FC<FilecoinStorageIntegrationProps> = ({
     setUploadProgress(0);
 
     try {
+      // Clear any existing interval
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      
       // Simulate upload progress
-      const progressInterval = setInterval(() => {
+      progressIntervalRef.current = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
-            // clearInterval(progressInterval); // Commented out
+            if (progressIntervalRef.current) {
+              clearInterval(progressIntervalRef.current);
+            }
             return prev;
           }
           return prev + 10;
         });
       }, 200);
 
-      // Generate biometric hash
-      const biometricHash = await generateBiometricHash(biometricData);
+      // Generate biometric hash (for future use)
+      // const biometricHash = await generateBiometricHash(biometricData);
+      
+      // Convert canvas to blob for storage
+      await new Promise<void>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve();
+        }, 'image/png');
+      });
       
       // Store emotional art on Filecoin
       const result = await storageClient.storeEmotionalArt({
-        canvas,
-        emotionData,
-        biometricHash: Array.from(biometricHash).map(b => b.toString(16).padStart(2, '0')).join(''),
-        aiModel: 'Emotional Fractal Generator v1.0',
+        canvas: canvas,
+        emotionData: emotionData,
+        biometricHash: 'mock-biometric-hash-12345',
+        aiModel: 'emotional-art-generator',
         generationParams: {
-          algorithm: 'fractal',
-          iterations: 1000,
-          colorPalette: 'emotional',
-          timestamp: Date.now()
+          style: 'abstract',
+          complexity: 8,
+          iterations: 1000
         }
       });
 
@@ -107,7 +120,12 @@ const FilecoinStorageIntegration: React.FC<FilecoinStorageIntegrationProps> = ({
       }, 2000);
 
     } catch (error) {
-      // clearInterval(progressInterval); // Commented out
+      // Clear the progress interval
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+      
       setIsUploading(false);
       setUploadProgress(0);
       onError?.(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

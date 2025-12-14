@@ -277,6 +277,12 @@ Annual Savings (100GB): $1,196
 
 ## 🚀 Deployment & Operations
 
+### Calibration Testnet Constraints
+- Custom Rust/WASM actors cannot be installed on the public Calibration network via `lotus` CLI.
+- Use a local Lotus devnet or FVM test harness to install and create actors.
+- The calibration deployment script now detects missing `install-actor`/`create-actor` commands and records build metadata instead of attempting on-chain installation (`contracts/filecoin/deploy-calibration.sh:212-227`).
+- Configuration for Calibration connectivity remains in `src/config/filecoin-calibration.env:1-8`.
+
 ### **Infrastructure Setup**
 
 #### **Production Environment**

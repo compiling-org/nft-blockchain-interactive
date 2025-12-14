@@ -20,6 +20,8 @@ pub struct ComprehensiveCreativeSession {
     pub emotional_data: Option<crate::EmotionalData>,
     pub creative_output: CreativeOutput,
     pub blockchain_integrations: Vec<BlockchainIntegration>,
+    #[cfg(feature = "audio")]
+    pub audio_playback_active: bool,
 }
 
 /// Creative output from the comprehensive session
@@ -101,6 +103,31 @@ impl ComprehensiveCreativeSession {
         
         Ok(())
     }
+    
+    /// Play the latest generated music track
+    #[cfg(feature = "audio")]
+    pub fn play_latest_music(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(latest_track) = self.creative_output.music_tracks.last() {
+            self.music_engine.play_music(latest_track)?;
+            self.audio_playback_active = true;
+            Ok(())
+        } else {
+            Err("No music tracks available to play".into())
+        }
+    }
+    
+    /// Stop audio playback
+    #[cfg(feature = "audio")]
+    pub fn stop_audio(&mut self) {
+        self.music_engine.stop();
+        self.audio_playback_active = false;
+    }
+    
+    /// Check if audio is currently playing
+    #[cfg(feature = "audio")]
+    pub fn is_audio_playing(&self) -> bool {
+        self.music_engine.is_playing()
+    }
 
     /// Process emotional input and generate creative content
     pub async fn process_emotional_input(&mut self, valence: f32, arousal: f32, dominance: f32, image_data: Option<&[u8]>) -> Result<CreativeOutput, Box<dyn std::error::Error>> {
@@ -164,7 +191,8 @@ impl ComprehensiveCreativeSession {
         self.creative_output.vector_embeddings.push(vector_embedding.clone());
 
         // Store in LanceDB
-        let vector_id = self.vector_engine.insert_emotional_vector(vector_embedding.vector_data).await?;
+        let vector_data = self.vector_engine.create_emotional_vector(&emotional_data, &self.session_id, &music_result.id);
+        let vector_id = self.vector_engine.insert_emotional_vector(vector_data).await?;
         
         // Add metadata to creative output
         self.creative_output.creative_parameters.insert("vector_id".to_string(), vector_id.len() as f32);

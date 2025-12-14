@@ -1,0 +1,20 @@
+[package]
+name = "biometric-nft-actor"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+fvm_shared = "3.0"
+fvm_sdk = "3.0"
+fvm_ipld_blockstore = "0.2"
+fvm_ipld_encoding = "0.4"
+fvm_ipld_hamt = "0.7"
+cid = "0.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_tuple = "0.5"
+thiserror = "1.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]

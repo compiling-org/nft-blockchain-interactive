@@ -1,12 +1,11 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import AIBlockchainIntegration from '../components/AIBlockchainIntegration';
-import { BiometricNFTClient } from '../utils/solana-client';
 import { FilecoinStorageClient } from '../utils/filecoin-storage';
-import { PolkadotSoulboundClient } from '../utils/polkadot-client';
 
 // Mock canvas reference
 const mockCanvasRef = {

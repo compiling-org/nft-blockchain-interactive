@@ -1,438 +1,356 @@
-//! Solana Creative Metadata Program
-//!
+//! Solana Emotional Metadata Program
+//! 
 //! High-performance metadata storage for creative NFTs with neuroemotive integration.
 //! Enhanced with cross-chain bridge capabilities and advanced compression.
 
 use anchor_lang::prelude::*;
 
-declare_id!("CreativeMetadata111111111111111111111111111");
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 /// Emotional vector for creative expression
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, Copy)]
 pub struct EmotionalVector {
-    pub valence: f32,
-    pub arousal: f32,
-    pub dominance: f32,
-    pub confidence: f32, // Add confidence metric
-    pub timestamp: i64,  // Add timestamp
+    pub valence: f32,        // -1.0 to 1.0 (negative to positive)
+    pub arousal: f32,        // 0.0 to 1.0 (calm to excited)  
+    pub dominance: f32,      // 0.0 to 1.0 (submissive to dominant)
+    pub confidence: f32,     // 0.0 to 1.0 (confidence in prediction)
+    pub timestamp: i64,      // Unix timestamp
 }
 
 /// Cross-chain bridge information
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
 pub struct CrossChainInfo {
-    pub target_chain: String,
-    pub target_contract: Pubkey,
-    pub bridge_status: u8, // 0 = pending, 1 = bridged, 2 = failed
-    pub bridge_timestamp: i64,
-    pub emotional_metadata: Option<EmotionalVector>, // Include emotional data for cross-chain
+    pub target_chain: String,        // Target blockchain (e.g., "NEAR", "Polkadot")
+    pub target_contract: Pubkey,     // Target contract address
+    pub bridge_status: u8,           // 0 = pending, 1 = bridged, 2 = failed
+    pub bridge_timestamp: i64,         // When bridge operation occurred
+    pub emotional_hash: [u8; 32],      // Hash of emotional data for verification
 }
 
 /// Session parameters for creative work
 #[account]
 #[derive(Default)]
 pub struct CreativeSession {
-    pub creator: Pubkey,
-    pub session_id: [u8; 32],
-    pub start_time: i64,
-    pub emotional_state: [f32; 3], // valence, arousal, dominance
-    pub shader_params: Vec<f32>,
-    pub interaction_count: u32,
-    pub compressed_state: [u8; 32], // Merkle root of compressed data
-    // Add cross-chain bridge support
-    pub cross_chain_info: CrossChainInfo,
-    // Add reputation score
-    pub reputation_score: f32,
-    // Add advanced analytics
-    pub emotional_complexity: f32,
-    pub creativity_index: f32,
-    pub community_engagement: u32,
+    pub creator: Pubkey,                    // Session owner
+    pub session_id: [u8; 32],                // Unique session identifier
+    pub start_time: i64,                     // Session start timestamp
+    pub emotional_state: EmotionalVector,    // Current emotional state
+    pub shader_params: Vec<f32>,             // WebGPU shader parameters
+    pub interaction_count: u32,              // Number of interactions
+    pub compressed_state: [u8; 32],        // Compressed state hash
+    pub cross_chain_info: CrossChainInfo,  // Cross-chain bridge data
+    pub reputation_score: f32,              // Creator reputation (0.0 to 1.0)
+    pub emotional_complexity: f32,         // Calculated complexity score
+    pub creativity_index: f32,               // Creativity measurement
+    pub community_engagement: u32,           // Community interaction count
+    pub last_updated: i64,                   // Last update timestamp
 }
 
-/// Performance data point
+/// Performance data point for stream tracking
 #[account]
 #[derive(Default)]
 pub struct PerformanceData {
-    pub session_id: [u8; 32],
-    pub timestamp: i64,
-    pub emotional_vector: [f32; 3],
-    pub shader_parameters: Vec<f32>,
-    pub interaction_intensity: f32,
-    // Add emotional metadata
-    pub emotional_metadata: EmotionalVector,
-    // Add advanced metrics
-    pub emotional_impact: f32,
-    pub creativity_boost: f32,
+    pub session_id: [u8; 32],                // Reference to session
+    pub timestamp: i64,                      // Performance timestamp
+    pub emotional_vector: EmotionalVector,   // Emotional state at time
+    pub shader_parameters: Vec<f32>,         // Active shader params
+    pub interaction_intensity: f32,          // Interaction intensity (0.0 to 1.0)
+    pub emotional_impact: f32,               // Calculated emotional impact
+    pub creativity_boost: f32,               // Creativity boost factor
+    pub quality_score: f32,                  // Overall quality (0.0 to 1.0)
 }
 
 /// Reputation tracking for creators
 #[account]
 #[derive(Default)]
 pub struct CreatorReputation {
-    pub creator: Pubkey,
-    pub reputation_score: f32,
-    pub total_interactions: u64,
-    pub last_updated: i64,
-    // Add advanced reputation metrics
-    pub emotional_consistency: f32,
-    pub creativity_score: f32,
-    pub community_rank: u32,
+    pub creator: Pubkey,                     // Creator's public key
+    pub reputation_score: f32,               // Overall reputation (0.0 to 1.0)
+    pub total_interactions: u64,             // Total interaction count
+    pub last_updated: i64,                   // Last reputation update
+    pub emotional_consistency: f32,          // Emotional state consistency
+    pub creativity_score: f32,               // Average creativity score
+    pub community_rank: u32,                 // Community ranking
+    pub total_sessions: u32,                 // Number of creative sessions
 }
 
 /// Emotional trajectory tracking
 #[account]
 #[derive(Default)]
 pub struct EmotionalTrajectory {
-    pub session_id: [u8; 32],
-    pub emotional_history: Vec<EmotionalVector>,
-    pub predicted_next: Option<EmotionalVector>,
-    pub trajectory_complexity: f32,
-}
-
-// Helper function to hash data
-fn hash_data(data: &[u8]) -> [u8; 32] {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
-    let mut hasher = DefaultHasher::new();
-    data.hash(&mut hasher);
-    let hash = hasher.finish();
-    
-    // Convert to 32-byte array
-    let mut result = [0u8; 32];
-    result[0..8].copy_from_slice(&hash.to_le_bytes());
-    result
-}
-
-// Helper function to calculate emotional complexity
-fn calculate_emotional_complexity(history: &[EmotionalVector]) -> f32 {
-    if history.len() < 2 {
-        return 0.0;
-    }
-    
-    let mut variance = 0.0;
-    let len = history.len() as f32;
-    
-    // Calculate mean
-    let mean_valence: f32 = history.iter().map(|e| e.valence).sum::<f32>() / len;
-    let mean_arousal: f32 = history.iter().map(|e| e.arousal).sum::<f32>() / len;
-    let mean_dominance: f32 = history.iter().map(|e| e.dominance).sum::<f32>() / len;
-    
-    // Calculate variance
-    for emotion in history {
-        variance += (emotion.valence - mean_valence).powi(2);
-        variance += (emotion.arousal - mean_arousal).powi(2);
-        variance += (emotion.dominance - mean_dominance).powi(2);
-    }
-    
-    variance /= len * 3.0; // Normalize by number of dimensions
-    variance.min(1.0) // Clamp to 0.0-1.0 range
+    pub session_id: [u8; 32],                // Reference to session
+    pub emotional_history: Vec<EmotionalVector>, // Historical emotional states
+    pub predicted_next: EmotionalVector,     // AI-predicted next state
+    pub trajectory_complexity: f32,           // Complexity of emotional pattern
+    pub update_count: u32,                   // Number of updates
 }
 
 #[program]
-pub mod creative_metadata {
+pub mod solana_emotional_metadata {
     use super::*;
 
-    pub fn init_session(
-        ctx: Context<InitSession>,
+    /// Initialize a new creative session
+    pub fn initialize_session(
+        ctx: Context<InitializeSession>,
         session_id: [u8; 32],
-        emotional_state: [f32; 3],
+        initial_emotional_state: EmotionalVector,
         shader_params: Vec<f32>,
     ) -> Result<()> {
         let session = &mut ctx.accounts.session;
+        let clock = Clock::get()?;
+        
         session.creator = ctx.accounts.creator.key();
         session.session_id = session_id;
-        session.start_time = Clock::get()?.unix_timestamp;
-        session.emotional_state = emotional_state;
+        session.start_time = clock.unix_timestamp;
+        session.emotional_state = initial_emotional_state;
         session.shader_params = shader_params;
         session.interaction_count = 0;
-        session.reputation_score = 0.5; // Default neutral reputation
-        session.emotional_complexity = 0.0;
+        session.reputation_score = 0.5; // Start with neutral reputation
+        session.emotional_complexity = 0.5;
         session.creativity_index = 0.5;
         session.community_engagement = 0;
+        session.last_updated = clock.unix_timestamp;
         
-        // Initialize cross-chain info
-        session.cross_chain_info = CrossChainInfo::default();
+        // Initialize compressed state (simple hash for now)
+        session.compressed_state = hash_emotional_state(&initial_emotional_state);
         
-        // Create initial compressed state
-        let data = [
-            session_id.as_slice(),
-            &emotional_state[0].to_le_bytes(),
-            &emotional_state[1].to_le_bytes(),
-            &emotional_state[2].to_le_bytes(),
-        ].concat();
-        
-        session.compressed_state = hash_data(&data);
-        
-        // Initialize creator reputation
-        let creator_reputation = &mut ctx.accounts.creator_reputation;
-        creator_reputation.creator = ctx.accounts.creator.key();
-        creator_reputation.reputation_score = 0.5;
-        creator_reputation.total_interactions = 0;
-        creator_reputation.last_updated = Clock::get()?.unix_timestamp;
-        creator_reputation.emotional_consistency = 0.5;
-        creator_reputation.creativity_score = 0.5;
-        creator_reputation.community_rank = 0;
+        msg!("Creative session initialized: {:?}", session_id);
         
         Ok(())
     }
 
-    pub fn record_performance_data(
-        ctx: Context<RecordData>,
-        emotional_vector: [f32; 3],
+    /// Record performance data during creative session
+    pub fn record_performance(
+        ctx: Context<RecordPerformance>,
+        emotional_vector: EmotionalVector,
         shader_parameters: Vec<f32>,
         interaction_intensity: f32,
+        quality_score: f32,
     ) -> Result<()> {
-        let performance_data = &mut ctx.accounts.performance_data;
+        let performance = &mut ctx.accounts.performance;
         let session = &mut ctx.accounts.session;
+        let clock = Clock::get()?;
         
-        performance_data.session_id = session.session_id;
-        performance_data.timestamp = Clock::get()?.unix_timestamp;
-        performance_data.emotional_vector = emotional_vector;
-        performance_data.shader_parameters = shader_parameters;
-        performance_data.interaction_intensity = interaction_intensity;
+        // Record performance data
+        performance.session_id = session.session_id;
+        performance.timestamp = clock.unix_timestamp;
+        performance.emotional_vector = emotional_vector;
+        performance.shader_parameters = shader_parameters.clone();
+        performance.interaction_intensity = interaction_intensity;
+        performance.quality_score = quality_score;
         
-        // Add emotional metadata
-        performance_data.emotional_metadata = EmotionalVector {
-            valence: emotional_vector[0],
-            arousal: emotional_vector[1],
-            dominance: emotional_vector[2],
-            confidence: 0.8, // Default confidence
-            timestamp: Clock::get()?.unix_timestamp,
-        };
-        
-        // Calculate emotional impact (simplified)
-        performance_data.emotional_impact = interaction_intensity * 0.5 + 
-            (emotional_vector[0].abs() + emotional_vector[1] + emotional_vector[2]) / 3.0 * 0.5;
-        
-        // Calculate creativity boost (simplified)
-        performance_data.creativity_boost = interaction_intensity * 0.3 + 
-            session.creativity_index * 0.7;
+        // Calculate emotional impact and creativity boost
+        performance.emotional_impact = calculate_emotional_impact(&emotional_vector, &session.emotional_state);
+        performance.creativity_boost = calculate_creativity_boost(&shader_parameters, quality_score);
         
         // Update session
+        session.emotional_state = emotional_vector;
+        session.shader_params = shader_parameters;
         session.interaction_count += 1;
+        session.last_updated = clock.unix_timestamp;
         
-        // Update reputation based on interaction quality
-        if interaction_intensity > 0.5 {
-            session.reputation_score = (session.reputation_score + 0.1).min(1.0);
-        } else {
-            session.reputation_score = (session.reputation_score - 0.05).max(0.0);
-        }
+        // Update reputation based on quality
+        session.reputation_score = update_reputation(session.reputation_score, quality_score);
         
-        // Update creativity index
-        session.creativity_index = (session.creativity_index + performance_data.creativity_boost) / 2.0;
-        
-        // Update community engagement
-        session.community_engagement += 1;
-        
-        // Update compressed state
-        let data = [
-            session.session_id.as_slice(),
-            &emotional_vector[0].to_le_bytes(),
-            &emotional_vector[1].to_le_bytes(),
-            &emotional_vector[2].to_le_bytes(),
-            &interaction_intensity.to_le_bytes(),
-        ].concat();
-        
-        session.compressed_state = hash_data(&data);
-        
-        // Update creator reputation
-        let creator_reputation = &mut ctx.accounts.creator_reputation;
-        creator_reputation.reputation_score = session.reputation_score;
-        creator_reputation.total_interactions += 1;
-        creator_reputation.last_updated = Clock::get()?.unix_timestamp;
-        
-        // Update emotional consistency (simplified)
-        let consistency = 1.0 - (emotional_vector[0] - session.emotional_state[0]).abs() / 2.0;
-        creator_reputation.emotional_consistency = (creator_reputation.emotional_consistency + consistency) / 2.0;
-        
-        // Update creativity score
-        creator_reputation.creativity_score = session.creativity_index;
+        msg!("Performance recorded for session: {:?}", session.session_id);
         
         Ok(())
     }
 
-    pub fn compress_session_state(ctx: Context<CompressState>) -> Result<()> {
-        let session = &mut ctx.accounts.session;
-        
-        // In a real implementation, this would use Merkle tree compression
-        // For now, we'll just update the timestamp to show the function was called
-        let data = [
-            session.session_id.as_slice(),
-            &session.interaction_count.to_le_bytes(),
-        ].concat();
-        
-        session.compressed_state = hash_data(&data);
-        
-        Ok(())
-    }
-    
-    pub fn update_cross_chain_info(
-        ctx: Context<UpdateCrossChain>,
-        target_chain: String,
-        target_contract: Pubkey,
-    ) -> Result<()> {
-        let session = &mut ctx.accounts.session;
-        
-        // Include current emotional state in cross-chain metadata
-        let emotional_metadata = EmotionalVector {
-            valence: session.emotional_state[0],
-            arousal: session.emotional_state[1],
-            dominance: session.emotional_state[2],
-            confidence: 0.8,
-            timestamp: Clock::get()?.unix_timestamp,
-        };
-        
-        session.cross_chain_info.target_chain = target_chain;
-        session.cross_chain_info.target_contract = target_contract;
-        session.cross_chain_info.bridge_status = 0; // pending
-        session.cross_chain_info.bridge_timestamp = Clock::get()?.unix_timestamp;
-        session.cross_chain_info.emotional_metadata = Some(emotional_metadata);
-        
-        Ok(())
-    }
-    
-    pub fn update_bridge_status(
-        ctx: Context<UpdateCrossChain>,
-        status: u8,
-    ) -> Result<()> {
-        let session = &mut ctx.accounts.session;
-        
-        session.cross_chain_info.bridge_status = status;
-        session.cross_chain_info.bridge_timestamp = Clock::get()?.unix_timestamp;
-        
-        Ok(())
-    }
-    
-    pub fn init_emotional_trajectory(ctx: Context<InitEmotionalTrajectory>, session_id: [u8; 32]) -> Result<()> {
-        let trajectory = &mut ctx.accounts.trajectory;
-        trajectory.session_id = session_id;
-        trajectory.emotional_history = vec![];
-        trajectory.predicted_next = None;
-        trajectory.trajectory_complexity = 0.0;
-        
-        Ok(())
-    }
-    
-    pub fn add_emotional_state(
-        ctx: Context<AddEmotionalState>,
-        emotional_vector: [f32; 3],
+    /// Update emotional trajectory with AI prediction
+    pub fn update_emotional_trajectory(
+        ctx: Context<UpdateEmotionalTrajectory>,
+        new_emotional_state: EmotionalVector,
     ) -> Result<()> {
         let trajectory = &mut ctx.accounts.trajectory;
         let session = &mut ctx.accounts.session;
         
-        // Add emotional state to history
-        let emotion = EmotionalVector {
-            valence: emotional_vector[0],
-            arousal: emotional_vector[1],
-            dominance: emotional_vector[2],
-            confidence: 0.8,
-            timestamp: Clock::get()?.unix_timestamp,
-        };
+        // Add current state to history
+        trajectory.emotional_history.push(session.emotional_state);
         
-        trajectory.emotional_history.push(emotion);
-        
-        // Keep only last 10 states
-        if trajectory.emotional_history.len() > 10 {
+        // Keep only last 100 states to prevent unlimited growth
+        if trajectory.emotional_history.len() > 100 {
             trajectory.emotional_history.remove(0);
         }
         
-        // Calculate trajectory complexity
-        trajectory.trajectory_complexity = calculate_emotional_complexity(&trajectory.emotional_history);
+        // Simple prediction: trend-based (in real implementation, use AI model)
+        trajectory.predicted_next = predict_next_emotional_state(&trajectory.emotional_history);
         
-        // Update session emotional complexity
+        // Calculate trajectory complexity
+        trajectory.trajectory_complexity = calculate_trajectory_complexity(&trajectory.emotional_history);
+        trajectory.update_count += 1;
+        
+        // Update session with new state
+        session.emotional_state = new_emotional_state;
         session.emotional_complexity = trajectory.trajectory_complexity;
         
-        // Simple prediction (last state)
-        if !trajectory.emotional_history.is_empty() {
-            trajectory.predicted_next = Some(*trajectory.emotional_history.last().unwrap());
-        }
+        msg!("Emotional trajectory updated for session: {:?}", session.session_id);
+        
+        Ok(())
+    }
+
+    /// Compress emotional state data for efficient storage
+    pub fn compress_emotional_state(
+        ctx: Context<CompressEmotionalState>,
+        compression_target: Pubkey,
+    ) -> Result<()> {
+        let session = &mut ctx.accounts.session;
+        
+        // Simple compression: hash of current emotional state
+        let compressed_hash = hash_emotional_state(&session.emotional_state);
+        session.compressed_state = compressed_hash;
+        
+        msg!("Emotional state compressed for session: {:?}", session.session_id);
+        
+        Ok(())
+    }
+
+    /// Update creator reputation based on session performance
+    pub fn update_creator_reputation(
+        ctx: Context<UpdateCreatorReputation>,
+        session_performance: f32,
+    ) -> Result<()> {
+        let reputation = &mut ctx.accounts.reputation;
+        let session = &ctx.accounts.session;
+        let clock = Clock::get()?;
+        
+        // Update reputation using weighted average
+        let weight = 0.1; // New performance has 10% weight
+        reputation.reputation_score = reputation.reputation_score * (1.0 - weight) + session_performance * weight;
+        
+        // Update metrics
+        reputation.total_interactions += session.interaction_count as u64;
+        reputation.last_updated = clock.unix_timestamp;
+        reputation.total_sessions += 1;
+        reputation.emotional_consistency = calculate_emotional_consistency(&reputation.reputation_score);
+        reputation.creativity_score = (reputation.creativity_score * (reputation.total_sessions - 1) as f32 + session.creativity_index) / reputation.total_sessions as f32;
+        
+        msg!("Creator reputation updated for: {:?}", reputation.creator);
         
         Ok(())
     }
 }
 
+// Context structures for instructions
 #[derive(Accounts)]
-pub struct InitSession<'info> {
-    #[account(
-        init,
-        payer = creator,
-        space = 8 + 32 + 32 + 8 + 3*4 + 4 + 4 + 32 + 32 + 4 + 8 + 8 + 4 + 4 + 4 + 4
-    )]
+pub struct InitializeSession<'info> {
+    #[account(init, payer = creator, space = 1024)]
     pub session: Account<'info, CreativeSession>,
-    #[account(
-        init,
-        payer = creator,
-        space = 8 + 32 + 4 + 8 + 8 + 4 + 4 + 4
-    )]
-    pub creator_reputation: Account<'info, CreatorReputation>,
     #[account(mut)]
     pub creator: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
-pub struct RecordData<'info> {
-    #[account(
-        init,
-        payer = creator,
-        space = 8 + 32 + 8 + 3*4 + 4 + 4 + 3*4 + 4 + 4
-    )]
-    pub performance_data: Account<'info, PerformanceData>,
+pub struct RecordPerformance<'info> {
     #[account(mut)]
     pub session: Account<'info, CreativeSession>,
+    #[account(init, payer = creator, space = 512)]
+    pub performance: Account<'info, PerformanceData>,
     #[account(mut)]
-    pub creator_reputation: Account<'info, CreatorReputation>,
-    #[account(mut, constraint = creator.key() == session.creator)]
     pub creator: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
-pub struct CompressState<'info> {
+pub struct UpdateEmotionalTrajectory<'info> {
     #[account(mut)]
     pub session: Account<'info, CreativeSession>,
-    pub creator: Signer<'info>,
-}
-
-#[derive(Accounts)]
-pub struct UpdateCrossChain<'info> {
-    #[account(mut)]
-    pub session: Account<'info, CreativeSession>,
-    #[account(mut, constraint = creator.key() == session.creator)]
-    pub creator: Signer<'info>,
-}
-
-#[derive(Accounts)]
-pub struct InitEmotionalTrajectory<'info> {
-    #[account(
-        init,
-        payer = creator,
-        space = 8 + 32 + 4 + 10 * (4*3 + 4 + 8) + 1 + (4*3 + 4 + 8) + 4
-    )]
-    pub trajectory: Account<'info, EmotionalTrajectory>,
-    #[account(mut)]
-    pub session: Account<'info, CreativeSession>,
-    #[account(mut, constraint = creator.key() == session.creator)]
-    pub creator: Signer<'info>,
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct AddEmotionalState<'info> {
     #[account(mut)]
     pub trajectory: Account<'info, EmotionalTrajectory>,
-    #[account(mut)]
-    pub session: Account<'info, CreativeSession>,
-    #[account(mut, constraint = creator.key() == session.creator)]
     pub creator: Signer<'info>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Accounts)]
+pub struct CompressEmotionalState<'info> {
+    #[account(mut)]
+    pub session: Account<'info, CreativeSession>,
+    pub creator: Signer<'info>,
+}
 
-    #[test]
-    fn test_session_initialization() {
-        // This would be an integration test in a real Solana program
-        assert_eq!(2 + 2, 4);
+#[derive(Accounts)]
+pub struct UpdateCreatorReputation<'info> {
+    #[account(mut)]
+    pub reputation: Account<'info, CreatorReputation>,
+    #[account(mut)]
+    pub session: Account<'info, CreativeSession>,
+    pub creator: Signer<'info>,
+}
+
+// Helper functions
+fn hash_emotional_state(emotional_state: &EmotionalVector) -> [u8; 32] {
+    use anchor_lang::solana_program::hash::hash;
+    let data = [
+        emotional_state.valence.to_le_bytes().as_ref(),
+        emotional_state.arousal.to_le_bytes().as_ref(),
+        emotional_state.dominance.to_le_bytes().as_ref(),
+        emotional_state.confidence.to_le_bytes().as_ref(),
+        emotional_state.timestamp.to_le_bytes().as_ref(),
+    ].concat();
+    hash(&data).to_bytes()
+}
+
+fn calculate_emotional_impact(current: &EmotionalVector, previous: &EmotionalVector) -> f32 {
+    let valence_diff = (current.valence - previous.valence).abs();
+    let arousal_diff = (current.arousal - previous.arousal).abs();
+    let dominance_diff = (current.dominance - previous.dominance).abs();
+    (valence_diff + arousal_diff + dominance_diff) / 3.0
+}
+
+fn calculate_creativity_boost(shader_params: &[f32], quality_score: f32) -> f32 {
+    let param_variance = if shader_params.len() > 1 {
+        let mean = shader_params.iter().sum::<f32>() / shader_params.len() as f32;
+        let variance = shader_params.iter().map(|x| (x - mean).powi(2)).sum::<f32>() / shader_params.len() as f32;
+        variance.sqrt()
+    } else {
+        0.0
+    };
+    (param_variance * 0.5 + quality_score * 0.5).min(1.0)
+}
+
+fn predict_next_emotional_state(history: &[EmotionalVector]) -> EmotionalVector {
+    if history.len() < 2 {
+        return EmotionalVector::default();
     }
+    
+    // Simple trend-based prediction (in real implementation, use ML model)
+    let last = history.last().unwrap();
+    let second_last = &history[history.len() - 2];
+    
+    EmotionalVector {
+        valence: last.valence + (last.valence - second_last.valence),
+        arousal: last.arousal + (last.arousal - second_last.arousal),
+        dominance: last.dominance + (last.dominance - second_last.dominance),
+        confidence: 0.7, // Lower confidence for prediction
+        timestamp: last.timestamp + 60, // Assume 1 minute intervals
+    }
+}
+
+fn calculate_trajectory_complexity(history: &[EmotionalVector]) -> f32 {
+    if history.len() < 2 {
+        return 0.5;
+    }
+    
+    let mut total_change = 0.0;
+    for i in 1..history.len() {
+        let current = &history[i];
+        let previous = &history[i - 1];
+        
+        let change = (current.valence - previous.valence).powi(2)
+            + (current.arousal - previous.arousal).powi(2)
+            + (current.dominance - previous.dominance).powi(2);
+        total_change += change.sqrt();
+    }
+    
+    (total_change / (history.len() - 1) as f32).min(1.0)
+}
+
+fn update_reputation(current: f32, performance: f32) -> f32 {
+    let learning_rate = 0.1;
+    current + learning_rate * (performance - current)
+}
+
+fn calculate_emotional_consistency(reputation: &f32) -> f32 {
+    // Higher reputation = higher consistency
+    reputation * 0.8 + 0.2
 }

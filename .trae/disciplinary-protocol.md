@@ -98,6 +98,70 @@ grep -r "@ts-ignore" src/ | wc -l > /dev/null || echo "Add @ts-ignore where need
 git stash && git checkout HEAD~1 # Revert to simpler state
 ```
 
+## BLOCKCHAIN TOOLS INSTALLATION LOCATIONS (SYSTEM-WIDE)
+
+### Required Tools for Multi-Chain Development
+1. **NEAR CLI** - Already installed via npm at `/c/Users/kapil/AppData/Roaming/npm/near`
+2. **Solana CLI** - Install to `/c/Users/kapil/.cargo/bin/solana`
+3. **Anchor CLI** - Install to `/c/Users/kapil/.cargo/bin/anchor`
+4. **Substrate CLI** - Install to `/c/Users/kapil/.cargo/bin/substrate`
+5. **Polkadot CLI** - Install to `/c/Users/kapil/.cargo/bin/polkadot`
+6. **Ethereum tools** - Install parity to `/c/Users/kapil/.cargo/bin/parity`
+7. **Cargo** - Already at `/c/Users/kapil/.cargo/bin/cargo`
+8. **Node.js** - Already at `/c/Program Files/nodejs/node`
+9. **Rust** - Already at `/c/Users/kapil/.cargo/bin/rustc`
+
+### Installation Commands (USE THESE EXACTLY)
+```bash
+# Solana CLI
+cargo install solana-cli --version 1.17.0
+
+# Anchor CLI (use compatible version)
+cargo install anchor-cli --version 0.28.0
+
+# Substrate/Polkadot tools
+cargo install --git https://github.com/paritytech/substrate substrate-cli
+
+# Ethereum Parity
+cargo install --git https://github.com/paritytech/parity parity-ethereum
+```
+
+### PATH Configuration (MANDATORY)
+All tools MUST be accessible via PATH. After installation, verify with:
+```bash
+which solana anchor substrate polkadot parity
+```
+
+### ENFORCEMENT PROTOCOL
+- **NEVER install in project directories**
+- **ALWAYS use system-wide cargo install**
+- **Document exact installation locations**
+- **Verify accessibility immediately after install**
+
+## CURRENT BLOCKCHAIN TOOLS STATUS (VERIFIED)
+
+### ✅ WORKING TOOLS (CONFIRMED ACCESSIBLE)
+1. **NEAR CLI** - `/c/Users/kapil/AppData/Roaming/npm/near` ✅ VERIFIED
+2. **Cargo** - `/c/Users/kapil/.cargo/bin/cargo` ✅ VERIFIED  
+3. **Node.js** - `/c/Program Files/nodejs/node` ✅ VERIFIED
+4. **Rust** - `/c/Users/kapil/.cargo/bin/rustc` ✅ VERIFIED
+
+### ⏳ INSTALLATION IN PROGRESS
+- **Solana CLI** - Installing via `cargo install solana-cli`
+- **Anchor CLI** - Installing via `cargo install anchor-cli --version 0.28.0`
+- **Substrate CLI** - Installing via `cargo install --git https://github.com/paritytech/substrate substrate-cli`
+
+### 📋 TO VERIFY AFTER INSTALLATION
+```bash
+# Check all tools are accessible
+which solana anchor substrate polkadot parity
+
+# Verify versions
+solana --version
+anchor --version
+substrate --version
+```
+
 ## Success Metrics
 - **Functional Code**: Does it compile and run?
 - **User Interaction**: Can someone use this feature?
@@ -125,6 +189,48 @@ git stash && git checkout HEAD~1 # Revert to simpler state
 **ACHIEVABLE**: Incremental improvements to working baseline
 **RELEVANT**: Directly addresses grant requirements
 **TIME-BOUNDED**: Daily deliverable of working functionality
+
+### 7. Blockchain Tool Installation Chaos Loop ⭐ NEW CRITICAL RULE
+**Pattern**: Installing hundreds of duplicate versions of blockchain tools (Anchor, Solana, NEAR, etc.)
+**Symptoms**:
+- Multiple versions of anchor-cli, solana-cli, near-cli installed globally and locally
+- Cargo registry filled with 100+ versions of each blockchain tool
+- 6.7GB+ of wasted space from duplicate installations
+- PATH conflicts from multiple tool installations
+**Force Exit**: Use EXISTING tools from reference locations, document single installation paths
+
+## Blockchain Tool Management Protocol
+
+### Blockchain Tool Management Protocol
+
+### Fixed Tool Locations (MANDATORY) - CURRENT STATUS - VERIFIED WORKING
+**✅ NEAR CLI**: `/c/Users/kapil/AppData/Roaming/npm/near` (WORKING - VERIFIED)
+**✅ SOLANA CLI**: `/c/Users/kapil/.cargo/bin/solana` (WORKING: v1.17.0 - VERIFIED)
+**✅ CARGO**: `/c/Users/kapil/.cargo/bin/cargo` (WORKING: v1.90.0 - VERIFIED)
+**✅ RUST**: `/c/Users/kapil/.cargo/bin/rustc` (WORKING: v1.90.0 - VERIFIED)
+**✅ ANCHOR CLI**: `/c/Users/kapil/.cargo/bin/anchor` (WORKING: v0.29.0 - VERIFIED)
+**✅ CARGO-CONTRACT**: `/c/Users/kapil/.cargo/bin/cargo-contract` (WORKING: v5.0.3 - VERIFIED)
+**⚠️ SUBSTRATE**: INSTALLED BUT BROKEN - `substrate` crate is just "Hello World" dummy program (needs real Substrate CLI)
+**⚠️ POLKADOT**: INSTALLED BUT BROKEN - Linux binary, wrong format for Windows (needs Windows version)
+**⚠️ PARITY**: NOT INSTALLED - No working Ethereum client (needs Parity Ethereum)
+**⚠️ LOTUS/FOREST**: NOT INSTALLED - No working Filecoin client (needs Lotus or Forest)
+
+### Installation Prevention Rules
+1. **CHECK EXISTING FIRST**: Always verify tools exist before installing
+2. **SINGLE VERSION POLICY**: One version of each tool maximum
+3. **NO NPM GLOBAL BLOCKCHAIN TOOLS**: Use cargo for Rust-based tools
+4. **REFERENCE FOLDER PRIORITY**: Use tools from blockchain-ai-ml-references first
+
+### Cleanup Commands (When Chaos Detected)
+```bash
+# Remove duplicate NPM blockchain tools
+npm uninstall -g @coral-xyz/anchor-cli @project-serum/anchor-cli
+
+# Clean cargo registry duplicates (manual approval required)
+find /c/Users/kapil/.cargo/registry/src/ -name "anchor-*" -type d -exec rm -rf {} + 2>/dev/null
+find /c/Users/kapil/.cargo/registry/src/ -name "solana-*" -type d -exec rm -rf {} + 2>/dev/null
+find /c/Users/kapil/.cargo/registry/src/ -name "near-*" -type d -exec rm -rf {} + 2>/dev/null
+```
 
 ## Always-On Enforcement
 **MANDATE**: Enforcement stays ON at all times and is re-enabled if stopped.

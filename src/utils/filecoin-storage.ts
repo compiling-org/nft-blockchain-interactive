@@ -1,36 +1,16 @@
-// import { Web3Storage } from 'web3.storage';
 import { NFTStorage, Blob } from 'nft.storage';
+declare const Web3Storage: any;
 
 // Web3.Storage client for Filecoin integration
 export class FilecoinStorageClient {
-  // private web3Storage: Web3Storage | null = null;
-
-  private apiKey: string;
+  private nftStorage: NFTStorage;
+  private web3Storage: any;
 
   constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    this.initializeClients();
-  }
-
-  private initializeClients(): void {
-    try {
-      // Initialize Web3.Storage client
-      // this.web3Storage = new Web3Storage({ 
-      //   token: this.apiKey,
-      //   endpoint: new URL('https://api.web3.storage')
-      // });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-
-      // Initialize NFT.Storage client as backup
-      this.nftStorage = new NFTStorage({ 
-        token: this.apiKey 
-      });
-
-      console.log('Filecoin storage clients initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize storage clients:', error);
-      throw error;
-    }
+    // Initialize NFTStorage with the provided API key
+    this.nftStorage = new NFTStorage({ token: apiKey });
+    // Initialize Web3.Storage with the same API key
+    this.web3Storage = new Web3Storage({ token: apiKey });
   }
 
   /**
@@ -52,38 +32,37 @@ export class FilecoinStorageClient {
     url: string;
     metadata: any;
   }> {
-    if (!this.web3Storage) {
-      throw new Error('Web3.Storage client not initialized');
+    if (!this.nftStorage || !this.web3Storage) {
+      throw new Error('Storage clients not initialized');
     }
 
     try {
-      // Create metadata object
-      const nftMetadata = {
-        name: metadata.name,
-        description: metadata.description,
-        image: null, // Will be replaced with IPFS URL
-        attributes: metadata.attributes || [],
-        properties: {
-          ...metadata.properties,
-          created: new Date().toISOString(),
-          storage: 'web3.storage'
-        }
-      };
-
-      // Store image first to get its CID
-      const imageFiles = [metadata.image];
-      console.log('Storing image on Filecoin...');
-      const imageCid = await this.web3Storage.put(imageFiles, {
+      // Store image first using Web3.Storage for better reliability
+      console.log('Storing image on Filecoin via Web3.Storage...');
+      const imageFile = new File([metadata.image], 'image.png', { type: 'image/png' });
+      const imageCid = await this.web3Storage.put([imageFile], {
         name: `${metadata.name}-image`,
         wrapWithDirectory: false
       });
 
       // Create image URL
-      // const imageUrl = `https://w3s.link/ipfs/${imageCid}`;
-      // nftMetadata.image = imageUrl; // Commented out for now
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const imageUrl = `https://w3s.link/ipfs/${imageCid}`;
 
-      // Store metadata
+      // Create metadata object with actual image URL
+      const nftMetadata = {
+        name: metadata.name,
+        description: metadata.description,
+        image: imageUrl, // Use the actual IPFS URL
+        attributes: metadata.attributes || [],
+        properties: {
+          ...metadata.properties,
+          created: new Date().toISOString(),
+          storage: 'web3.storage',
+          imageCid: imageCid
+        }
+      };
+
+      // Store metadata using Web3.Storage
       const metadataBlob = new Blob([JSON.stringify(nftMetadata, null, 2)], {
         type: 'application/json'
       });
@@ -91,7 +70,7 @@ export class FilecoinStorageClient {
         type: 'application/json'
       });
 
-      console.log('Storing metadata on Filecoin...');
+      console.log('Storing metadata on Filecoin via Web3.Storage...');
       const metadataCid = await this.web3Storage.put([metadataFile], {
         name: `${metadata.name}-metadata`,
         wrapWithDirectory: false
@@ -235,9 +214,9 @@ export class FilecoinStorageClient {
         type: 'application/json'
       });
 
-      console.log('Storing biometric data on Filecoin...');
+      console.log('Storing biometric data on Filecoin via Web3.Storage...');
       const cid = await this.web3Storage.put([file], {
-        name: `biometric-${data.metadata.userId}`,
+        name: `biometric-${data.metadata.sessionId}`,
         wrapWithDirectory: false
       });
 

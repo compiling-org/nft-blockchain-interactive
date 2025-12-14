@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rust Foundation - Gesture/MIDI Integration Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            text-shadow: 0 0 10px #00ff00;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #1a1a1a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #00ff00;
+            color: #0a0a0a;
+            box-shadow: 0 0 15px #00ff00;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .visualization {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        canvas {
+            border: 2px solid #00ff00;
+            background: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        .parameters {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .parameter-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .parameter-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .parameter-label {
+            color: #88ff88;
+        }
+        
+        .parameter-value {
+            color: #ffffff;
+            font-weight: bold;
+        }
+        
+        .status {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .status-item {
+            margin-bottom: 10px;
+        }
+        
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            color: #88ff88;
+            display: inline-block;
+            width: 120px;
+        }
+        
+        .status-value {
+            color: #ffffff;
+            font-weight: bold;
+        }
+        
+        .error {
+            color: #ff4444;
+            background: #1a0a0a;
+            border: 1px solid #ff4444;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .midi-devices {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        select {
+            background: #0a0a0a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px;
+            font-family: inherit;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .audio-controls {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            color: #88ff88;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #00ff00;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: #00ff00;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rust Foundation - Gesture/MIDI Integration Test</h1>
+        
+        <div id="error-container"></div>
+        
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label">WASM Status:</span>
+                <span id="wasm-status" class="status-value">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">MIDI Support:</span>
+                <span id="midi-support" class="status-value">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">MediaPipe:</span>
+                <span id="mediapipe-status" class="status-value">Not loaded</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Audio Context:</span>
+                <span id="audio-status" class="status-value">Not initialized</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="init-wasm">Initialize WASM</button>
+            <button id="init-midi">Initialize MIDI</button>
+            <button id="init-mediapipe">Initialize MediaPipe</button>
+            <button id="start-audio">Start Audio</button>
+            <button id="stop-all">Stop All</button>
+        </div>
+        
+        <div class="midi-devices" id="midi-devices" style="display: none;">
+            <h3>MIDI Devices</h3>
+            <select id="midi-input-select">
+                <option value="">Select MIDI Input...</option>
+            </select>
+        </div>
+        
+        <div class="audio-controls">
+            <h3>Audio Controls</h3>
+            <div class="slider-container">
+                <label class="slider-label">Master Volume: <span id="volume-value">50</span>%</label>
+                <input type="range" id="master-volume" min="0" max="100" value="50">
+            </div>
+            <div class="slider-container">
+                <label class="slider-label

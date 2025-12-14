@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Marketplace</title>
+</head>
+<body>
+    <h1>Testing Marketplace Connection</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                console.log('Testing connection to marketplace backend...');
+                const response = await fetch('http://localhost:3002/api/marketplace/listings');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h2 style="color: green;">✅ SUCCESS</h2>
+                    <p>Status: ${response.status}</p>
+                    <p>Data: ${JSON.stringify(data, null, 2)}</p>
+                `;
+                
+                console.log('Success:', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h2 style="color: red;">❌ FAILED</h2>
+                    <p>Error: ${error.message}</p>
+                    <p>Stack: ${error.stack}</p>
+                `;
+                
+                console.error('Failed:', error);
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>

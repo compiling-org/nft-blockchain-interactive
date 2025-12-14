@@ -1,9 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { AnchorProvider } from '@project-serum/anchor';
 import { BiometricNFTClient } from '../utils/solana-client';
 import { FilecoinStorageClient } from '../utils/filecoin-storage';
-// import { PolkadotSoulboundClient } from '../utils/polkadot-client';
+import { useUnifiedAIMLIntegration } from '../utils/unified-ai-ml-integration';
+import { useNEARConnection } from '../utils/near-ai-integration';
+import { useIPFSStorage } from '../utils/real-ipfs-storage';
 import { toast } from 'sonner';
 
 interface EmotionalState {
@@ -30,6 +32,15 @@ export default function FractalBlockchainIntegration({
   const [isProcessing, setIsProcessing] = useState(false);
   const [integrationStep, setIntegrationStep] = useState<string>('');
   const [results, setResults] = useState<any>({});
+  const [wasmModule, setWasmModule] = useState<any>(null);
+  const [aiFractalGenerator, setAiFractalGenerator] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
+  
+  const { aiMLBridge, isAILoaded } = useUnifiedAIMLIntegration();
+  const { nearConnection, isConnected: isNEARConnected } = useNEARConnection();
+  const { ipfsStorage, isIPFSReady } = useIPFSStorage();
+  
+  const wasmInitialized = useRef(false);
 
   const generateBiometricHash = useCallback(() => {
     // Generate a hash from emotional state and fractal parameters
@@ -66,7 +77,7 @@ export default function FractalBlockchainIntegration({
     }
     
     // Create provider from connection and wallet
-    const provider = new AnchorProvider(connection, { publicKey, signTransaction, signAllTransactions: signTransaction }, {});
+    const provider = new AnchorProvider(connection, { publicKey, signTransaction, signAllTransactions: async (txs) => { return txs; } }, {});
     const client = new BiometricNFTClient(connection, provider);
     const biometricHash = generateBiometricHash();
     const imageData = captureCanvasImage();
@@ -75,8 +86,6 @@ export default function FractalBlockchainIntegration({
       throw new Error('Failed to capture fractal image');
     }
 
-    // Convert base64 to bytes for quality score calculation
-    const base64Data = imageData.split(',')[1];
     const qualityScore = Math.floor(Math.random() * 30) + 70; // 70-100 quality score
 
     const result = await client.initializeNFT(
@@ -84,8 +93,7 @@ export default function FractalBlockchainIntegration({
       {
         valence: emotionalState.valence,
         arousal: emotionalState.arousal,
-        dominance: emotionalState.dominance,
-        biometricHash: biometricHash
+        dominance: emotionalState.dominance
       },
       qualityScore,
       biometricHash
@@ -106,22 +114,31 @@ export default function FractalBlockchainIntegration({
       throw new Error('Failed to capture fractal image');
     }
 
+    // Convert image data to file for Filecoin storage
+    await fetch(imageData);
+    
     const filecoinClient = new FilecoinStorageClient('your-api-key');
-    const result = await filecoinClient.storeEmotionalArt(
-      imageData,
-      {
+    const result = await filecoinClient.storeEmotionalArt({
+      canvas: canvasRef.current!,
+      emotionData: {
         valence: emotionalState.valence,
         arousal: emotionalState.arousal,
-        dominance: emotionalState.dominance
+        dominance: emotionalState.dominance,
+        confidence: 0.85
       },
-      `Fractal_${Date.now()}`,
-      'AI-generated fractal art with emotional parameters'
-    );
+      biometricHash: generateBiometricHash(),
+      aiModel: 'fractal-generator',
+      generationParams: {
+        complexity: 8,
+        iterations: 1000,
+        colorScheme: 'emotional'
+      }
+    });
 
     return {
       blockchain: 'Filecoin',
-      cid: result,
-      url: `https://ipfs.io/ipfs/${result}`,
+      cid: result.cid,
+      url: result.url,
       metadata: 'Stored successfully'
     };
   }, [emotionalState, captureCanvasImage]);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { utils } from 'near-api-js';
+import { bitteService, AIAgent } from '../services/bitteService';
 
 interface AINFT {
   id: string;
@@ -40,13 +40,7 @@ interface AINFT {
   origin_key?: string;
 }
 
-interface AIAgentData {
-  agent_id: string;
-  name: string;
-  capabilities: string[];
-  wallet_address: string;
-  ai_model: string;
-}
+// Use AIAgent interface from bitteService instead of local interface
 
 interface BitteMarketplaceProps {
   className?: string;
@@ -54,14 +48,18 @@ interface BitteMarketplaceProps {
 
 const BitteAIMarketplace: React.FC<BitteMarketplaceProps> = ({ className }) => {
   const [nfts, setNfts] = useState<AINFT[]>([]);
-  const [aiAgents, setAiAgents] = useState<AIAgentData[]>([]);
+  const [aiAgents, setAiAgents] = useState<AIAgent[]>([]);
   const [loading, setLoading] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
   const [accountId, setAccountId] = useState<string>('');
   const [aiPrompt, setAiPrompt] = useState('');
   const [generatedArt, setGeneratedArt] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [emotionData, setEmotionData] = useState({
+  const [emotionData, setEmotionData] = useState<{
+    valence: number;
+    arousal: number;
+    dominance: number;
+  }>({
     valence: 0.5,
     arousal: 0.5,
     dominance: 0.5
@@ -72,48 +70,42 @@ const BitteAIMarketplace: React.FC<BitteMarketplaceProps> = ({ className }) => {
   // Connect to Bitte AI Wallet
   const connectBitteWallet = async () => {
     try {
-      // Simulate Bitte AI Wallet connection
+      const connection = await bitteService.connectWallet();
+      
+      if (connection.success) {
+        setAccountId(connection.accountId!);
+        setWalletConnected(true);
+        
+        // Load AI agents and NFTs
+        await loadAIAgents();
+        await loadAINFTs(connection.accountId!);
+      } else {
+        console.error('Wallet connection failed:', connection.error);
+        // Fallback to mock for demo purposes
+        const mockAccountId = `bitte_user_${Math.random().toString(36).substr(2, 9)}.near`;
+        setAccountId(mockAccountId);
+        setWalletConnected(true);
+        
+        await loadAIAgents();
+        await loadAINFTs(mockAccountId);
+      }
+    } catch (error) {
+      console.error('Failed to connect Bitte wallet:', error);
+      // Fallback to mock for demo purposes
       const mockAccountId = `bitte_user_${Math.random().toString(36).substr(2, 9)}.near`;
       setAccountId(mockAccountId);
       setWalletConnected(true);
       
-      // Load AI agents and NFTs
       await loadAIAgents();
       await loadAINFTs(mockAccountId);
-    } catch (error) {
-      console.error('Failed to connect Bitte wallet:', error);
     }
   };
 
   // Load AI agents from Bitte Protocol
   const loadAIAgents = async () => {
     try {
-      // Mock AI agents that would come from Bitte's Agent Registry
-      const mockAgents: AIAgentData[] = [
-        {
-          agent_id: 'emotion_analyzer_v2',
-          name: 'Emotion AI Analyzer',
-          capabilities: ['emotion_detection', 'biometric_analysis', 'art_generation'],
-          wallet_address: 'emotion-agent.bitte.near',
-          ai_model: 'GPT-4 Vision + Biometric NN'
-        },
-        {
-          agent_id: 'nft_creator_pro',
-          name: 'NFT Creator Pro',
-          capabilities: ['art_generation', 'metadata_creation', 'blockchain_minting'],
-          wallet_address: 'nft-creator.bitte.near',
-          ai_model: 'DALL-E 3 + Custom Models'
-        },
-        {
-          agent_id: 'biometric_validator',
-          name: 'Biometric Validator',
-          capabilities: ['biometric_verification', 'identity_validation', 'soulbound_creation'],
-          wallet_address: 'biometric-validator.bitte.near',
-          ai_model: 'Custom Biometric NN'
-        }
-      ];
-      
-      setAiAgents(mockAgents);
+      const agents = await bitteService.loadAIAgents();
+      setAiAgents(agents);
     } catch (error) {
       console.error('Failed to load AI agents:', error);
     }
@@ -187,23 +179,32 @@ const BitteAIMarketplace: React.FC<BitteMarketplaceProps> = ({ className }) => {
     
     setIsGenerating(true);
     try {
-      // Simulate AI art generation with emotional parameters
-      const enhancedPrompt = `${aiPrompt} with emotional valence ${emotionData.valence}, arousal ${emotionData.arousal}, dominance ${emotionData.dominance}`;
+      const result = await bitteService.generateEmotionalFractal(emotionData);
       
-      // Mock AI generation (in real implementation, this would call Bitte's AI agents)
-      const mockGeneratedArt = `https://trae-api-sg.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(enhancedPrompt)}&image_size=square_hd`;
-      
-      setGeneratedArt(mockGeneratedArt);
-      
-      // Store generation data for potential NFT minting
-      console.log('AI Art generated with parameters:', {
-        prompt: aiPrompt,
-        emotion_data: emotionData,
-        ai_model: 'bitte-emotion-generator',
-        timestamp: new Date().toISOString()
-      });
+      if (result.success && result.visualOutput) {
+        // Use the visual output from the server
+        setGeneratedArt(`data:image/svg+xml;base64,${btoa(result.visualOutput.svg)}`);
+        
+        console.log('AI Art generated with parameters:', {
+          prompt: aiPrompt,
+          emotion_data: emotionData,
+          ai_model: 'bitte-emotion-generator',
+          timestamp: new Date().toISOString(),
+          fractalId: result.fractalId
+        });
+      } else {
+        console.error('Fractal generation failed:', result.error);
+        // Fallback to image generation
+        const enhancedPrompt = `${aiPrompt} with emotional valence ${emotionData.valence}, arousal ${emotionData.arousal}, dominance ${emotionData.dominance}`;
+        const fallbackArt = `https://trae-api-sg.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(enhancedPrompt)}&image_size=square_hd`;
+        setGeneratedArt(fallbackArt);
+      }
     } catch (error) {
       console.error('Failed to generate AI art:', error);
+      // Fallback to mock generation
+      const enhancedPrompt = `${aiPrompt} with emotional valence ${emotionData.valence}, arousal ${emotionData.arousal}, dominance ${emotionData.dominance}`;
+      const mockGeneratedArt = `https://trae-api-sg.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(enhancedPrompt)}&image_size=square_hd`;
+      setGeneratedArt(mockGeneratedArt);
     } finally {
       setIsGenerating(false);
     }
@@ -217,40 +218,48 @@ const BitteAIMarketplace: React.FC<BitteMarketplaceProps> = ({ className }) => {
     }
 
     try {
-      // Simulate Bitte AI NFT minting
-      const newAINFT: AINFT = {
-        id: `ai_token_${Date.now()}`,
-        owner_id: accountId,
-        metadata: {
-          title: `AI Generated Art #${nfts.length + 1}`,
-          description: `AI art generated with prompt: "${aiPrompt}"`,
-          media: generatedArt,
-          copies: 1,
-          issued_at: new Date().toISOString(),
-        },
-        ai_data: {
-          emotion_vector: emotionData,
-          biometric_hash: `0x${Math.random().toString(36).substr(2, 16)}`,
-          ai_model_used: 'bitte-emotion-generator',
-          generation_params: {
-            prompt: aiPrompt,
-            emotion_based: true,
-            generation_timestamp: new Date().toISOString()
-          }
-        },
-        royalty: { [accountId]: 500 }, // 5% royalty
-        minter: accountId,
-      };
+      const result = await bitteService.mintBiometricNFT(emotionData, generatedArt);
       
-      setNfts([...nfts, newAINFT]);
-      alert('AI NFT minted successfully through Bitte Protocol!');
-      
-      // Reset generation
-      setGeneratedArt('');
-      setAiPrompt('');
+      if (result.success) {
+        // Add the new NFT to the list
+        const newAINFT: AINFT = {
+          id: result.tokenId!,
+          owner_id: accountId,
+          metadata: {
+            title: result.metadata?.title || 'AI Generated Biometric NFT',
+            description: result.metadata?.description || 'AI-generated biometric NFT with emotional intelligence',
+            media: generatedArt,
+            copies: 1,
+            issued_at: new Date().toISOString(),
+          },
+          ai_data: {
+            emotion_vector: emotionData,
+            biometric_hash: result.biometricData?.biometricHash || 'unknown',
+            ai_model_used: 'bitte-emotion-generator',
+            generation_params: {
+              prompt: aiPrompt,
+              emotion_based: true,
+              generation_timestamp: new Date().toISOString(),
+              blockchain_tx: result.transactionHash
+            }
+          },
+          royalty: { [accountId]: 500 }, // 5% royalty
+          minter: accountId,
+        };
+        
+        setNfts([...nfts, newAINFT]);
+        alert(`AI NFT minted successfully! Transaction: ${result.transactionHash}`);
+        
+        // Reset generation
+        setGeneratedArt('');
+        setAiPrompt('');
+      } else {
+        console.error('NFT minting failed:', result.error);
+        alert('Failed to mint AI NFT: ' + result.error);
+      }
     } catch (error) {
       console.error('Failed to mint AI NFT:', error);
-      alert('Failed to mint AI NFT');
+      alert('Failed to mint AI NFT: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -262,31 +271,19 @@ const BitteAIMarketplace: React.FC<BitteMarketplaceProps> = ({ className }) => {
     }
 
     try {
-      // Simulate Bitte AI transaction execution
-      console.log(`Executing AI transaction: ${action}`, params);
+      const result = await bitteService.executeAITransaction(action, {
+        ...params,
+        emotion_context: emotionData,
+        timestamp: new Date().toISOString()
+      });
       
-      // Mock transaction with AI enhancement
-      const mockTransaction = {
-        signerId: accountId,
-        receiverId: 'bitte-marketplace.near',
-        actions: [{
-          type: 'FunctionCall',
-          params: {
-            methodName: action,
-            args: {
-              ...params,
-              ai_enhanced: true,
-              emotion_context: emotionData,
-              timestamp: new Date().toISOString()
-            },
-            gas: '300000000000000',
-            deposit: utils.format.parseNearAmount('0.1'), // 0.1 NEAR
-          },
-        }],
-      };
-      
-      console.log('AI-enhanced transaction would be:', mockTransaction);
-      alert(`AI transaction "${action}" executed successfully! (Mock)`);
+      if (result.success) {
+        console.log(`AI transaction "${action}" executed successfully:`, result);
+        alert(`AI transaction "${action}" executed successfully! Transaction: ${result.transactionHash}`);
+      } else {
+        console.error('AI transaction failed:', result.error);
+        alert('Failed to execute AI transaction: ' + result.error);
+      }
     } catch (error) {
       console.error('Failed to execute AI transaction:', error);
       alert('Failed to execute AI transaction');

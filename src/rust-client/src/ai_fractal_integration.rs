@@ -1,7 +1,9 @@
 //! AI-powered fractal generation with real neural network integration
 
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 use web_sys::{WebGlRenderingContext, HtmlCanvasElement};
+use js_sys::Date;
 use crate::real_ai_integration::{EnhancedAIBlockchainIntegration, RealNeuralNetwork, NeuralLayer};
 use crate::webgpu_engine::{ShaderEngine, FractalType};
 use std::collections::HashMap;
@@ -52,7 +54,7 @@ impl AIFractalGenerator {
     /// Generate fractal parameters from emotional state using real neural network
     pub fn generate_emotion_fractal(&mut self, valence: f32, arousal: f32, dominance: f32) -> Result<String, JsValue> {
         // Create input vector with emotional state and time/complexity factors
-        let time_component = (js_sys::Date::now() as f32 / 1000.0) % 10.0 / 10.0; // 0-1 cycle
+        let time_component = (Date::now() as f32 / 1000.0) % 10.0 / 10.0; // 0-1 cycle
         let complexity = (valence.abs() + arousal + dominance) / 3.0; // Emotional complexity
         
         let neural_input = vec![valence, arousal, dominance, time_component, complexity];

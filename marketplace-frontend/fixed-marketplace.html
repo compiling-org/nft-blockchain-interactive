@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REAL Bitte Marketplace - FIXED</title>
+    <style>
+        body { 
+            background: linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #7c2d12 100%); 
+            color: white; 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .error-box { 
+            background: rgba(255,0,0,0.2); 
+            border: 1px solid red; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px; 
+        }
+        .success-box { 
+            background: rgba(0,255,0,0.2); 
+            border: 1px solid green; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px; 
+        }
+        .listing { 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            padding: 20px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            backdrop-filter: blur(10px);
+        }
+        button { 
+            background: linear-gradient(45deg, #8b5cf6, #ec4899); 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        .loading { text-align: center; padding: 40px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Bitte AI Marketplace - ACTUALLY FIXED</h1>
+        
+        <div id="error-display" class="error-box hidden"></div>
+        <div id="success-display" class="success-box hidden"></div>
+        
+        <div id="loading" class="loading">Loading marketplace data...</div>
+        <div id="marketplace-content" class="hidden">
+            <h2>Available Listings</h2>
+            <div id="listings"></div>
+        </div>
+    </div>
+
+    <script>
+        // Override console to show errors on page
+        const originalConsoleError = console.error;
+        const originalConsoleLog = console.log;
+        
+        window.addEventListener('error', function(event) {
+            showError(`JavaScript Error: ${event.error.message} at ${event.filename}:${event.lineno}:${event.colno}`);
+        });
+        
+        function showError(message) {
+            document.getElementById('error-display').classList.remove('hidden');
+            document.getElementById('error-display').innerHTML = `<h3>❌ ERROR</h3><p>${message}</p>`;
+            document.getElementById('loading').classList.add('hidden');
+        }
+        
+        function showSuccess(message) {
+            document.getElementById('success-display').classList.remove('hidden');
+            document.getElementById('success-display').innerHTML = `<h3>✅ SUCCESS</h3><p>${message}</p>`;
+        }
+        
+        async function loadMarketplace() {
+            try {
+                console.log('Starting marketplace load...');
+                
+                // Test if backend is reachable
+                console.log('Testing backend connection...');
+                const testResponse = await fetch('http://localhost:3002/api/marketplace/listings', {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                console.log('Response status:', testResponse.status);
+                console.log('Response ok:', testResponse.ok);
+                
+                if (!testResponse.ok) {
+                    throw new Error(`HTTP ${testResponse.status}: ${testResponse.statusText}`);
+                }
+                
+                const data = await testResponse.json();
+                console.log('Received data:', data);
+                
+                if (!data.success) {
+                    throw new Error('Backend returned success: false');
+                }
+                
+                if (!data.listings || data.listings.length === 0) {
+                    throw new Error('No listings found');
+                }
+                
+                // Display the listings
+                displayListings(data.listings);
+                
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('marketplace-content').classList.remove('hidden');
+                
+                showSuccess(`Loaded ${data.listings.length} listings successfully!`);
+                
+            } catch (error) {
+                console.error('Marketplace load failed:', error);
+                showError(`Failed to load marketplace: ${error.message}`);
+            }
+        }
+        
+        function displayListings(listings) {
+            const listingsEl = document.getElementById('listings');
+            listingsEl.innerHTML = listings.map(listing => `
+                <div class="listing">
+                    <h3>${listing.title}</h3>
+                    <p>${listing.description}</p>
+                    <div><strong>Price:</strong> ${listing.price} ${listing.currency}</div>
+                    <div><strong>Category:</strong> ${listing.category}</div>
+                    <div><strong>Seller:</strong> ${listing.seller}</div>
+                    <div><strong>Views:</strong> ${listing.views} | <strong>Likes:</strong> ${listing.likes}</div>
+                    <button onclick="alert('Buy: ${listing.title} for ${listing.price} ${listing.currency}')">Buy Now</button>
+                </div>
+            `).join('');
+        }
+        
+        // Load on page load
+        window.addEventListener('load', loadMarketplace);
+    </script>
+</body>
+</html>

@@ -15,7 +15,7 @@ use candle_nn::{Module, Linear};
 use lancedb::{connect, Table};
 
 #[cfg(feature = "audio")]
-use tunes::{Synthesizer, Waveform};
+use rodio::{Sink, Source, OutputStream};
 
 /// Enhanced GPU compute engine with AI/ML model support
 pub struct GPUComputeEngineV2 {

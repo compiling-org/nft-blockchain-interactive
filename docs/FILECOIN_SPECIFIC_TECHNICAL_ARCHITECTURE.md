@@ -469,3 +469,16 @@ function getStorageStats() {
 **Last Updated**: November 2025  
 **Compatibility**: All 6 grant projects  
 **Performance Target**: 99.9% availability, <3s upload time**
+
+### Deployment Constraints
+- Custom Rust/WASM actors cannot be installed on the public Calibration network via `lotus`
+- Use a local Lotus devnet or FVM harness to install and create actors
+
+### Implementation Status
+- Actor WASM builds locally with simulation; public Calibration install deferred
+- Storage architecture and compression pipeline documented; provider integration pending
+
+### Next Steps
+- Stand up devnet and install actor; invoke methods end-to-end
+- Integrate real IPFS/Web3.Storage/NFT.Storage providers
+- Implement Filecoin deals and persistence verification

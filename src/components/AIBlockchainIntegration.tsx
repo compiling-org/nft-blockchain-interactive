@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { BiometricNFTClient } from '../utils/solana-client';
-import { FilecoinStorageClient } from '../utils/filecoin-storage-working';
-import { PolkadotSoulboundClient } from '../utils/polkadot-client-working';
+import { FilecoinStorageClient } from '../utils/filecoin-storage';
+import { PolkadotSoulboundClient } from '../utils/polkadot-client';
 
 interface EmotionalState {
   valence: number;
@@ -108,10 +108,38 @@ export default function AIBlockchainIntegration({
           const storageClient = new FilecoinStorageClient('mock-api-key');
           
           setProgress('Uploading to Filecoin...');
-          const file = new File([blob], `emotional-fractal-${Date.now()}.png`, { type: 'image/png' });
-          const cid = await storageClient.storeEmotionalArt(file);
+          
+          // Create a mock canvas element for the storeEmotionalArt function
+          const mockCanvas = document.createElement('canvas');
+          mockCanvas.width = 512;
+          mockCanvas.height = 512;
+          const ctx = mockCanvas.getContext('2d');
+          if (ctx) {
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0);
+            };
+            img.src = URL.createObjectURL(blob);
+          }
+          
+          const result = await storageClient.storeEmotionalArt({
+            canvas: mockCanvas,
+            emotionData: {
+              valence: 0.5,
+              arousal: 0.3,
+              dominance: 0.7,
+              confidence: 0.85
+            },
+            biometricHash: 'mock-biometric-hash-12345',
+            aiModel: 'emotional-fractal-generator',
+            generationParams: {
+              complexity: 8,
+              iterations: 1000,
+              colorPalette: 'vibrant'
+            }
+          });
 
-          resolve(cid as string);
+          resolve(result.cid);
         } catch (error) {
           reject(error);
         }
@@ -125,12 +153,24 @@ export default function AIBlockchainIntegration({
     const biometricHash = await generateBiometricHash(canvas);
     const identityClient = new PolkadotSoulboundClient('mock-contract-address');
     
+    // Create a mock keypair for demonstration
+    const mockKeypair = {
+      address: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+      publicKey: new Uint8Array(32),
+      sign: () => new Uint8Array(64)
+    } as any;
+    
     const identityResult = await identityClient.createIdentity(
+      mockKeypair,
       `Emotional_Artist_${Date.now()}`,
-      biometricHash,
-      emotionalState.valence,
-      emotionalState.arousal,
-      emotionalState.dominance,
+      new TextEncoder().encode(biometricHash),
+      {
+        valence: emotionalState.valence,
+        arousal: emotionalState.arousal,
+        dominance: emotionalState.dominance,
+        confidence: 85,
+        timestamp: Date.now()
+      },
       `ipfs://mock-cid`
     );
 

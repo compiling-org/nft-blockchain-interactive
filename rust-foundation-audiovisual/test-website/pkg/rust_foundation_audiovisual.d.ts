@@ -1,94 +1,122 @@
 /* tslint:disable */
 /* eslint-disable */
+/**
+ * Initialize the real extracted system
+ */
 export function main(): void;
-export class AudioEngine {
+/**
+ * Real audio metrics extracted from Modurust
+ */
+export class AudioMetrics {
   free(): void;
   [Symbol.dispose](): void;
   constructor();
-  process_audio_frame(input_buffer: Float32Array): Float32Array;
-  get_audio_levels(): Float32Array;
-  generate_sine_wave(frequency: number, amplitude: number, duration: number): Float32Array;
+  readonly bpm: number;
+  readonly beats_detected: number;
+  readonly peak_left: number;
+  readonly peak_right: number;
+  readonly rms_left: number;
+  readonly rms_right: number;
 }
+/**
+ * Real AudioProcessor with extracted synthesis algorithms
+ */
+export class AudioProcessor {
+  free(): void;
+  [Symbol.dispose](): void;
+  constructor(sample_rate: number, buffer_size: number);
+  /**
+   * Generate real sine wave using extracted synthesis algorithms
+   */
+  generate_sine(frequency: number, duration: number): Float32Array;
+  /**
+   * Generate real square wave (extracted algorithm)
+   */
+  generate_square(frequency: number, duration: number): Float32Array;
+  /**
+   * Real frequency analysis (simplified from extracted FFT algorithms)
+   */
+  analyze_frequencies(audio_data: Float32Array): Float32Array;
+}
+/**
+ * Real CreativeEngine with extracted algorithms
+ */
 export class CreativeEngine {
   free(): void;
   [Symbol.dispose](): void;
-  constructor(canvas_width: number, canvas_height: number);
-  process_audio(input_buffer: Float32Array): Float32Array;
-  generate_visuals(tool_index: number, valence: number, arousal: number, dominance: number): Uint8Array;
-  update(delta_time: number): void;
-  get_tool_names(): Array<any>;
-  get_tool_info(index: number): any;
-  set_graphics_params(width: number, height: number, zoom: number, iterations: number): void;
+  constructor();
+  /**
+   * Process audio with real analysis algorithms (simplified from Modurust)
+   */
+  process_audio(audio_data: Float32Array): AudioMetrics;
+  /**
+   * Generate fractal with real mathematical algorithms (extracted from Shader Studio)
+   */
+  generate_fractal(width: number, height: number): Uint8Array;
+  /**
+   * Pan fractal view (real navigation from extracted code)
+   */
+  pan_fractal(delta_x: number, delta_y: number): void;
+  /**
+   * Zoom fractal with real mathematical precision (from extracted code)
+   */
+  zoom_fractal(factor: number, center_x: number, center_y: number): void;
+  /**
+   * Get fractal parameters
+   */
+  readonly fractal_params: FractalParameters;
 }
-export class CreativeTool {
+/**
+ * Real fractal parameters extracted from Shader Studio
+ */
+export class FractalParameters {
   free(): void;
   [Symbol.dispose](): void;
-  constructor(name: string, tool_type: string);
-  add_parameter(param: ToolParameter): void;
-  set_code(code: string): void;
-  get_name(): string;
-  get_type(): string;
-  to_json(): any;
-}
-export class GraphicsEngine {
-  free(): void;
-  [Symbol.dispose](): void;
-  constructor(width: number, height: number);
-  generate_fractal(center_x: number, center_y: number, valence: number, arousal: number, dominance: number): Uint8Array;
-  generate_audio_reactive(bass: number, mid: number, treble: number, valence: number, arousal: number, dominance: number): Uint8Array;
-  update_time(delta_time: number): void;
-  set_zoom(zoom: number): void;
-  set_iterations(iterations: number): void;
-}
-export class ToolParameter {
-  free(): void;
-  [Symbol.dispose](): void;
-  constructor(name: string, param_type: string, default_value: number);
-  set range(value: number);
-  set description(value: string);
+  constructor();
+  iterations: number;
+  zoom: number;
+  set center(value: number);
+  readonly center_x: number;
+  readonly center_y: number;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly __wbg_toolparameter_free: (a: number, b: number) => void;
-  readonly toolparameter_new: (a: number, b: number, c: number, d: number, e: number) => number;
-  readonly toolparameter_set_range: (a: number, b: number, c: number) => void;
-  readonly toolparameter_set_description: (a: number, b: number, c: number) => void;
-  readonly __wbg_audioengine_free: (a: number, b: number) => void;
-  readonly audioengine_new: () => number;
-  readonly audioengine_process_audio_frame: (a: number, b: number, c: number) => [number, number];
-  readonly audioengine_get_audio_levels: (a: number) => [number, number];
-  readonly audioengine_generate_sine_wave: (a: number, b: number, c: number, d: number) => [number, number];
-  readonly graphicsengine_new: (a: number, b: number) => number;
-  readonly graphicsengine_generate_fractal: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
-  readonly graphicsengine_generate_audio_reactive: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
-  readonly graphicsengine_update_time: (a: number, b: number) => void;
-  readonly graphicsengine_set_zoom: (a: number, b: number) => void;
-  readonly graphicsengine_set_iterations: (a: number, b: number) => void;
-  readonly __wbg_creativetool_free: (a: number, b: number) => void;
-  readonly creativetool_new: (a: number, b: number, c: number, d: number) => number;
-  readonly creativetool_add_parameter: (a: number, b: number) => void;
-  readonly creativetool_set_code: (a: number, b: number, c: number) => void;
-  readonly creativetool_get_name: (a: number) => [number, number];
-  readonly creativetool_get_type: (a: number) => [number, number];
-  readonly creativetool_to_json: (a: number) => any;
+  readonly __wbg_fractalparameters_free: (a: number, b: number) => void;
+  readonly fractalparameters_new: () => number;
+  readonly fractalparameters_set_iterations: (a: number, b: number) => void;
+  readonly fractalparameters_set_zoom: (a: number, b: number) => void;
+  readonly fractalparameters_set_center: (a: number, b: number, c: number) => void;
+  readonly fractalparameters_iterations: (a: number) => number;
+  readonly fractalparameters_zoom: (a: number) => number;
+  readonly fractalparameters_center_x: (a: number) => number;
+  readonly fractalparameters_center_y: (a: number) => number;
+  readonly __wbg_audiometrics_free: (a: number, b: number) => void;
+  readonly audiometrics_new: () => number;
+  readonly audiometrics_bpm: (a: number) => number;
+  readonly audiometrics_beats_detected: (a: number) => number;
+  readonly audiometrics_peak_left: (a: number) => number;
+  readonly audiometrics_peak_right: (a: number) => number;
+  readonly audiometrics_rms_left: (a: number) => number;
+  readonly audiometrics_rms_right: (a: number) => number;
   readonly __wbg_creativeengine_free: (a: number, b: number) => void;
-  readonly creativeengine_new: (a: number, b: number) => number;
-  readonly creativeengine_process_audio: (a: number, b: number, c: number) => [number, number];
-  readonly creativeengine_generate_visuals: (a: number, b: number, c: number, d: number, e: number) => [number, number];
-  readonly creativeengine_update: (a: number, b: number) => void;
-  readonly creativeengine_get_tool_names: (a: number) => any;
-  readonly creativeengine_get_tool_info: (a: number, b: number) => any;
-  readonly creativeengine_set_graphics_params: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly creativeengine_new: () => number;
+  readonly creativeengine_process_audio: (a: number, b: number, c: number) => [number, number, number];
+  readonly creativeengine_generate_fractal: (a: number, b: number, c: number) => [number, number];
+  readonly creativeengine_fractal_params: (a: number) => number;
+  readonly creativeengine_pan_fractal: (a: number, b: number, c: number) => void;
+  readonly creativeengine_zoom_fractal: (a: number, b: number, c: number, d: number) => void;
+  readonly __wbg_audioprocessor_free: (a: number, b: number) => void;
+  readonly audioprocessor_new: (a: number, b: number) => number;
+  readonly audioprocessor_generate_sine: (a: number, b: number, c: number) => [number, number];
+  readonly audioprocessor_generate_square: (a: number, b: number, c: number) => [number, number];
+  readonly audioprocessor_analyze_frequencies: (a: number, b: number, c: number) => [number, number];
   readonly main: () => void;
-  readonly __wbg_graphicsengine_free: (a: number, b: number) => void;
-  readonly __wbindgen_malloc: (a: number, b: number) => number;
-  readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
-  readonly __wbindgen_exn_store: (a: number) => void;
-  readonly __externref_table_alloc: () => number;
   readonly __wbindgen_externrefs: WebAssembly.Table;
+  readonly __wbindgen_malloc: (a: number, b: number) => number;
+  readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_start: () => void;
 }

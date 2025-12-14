@@ -1,0 +1,19 @@
+[package]
+name = "emotional-metadata"
+version = "0.1.0"
+description = "Emotional metadata analysis and storage for NFTs"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "emotional_metadata"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.29.0"

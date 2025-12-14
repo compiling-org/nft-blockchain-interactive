@@ -1,0 +1,37 @@
+{
+  "name": "solana-emotional-metadata",
+  "version": "1.0.0",
+  "description": "Solana programs for emotional metadata and biometric NFTs",
+  "scripts": {
+    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "test": "anchor test",
+    "test:biometric": "anchor test --test-name biometric",
+    "test:emotional": "anchor test --test-name emotional",
+    "build": "anchor build",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet",
+    "deploy:mainnet": "anchor deploy --provider.cluster mainnet",
+    "sync": "ts-node scripts/sync-program-ids.ts",
+    "verify": "ts-node scripts/verify-deployment.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.87.6",
+    "@solana/spl-token": "^0.3.9",
+    "@project-serum/anchor": "^0.26.0",
+    "bn.js": "^5.2.1",
+    "crypto-js": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.1",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^20.8.0",
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "prettier": "^3.0.0",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.2.2",
+    "ts-node": "^10.9.1"
+  }
+}

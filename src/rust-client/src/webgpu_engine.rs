@@ -3,7 +3,9 @@
 //! Enhanced with emotional computing integration and advanced rendering capabilities.
 
 use wasm_bindgen::prelude::*;
-use web_sys::{WebGlRenderingContext, WebGlShader, WebGlProgram};
+use wasm_bindgen::JsValue;
+use web_sys::{WebGlRenderingContext, WebGlShader, WebGlProgram, HtmlCanvasElement};
+use js_sys::{Array, Object, Reflect};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
@@ -11,7 +13,7 @@ use chrono::{DateTime, Utc};
 /// WebGPU/WebGL shader engine for real-time creative rendering
 #[wasm_bindgen]
 pub struct ShaderEngine {
-    canvas: web_sys::HtmlCanvasElement,
+    canvas: HtmlCanvasElement,
     gl: WebGlRenderingContext,
     programs: HashMap<String, WebGlProgram>,
     current_program: Option<WebGlProgram>,

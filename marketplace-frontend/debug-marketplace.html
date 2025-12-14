@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Marketplace</title>
+</head>
+<body>
+    <h1>Debugging Bitte Marketplace</h1>
+    <div id="debug"></div>
+    <div id="result"></div>
+    
+    <script>
+        const debugEl = document.getElementById('debug');
+        const resultEl = document.getElementById('result');
+        
+        // Log everything
+        console.log = function(...args) {
+            debugEl.innerHTML += '<div style="color: blue;">LOG: ' + args.join(' ') + '</div>';
+            window.console.log.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            debugEl.innerHTML += '<div style="color: red;">ERROR: ' + args.join(' ') + '</div>';
+            window.console.error.apply(console, args);
+        };
+        
+        async function testMarketplace() {
+            console.log('Starting marketplace test...');
+            
+            try {
+                console.log('About to fetch from localhost:3002');
+                const response = await fetch('http://localhost:3002/api/marketplace/listings');
+                console.log('Fetch completed, status:', response.status);
+                
+                const text = await response.text();
+                console.log('Raw response text:', text.substring(0, 200));
+                
+                const data = JSON.parse(text);
+                console.log('Parsed data:', data);
+                
+                resultEl.innerHTML = '<h2 style="color: green;">SUCCESS!</h2><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+            } catch (error) {
+                console.error('Marketplace test failed:', error);
+                resultEl.innerHTML = '<h2 style="color: red;">FAILED!</h2><div>Error: ' + error.message + '</div><div>Stack: ' + error.stack + '</div>';
+            }
+        }
+        
+        testMarketplace();
+    </script>
+</body>
+</html>

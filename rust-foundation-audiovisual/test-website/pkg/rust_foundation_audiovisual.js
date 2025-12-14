@@ -1,72 +1,5 @@
 let wasm;
 
-function debugString(val) {
-    // primitive types
-    const type = typeof val;
-    if (type == 'number' || type == 'boolean' || val == null) {
-        return  `${val}`;
-    }
-    if (type == 'string') {
-        return `"${val}"`;
-    }
-    if (type == 'symbol') {
-        const description = val.description;
-        if (description == null) {
-            return 'Symbol';
-        } else {
-            return `Symbol(${description})`;
-        }
-    }
-    if (type == 'function') {
-        const name = val.name;
-        if (typeof name == 'string' && name.length > 0) {
-            return `Function(${name})`;
-        } else {
-            return 'Function';
-        }
-    }
-    // objects
-    if (Array.isArray(val)) {
-        const length = val.length;
-        let debug = '[';
-        if (length > 0) {
-            debug += debugString(val[0]);
-        }
-        for(let i = 1; i < length; i++) {
-            debug += ', ' + debugString(val[i]);
-        }
-        debug += ']';
-        return debug;
-    }
-    // Test for built-in
-    const builtInMatches = /\[object ([^\]]+)\]/.exec(toString.call(val));
-    let className;
-    if (builtInMatches && builtInMatches.length > 1) {
-        className = builtInMatches[1];
-    } else {
-        // Failed to match the standard '[object ClassName]'
-        return toString.call(val);
-    }
-    if (className == 'Object') {
-        // we're a user defined class or Object
-        // JSON.stringify avoids problems with cycles, and is generally much
-        // easier than looping through ownProperties of `val`.
-        try {
-            return 'Object(' + JSON.stringify(val) + ')';
-        } catch (_) {
-            return 'Object';
-        }
-    }
-    // errors
-    if (val instanceof Error) {
-        return `${val.name}: ${val.message}\n${val.stack}`;
-    }
-    // TODO we could test for more things here, like `Set`s and `Map`s.
-    return className;
-}
-
-let WASM_VECTOR_LEN = 0;
-
 let cachedUint8ArrayMemory0 = null;
 
 function getUint8ArrayMemory0() {
@@ -74,67 +7,6 @@ function getUint8ArrayMemory0() {
         cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
     }
     return cachedUint8ArrayMemory0;
-}
-
-const cachedTextEncoder = new TextEncoder();
-
-if (!('encodeInto' in cachedTextEncoder)) {
-    cachedTextEncoder.encodeInto = function (arg, view) {
-        const buf = cachedTextEncoder.encode(arg);
-        view.set(buf);
-        return {
-            read: arg.length,
-            written: buf.length
-        };
-    }
-}
-
-function passStringToWasm0(arg, malloc, realloc) {
-
-    if (realloc === undefined) {
-        const buf = cachedTextEncoder.encode(arg);
-        const ptr = malloc(buf.length, 1) >>> 0;
-        getUint8ArrayMemory0().subarray(ptr, ptr + buf.length).set(buf);
-        WASM_VECTOR_LEN = buf.length;
-        return ptr;
-    }
-
-    let len = arg.length;
-    let ptr = malloc(len, 1) >>> 0;
-
-    const mem = getUint8ArrayMemory0();
-
-    let offset = 0;
-
-    for (; offset < len; offset++) {
-        const code = arg.charCodeAt(offset);
-        if (code > 0x7F) break;
-        mem[ptr + offset] = code;
-    }
-
-    if (offset !== len) {
-        if (offset !== 0) {
-            arg = arg.slice(offset);
-        }
-        ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
-        const view = getUint8ArrayMemory0().subarray(ptr + offset, ptr + len);
-        const ret = cachedTextEncoder.encodeInto(arg, view);
-
-        offset += ret.written;
-        ptr = realloc(ptr, len, offset, 1) >>> 0;
-    }
-
-    WASM_VECTOR_LEN = offset;
-    return ptr;
-}
-
-let cachedDataViewMemory0 = null;
-
-function getDataViewMemory0() {
-    if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || (cachedDataViewMemory0.buffer.detached === undefined && cachedDataViewMemory0.buffer !== wasm.memory.buffer)) {
-        cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
-    }
-    return cachedDataViewMemory0;
 }
 
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
@@ -158,21 +30,6 @@ function getStringFromWasm0(ptr, len) {
     return decodeText(ptr, len);
 }
 
-function addToExternrefTable0(obj) {
-    const idx = wasm.__externref_table_alloc();
-    wasm.__wbindgen_externrefs.set(idx, obj);
-    return idx;
-}
-
-function handleError(f, args) {
-    try {
-        return f.apply(this, args);
-    } catch (e) {
-        const idx = addToExternrefTable0(e);
-        wasm.__wbindgen_exn_store(idx);
-    }
-}
-
 let cachedFloat32ArrayMemory0 = null;
 
 function getFloat32ArrayMemory0() {
@@ -182,6 +39,8 @@ function getFloat32ArrayMemory0() {
     return cachedFloat32ArrayMemory0;
 }
 
+let WASM_VECTOR_LEN = 0;
+
 function passArrayF32ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 4, 4) >>> 0;
     getFloat32ArrayMemory0().set(arg, ptr / 4);
@@ -189,9 +48,10 @@ function passArrayF32ToWasm0(arg, malloc) {
     return ptr;
 }
 
-function getArrayF32FromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return getFloat32ArrayMemory0().subarray(ptr / 4, ptr / 4 + len);
+function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_externrefs.get(idx);
+    wasm.__externref_table_dealloc(idx);
+    return value;
 }
 
 function getArrayU8FromWasm0(ptr, len) {
@@ -199,79 +59,170 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
 
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
+function getArrayF32FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getFloat32ArrayMemory0().subarray(ptr / 4, ptr / 4 + len);
 }
-
+/**
+ * Initialize the real extracted system
+ */
 export function main() {
     wasm.main();
 }
 
-const AudioEngineFinalization = (typeof FinalizationRegistry === 'undefined')
+const AudioMetricsFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_audioengine_free(ptr >>> 0, 1));
+    : new FinalizationRegistry(ptr => wasm.__wbg_audiometrics_free(ptr >>> 0, 1));
+/**
+ * Real audio metrics extracted from Modurust
+ */
+export class AudioMetrics {
 
-export class AudioEngine {
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(AudioMetrics.prototype);
+        obj.__wbg_ptr = ptr;
+        AudioMetricsFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
 
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        AudioEngineFinalization.unregister(this);
+        AudioMetricsFinalization.unregister(this);
         return ptr;
     }
 
     free() {
         const ptr = this.__destroy_into_raw();
-        wasm.__wbg_audioengine_free(ptr, 0);
+        wasm.__wbg_audiometrics_free(ptr, 0);
     }
     constructor() {
-        const ret = wasm.audioengine_new();
+        const ret = wasm.audiometrics_new();
         this.__wbg_ptr = ret >>> 0;
-        AudioEngineFinalization.register(this, this.__wbg_ptr, this);
+        AudioMetricsFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
-     * @param {Float32Array} input_buffer
+     * @returns {number}
+     */
+    get bpm() {
+        const ret = wasm.audiometrics_bpm(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {number}
+     */
+    get beats_detected() {
+        const ret = wasm.audiometrics_beats_detected(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {number}
+     */
+    get peak_left() {
+        const ret = wasm.audiometrics_peak_left(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {number}
+     */
+    get peak_right() {
+        const ret = wasm.audiometrics_peak_right(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {number}
+     */
+    get rms_left() {
+        const ret = wasm.audiometrics_rms_left(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {number}
+     */
+    get rms_right() {
+        const ret = wasm.audiometrics_rms_right(this.__wbg_ptr);
+        return ret;
+    }
+}
+if (Symbol.dispose) AudioMetrics.prototype[Symbol.dispose] = AudioMetrics.prototype.free;
+
+const AudioProcessorFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_audioprocessor_free(ptr >>> 0, 1));
+/**
+ * Real AudioProcessor with extracted synthesis algorithms
+ */
+export class AudioProcessor {
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        AudioProcessorFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_audioprocessor_free(ptr, 0);
+    }
+    /**
+     * @param {number} sample_rate
+     * @param {number} buffer_size
+     */
+    constructor(sample_rate, buffer_size) {
+        const ret = wasm.audioprocessor_new(sample_rate, buffer_size);
+        this.__wbg_ptr = ret >>> 0;
+        AudioProcessorFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * Generate real sine wave using extracted synthesis algorithms
+     * @param {number} frequency
+     * @param {number} duration
      * @returns {Float32Array}
      */
-    process_audio_frame(input_buffer) {
-        const ptr0 = passArrayF32ToWasm0(input_buffer, wasm.__wbindgen_malloc);
+    generate_sine(frequency, duration) {
+        const ret = wasm.audioprocessor_generate_sine(this.__wbg_ptr, frequency, duration);
+        var v1 = getArrayF32FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * Generate real square wave (extracted algorithm)
+     * @param {number} frequency
+     * @param {number} duration
+     * @returns {Float32Array}
+     */
+    generate_square(frequency, duration) {
+        const ret = wasm.audioprocessor_generate_square(this.__wbg_ptr, frequency, duration);
+        var v1 = getArrayF32FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v1;
+    }
+    /**
+     * Real frequency analysis (simplified from extracted FFT algorithms)
+     * @param {Float32Array} audio_data
+     * @returns {Float32Array}
+     */
+    analyze_frequencies(audio_data) {
+        const ptr0 = passArrayF32ToWasm0(audio_data, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.audioengine_process_audio_frame(this.__wbg_ptr, ptr0, len0);
+        const ret = wasm.audioprocessor_analyze_frequencies(this.__wbg_ptr, ptr0, len0);
         var v2 = getArrayF32FromWasm0(ret[0], ret[1]).slice();
         wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
         return v2;
     }
-    /**
-     * @returns {Float32Array}
-     */
-    get_audio_levels() {
-        const ret = wasm.audioengine_get_audio_levels(this.__wbg_ptr);
-        var v1 = getArrayF32FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-        return v1;
-    }
-    /**
-     * @param {number} frequency
-     * @param {number} amplitude
-     * @param {number} duration
-     * @returns {Float32Array}
-     */
-    generate_sine_wave(frequency, amplitude, duration) {
-        const ret = wasm.audioengine_generate_sine_wave(this.__wbg_ptr, frequency, amplitude, duration);
-        var v1 = getArrayF32FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-        return v1;
-    }
 }
-if (Symbol.dispose) AudioEngine.prototype[Symbol.dispose] = AudioEngine.prototype.free;
+if (Symbol.dispose) AudioProcessor.prototype[Symbol.dispose] = AudioProcessor.prototype.free;
 
 const CreativeEngineFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_creativeengine_free(ptr >>> 0, 1));
-
+/**
+ * Real CreativeEngine with extracted algorithms
+ */
 export class CreativeEngine {
 
     __destroy_into_raw() {
@@ -285,287 +236,148 @@ export class CreativeEngine {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_creativeengine_free(ptr, 0);
     }
-    /**
-     * @param {number} canvas_width
-     * @param {number} canvas_height
-     */
-    constructor(canvas_width, canvas_height) {
-        const ret = wasm.creativeengine_new(canvas_width, canvas_height);
+    constructor() {
+        const ret = wasm.creativeengine_new();
         this.__wbg_ptr = ret >>> 0;
         CreativeEngineFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
-     * @param {Float32Array} input_buffer
-     * @returns {Float32Array}
+     * Process audio with real analysis algorithms (simplified from Modurust)
+     * @param {Float32Array} audio_data
+     * @returns {AudioMetrics}
      */
-    process_audio(input_buffer) {
-        const ptr0 = passArrayF32ToWasm0(input_buffer, wasm.__wbindgen_malloc);
+    process_audio(audio_data) {
+        const ptr0 = passArrayF32ToWasm0(audio_data, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.creativeengine_process_audio(this.__wbg_ptr, ptr0, len0);
-        var v2 = getArrayF32FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-        return v2;
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return AudioMetrics.__wrap(ret[0]);
     }
     /**
-     * @param {number} tool_index
-     * @param {number} valence
-     * @param {number} arousal
-     * @param {number} dominance
+     * Generate fractal with real mathematical algorithms (extracted from Shader Studio)
+     * @param {number} width
+     * @param {number} height
      * @returns {Uint8Array}
      */
-    generate_visuals(tool_index, valence, arousal, dominance) {
-        const ret = wasm.creativeengine_generate_visuals(this.__wbg_ptr, tool_index, valence, arousal, dominance);
+    generate_fractal(width, height) {
+        const ret = wasm.creativeengine_generate_fractal(this.__wbg_ptr, width, height);
         var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
         wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
         return v1;
     }
     /**
-     * @param {number} delta_time
+     * Get fractal parameters
+     * @returns {FractalParameters}
      */
-    update(delta_time) {
-        wasm.creativeengine_update(this.__wbg_ptr, delta_time);
+    get fractal_params() {
+        const ret = wasm.creativeengine_fractal_params(this.__wbg_ptr);
+        return FractalParameters.__wrap(ret);
     }
     /**
-     * @returns {Array<any>}
+     * Pan fractal view (real navigation from extracted code)
+     * @param {number} delta_x
+     * @param {number} delta_y
      */
-    get_tool_names() {
-        const ret = wasm.creativeengine_get_tool_names(this.__wbg_ptr);
-        return ret;
+    pan_fractal(delta_x, delta_y) {
+        wasm.creativeengine_pan_fractal(this.__wbg_ptr, delta_x, delta_y);
     }
     /**
-     * @param {number} index
-     * @returns {any}
+     * Zoom fractal with real mathematical precision (from extracted code)
+     * @param {number} factor
+     * @param {number} center_x
+     * @param {number} center_y
      */
-    get_tool_info(index) {
-        const ret = wasm.creativeengine_get_tool_info(this.__wbg_ptr, index);
-        return ret;
-    }
-    /**
-     * @param {number} width
-     * @param {number} height
-     * @param {number} zoom
-     * @param {number} iterations
-     */
-    set_graphics_params(width, height, zoom, iterations) {
-        wasm.creativeengine_set_graphics_params(this.__wbg_ptr, width, height, zoom, iterations);
+    zoom_fractal(factor, center_x, center_y) {
+        wasm.creativeengine_zoom_fractal(this.__wbg_ptr, factor, center_x, center_y);
     }
 }
 if (Symbol.dispose) CreativeEngine.prototype[Symbol.dispose] = CreativeEngine.prototype.free;
 
-const CreativeToolFinalization = (typeof FinalizationRegistry === 'undefined')
+const FractalParametersFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_creativetool_free(ptr >>> 0, 1));
+    : new FinalizationRegistry(ptr => wasm.__wbg_fractalparameters_free(ptr >>> 0, 1));
+/**
+ * Real fractal parameters extracted from Shader Studio
+ */
+export class FractalParameters {
 
-export class CreativeTool {
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(FractalParameters.prototype);
+        obj.__wbg_ptr = ptr;
+        FractalParametersFinalization.register(obj, obj.__wbg_ptr, obj);
+        return obj;
+    }
 
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        CreativeToolFinalization.unregister(this);
+        FractalParametersFinalization.unregister(this);
         return ptr;
     }
 
     free() {
         const ptr = this.__destroy_into_raw();
-        wasm.__wbg_creativetool_free(ptr, 0);
+        wasm.__wbg_fractalparameters_free(ptr, 0);
     }
-    /**
-     * @param {string} name
-     * @param {string} tool_type
-     */
-    constructor(name, tool_type) {
-        const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(tool_type, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ret = wasm.creativetool_new(ptr0, len0, ptr1, len1);
+    constructor() {
+        const ret = wasm.fractalparameters_new();
         this.__wbg_ptr = ret >>> 0;
-        CreativeToolFinalization.register(this, this.__wbg_ptr, this);
+        FractalParametersFinalization.register(this, this.__wbg_ptr, this);
         return this;
-    }
-    /**
-     * @param {ToolParameter} param
-     */
-    add_parameter(param) {
-        _assertClass(param, ToolParameter);
-        var ptr0 = param.__destroy_into_raw();
-        wasm.creativetool_add_parameter(this.__wbg_ptr, ptr0);
-    }
-    /**
-     * @param {string} code
-     */
-    set_code(code) {
-        const ptr0 = passStringToWasm0(code, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.creativetool_set_code(this.__wbg_ptr, ptr0, len0);
-    }
-    /**
-     * @returns {string}
-     */
-    get_name() {
-        let deferred1_0;
-        let deferred1_1;
-        try {
-            const ret = wasm.creativetool_get_name(this.__wbg_ptr);
-            deferred1_0 = ret[0];
-            deferred1_1 = ret[1];
-            return getStringFromWasm0(ret[0], ret[1]);
-        } finally {
-            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-        }
-    }
-    /**
-     * @returns {string}
-     */
-    get_type() {
-        let deferred1_0;
-        let deferred1_1;
-        try {
-            const ret = wasm.creativetool_get_type(this.__wbg_ptr);
-            deferred1_0 = ret[0];
-            deferred1_1 = ret[1];
-            return getStringFromWasm0(ret[0], ret[1]);
-        } finally {
-            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-        }
-    }
-    /**
-     * @returns {any}
-     */
-    to_json() {
-        const ret = wasm.creativetool_to_json(this.__wbg_ptr);
-        return ret;
-    }
-}
-if (Symbol.dispose) CreativeTool.prototype[Symbol.dispose] = CreativeTool.prototype.free;
-
-const GraphicsEngineFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_graphicsengine_free(ptr >>> 0, 1));
-
-export class GraphicsEngine {
-
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        GraphicsEngineFinalization.unregister(this);
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_graphicsengine_free(ptr, 0);
-    }
-    /**
-     * @param {number} width
-     * @param {number} height
-     */
-    constructor(width, height) {
-        const ret = wasm.graphicsengine_new(width, height);
-        this.__wbg_ptr = ret >>> 0;
-        GraphicsEngineFinalization.register(this, this.__wbg_ptr, this);
-        return this;
-    }
-    /**
-     * @param {number} center_x
-     * @param {number} center_y
-     * @param {number} valence
-     * @param {number} arousal
-     * @param {number} dominance
-     * @returns {Uint8Array}
-     */
-    generate_fractal(center_x, center_y, valence, arousal, dominance) {
-        const ret = wasm.graphicsengine_generate_fractal(this.__wbg_ptr, center_x, center_y, valence, arousal, dominance);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
-    }
-    /**
-     * @param {number} bass
-     * @param {number} mid
-     * @param {number} treble
-     * @param {number} valence
-     * @param {number} arousal
-     * @param {number} dominance
-     * @returns {Uint8Array}
-     */
-    generate_audio_reactive(bass, mid, treble, valence, arousal, dominance) {
-        const ret = wasm.graphicsengine_generate_audio_reactive(this.__wbg_ptr, bass, mid, treble, valence, arousal, dominance);
-        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v1;
-    }
-    /**
-     * @param {number} delta_time
-     */
-    update_time(delta_time) {
-        wasm.graphicsengine_update_time(this.__wbg_ptr, delta_time);
-    }
-    /**
-     * @param {number} zoom
-     */
-    set_zoom(zoom) {
-        wasm.graphicsengine_set_zoom(this.__wbg_ptr, zoom);
     }
     /**
      * @param {number} iterations
      */
-    set_iterations(iterations) {
-        wasm.graphicsengine_set_iterations(this.__wbg_ptr, iterations);
+    set iterations(iterations) {
+        wasm.fractalparameters_set_iterations(this.__wbg_ptr, iterations);
+    }
+    /**
+     * @param {number} zoom
+     */
+    set zoom(zoom) {
+        wasm.fractalparameters_set_zoom(this.__wbg_ptr, zoom);
+    }
+    /**
+     * @param {number} x
+     * @param {number} y
+     */
+    set center(x, y) {
+        wasm.fractalparameters_set_center(this.__wbg_ptr, x, y);
+    }
+    /**
+     * @returns {number}
+     */
+    get iterations() {
+        const ret = wasm.fractalparameters_iterations(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {number}
+     */
+    get zoom() {
+        const ret = wasm.fractalparameters_zoom(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {number}
+     */
+    get center_x() {
+        const ret = wasm.fractalparameters_center_x(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @returns {number}
+     */
+    get center_y() {
+        const ret = wasm.fractalparameters_center_y(this.__wbg_ptr);
+        return ret;
     }
 }
-if (Symbol.dispose) GraphicsEngine.prototype[Symbol.dispose] = GraphicsEngine.prototype.free;
-
-const ToolParameterFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_toolparameter_free(ptr >>> 0, 1));
-
-export class ToolParameter {
-
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        ToolParameterFinalization.unregister(this);
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_toolparameter_free(ptr, 0);
-    }
-    /**
-     * @param {string} name
-     * @param {string} param_type
-     * @param {number} default_value
-     */
-    constructor(name, param_type, default_value) {
-        const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(param_type, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ret = wasm.toolparameter_new(ptr0, len0, ptr1, len1, default_value);
-        this.__wbg_ptr = ret >>> 0;
-        ToolParameterFinalization.register(this, this.__wbg_ptr, this);
-        return this;
-    }
-    /**
-     * @param {number} min
-     * @param {number} max
-     */
-    set range(min, max) {
-        wasm.toolparameter_set_range(this.__wbg_ptr, min, max);
-    }
-    /**
-     * @param {string} description
-     */
-    set description(description) {
-        const ptr0 = passStringToWasm0(description, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        wasm.toolparameter_set_description(this.__wbg_ptr, ptr0, len0);
-    }
-}
-if (Symbol.dispose) ToolParameter.prototype[Symbol.dispose] = ToolParameter.prototype.free;
+if (Symbol.dispose) FractalParameters.prototype[Symbol.dispose] = FractalParameters.prototype.free;
 
 const EXPECTED_RESPONSE_TYPES = new Set(['basic', 'cors', 'default']);
 
@@ -605,43 +417,15 @@ async function __wbg_load(module, imports) {
 function __wbg_get_imports() {
     const imports = {};
     imports.wbg = {};
-    imports.wbg.__wbg___wbindgen_debug_string_df47ffb5e35e6763 = function(arg0, arg1) {
-        const ret = debugString(arg1);
-        const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len1 = WASM_VECTOR_LEN;
-        getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
-        getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
-    };
     imports.wbg.__wbg___wbindgen_throw_b855445ff6a94295 = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
     imports.wbg.__wbg_log_81afccaed04c36dd = function(arg0, arg1) {
         console.log(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbg_new_1acc0b6eea89d040 = function() {
-        const ret = new Object();
-        return ret;
-    };
-    imports.wbg.__wbg_new_e17d9f43105b08be = function() {
-        const ret = new Array();
-        return ret;
-    };
-    imports.wbg.__wbg_push_df81a39d04db858c = function(arg0, arg1) {
-        const ret = arg0.push(arg1);
-        return ret;
-    };
-    imports.wbg.__wbg_set_c2abbebe8b9ebee1 = function() { return handleError(function (arg0, arg1, arg2) {
-        const ret = Reflect.set(arg0, arg1, arg2);
-        return ret;
-    }, arguments) };
     imports.wbg.__wbindgen_cast_2241b6af4c4b2941 = function(arg0, arg1) {
         // Cast intrinsic for `Ref(String) -> Externref`.
         const ret = getStringFromWasm0(arg0, arg1);
-        return ret;
-    };
-    imports.wbg.__wbindgen_cast_d6cd19b81560fd6e = function(arg0) {
-        // Cast intrinsic for `F64 -> Externref`.
-        const ret = arg0;
         return ret;
     };
     imports.wbg.__wbindgen_init_externref_table = function() {
@@ -661,7 +445,6 @@ function __wbg_get_imports() {
 function __wbg_finalize_init(instance, module) {
     wasm = instance.exports;
     __wbg_init.__wbindgen_wasm_module = module;
-    cachedDataViewMemory0 = null;
     cachedFloat32ArrayMemory0 = null;
     cachedUint8ArrayMemory0 = null;
 

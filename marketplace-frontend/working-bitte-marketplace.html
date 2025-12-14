@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitte Marketplace - SERVER-SIDE RENDERED</title>
+    <style>
+        body { 
+            background: linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #7c2d12 100%); 
+            color: white; 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .listing { 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            padding: 20px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            backdrop-filter: blur(10px);
+        }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error { background: rgba(255,0,0,0.2); border: 1px solid red; padding: 20px; border-radius: 8px; }
+        .success { background: rgba(0,255,0,0.2); border: 1px solid green; padding: 20px; border-radius: 8px; }
+        button { 
+            background: linear-gradient(45deg, #8b5cf6, #ec4899); 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        .price { color: #4CAF50; font-weight: bold; font-size: 1.2em; }
+        .title { font-size: 1.3em; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Bitte AI Marketplace - WORKING VERSION</h1>
+        <div id="status" class="loading">Loading marketplace data from server...</div>
+        <div id="content" style="display: none;">
+            <h2>Available AI NFTs</h2>
+            <div id="listings"></div>
+        </div>
+    </div>
+
+    <script>
+        // Force visible error handling
+        window.addEventListener('error', function(e) {
+            document.getElementById('status').innerHTML = 
+                '<div class="error"><h3>❌ JavaScript Error</h3><p>' + e.error.message + '</p><p>Line: ' + e.lineno + '</p></div>';
+            document.getElementById('content').style.display = 'none';
+        });
+
+        // Use XMLHttpRequest instead of fetch for better error handling
+        function loadMarketplaceData() {
+            const statusEl = document.getElementById('status');
+            const contentEl = document.getElementById('content');
+            const listingsEl = document.getElementById('listings');
+            
+            statusEl.innerHTML = '<div class="loading">Connecting to marketplace server...</div>';
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            
+                            if (data.success && data.listings && data.listings.length > 0) {
+                                statusEl.innerHTML = '<div class="success">✅ Successfully loaded ' + data.listings.length + ' listings!</div>';
+                                contentEl.style.display = 'block';
+                                
+                                listingsEl.innerHTML = data.listings.map(listing => `
+                                    <div class="listing">
+                                        <div class="title">${listing.title}</div>
+                                        <div>${listing.description}</div>
+                                        <div class="price">${listing.price} ${listing.currency}</div>
+                                        <div><strong>Category:</strong> ${listing.category}</div>
+                                        <div><strong>Seller:</strong> ${listing.seller}</div>
+                                        <div><strong>Stats:</strong> ${listing.views} views, ${listing.likes} likes</div>
+                                        <div><strong>AI Model:</strong> ${listing.ai_model}</div>
+                                        <div><strong>Emotion Vector:</strong> V:${listing.emotion_vector.valence.toFixed(2)} A:${listing.emotion_vector.arousal.toFixed(2)} D:${listing.emotion_vector.dominance.toFixed(2)}</div>
+                                        <button onclick="alert('Would buy: ${listing.title.replace(/'/g, "\\'")} for ${listing.price} ${listing.currency}')">Buy Now</button>
+                                    </div>
+                                `).join('');
+                            } else {
+                                throw new Error('Invalid data format from server');
+                            }
+                        } catch (parseError) {
+                            statusEl.innerHTML = '<div class="error"><h3>❌ JSON Parse Error</h3><p>' + parseError.message + '</p><p>Response: ' + xhr.responseText.substring(0, 200) + '...</p></div>';
+                        }
+                    } else {
+                        statusEl.innerHTML = '<div class="error"><h3>❌ Server Error</h3><p>HTTP Status: ' + xhr.status + ' ' + xhr.statusText + '</p><p>Response: ' + xhr.responseText + '</p></div>';
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                statusEl.innerHTML = '<div class="error"><h3>❌ Network Error</h3><p>Failed to connect to marketplace server at http://localhost:3002</p><p>Make sure the server is running on port 3002</p></div>';
+            };
+            
+            xhr.ontimeout = function() {
+                statusEl.innerHTML = '<div class="error"><h3>❌ Timeout Error</h3><p>Request timed out after 10 seconds</p></div>';
+            };
+            
+            xhr.timeout = 10000; // 10 second timeout
+            xhr.open('GET', 'http://localhost:3002/api/marketplace/listings', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send();
+        }
+        
+        // Load data immediately
+        loadMarketplaceData();
+    </script>
+</body>
+</html>

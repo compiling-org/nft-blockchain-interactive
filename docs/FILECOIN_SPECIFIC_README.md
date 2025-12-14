@@ -2,6 +2,28 @@
 
 > **⚠️ HONEST STATUS**: This project is 60% complete with working IPFS integration but 0% Filecoin deployment. All Filecoin-specific features are mocked until we get actual storage provider access.
 
+## Work Done
+
+- Implemented modular IPFS storage layer with CID generation and metadata flow
+- Built React UI panels for storage actions and provider selection
+- Added compression pipeline (delta/RLE) hooks in client paths
+- Established multi-provider scaffolding (IPFS local, Web3.Storage, NFT.Storage)
+- Documented repository extraction rules and grant isolation strategy
+
+## Work Remaining
+
+- Connect to a real IPFS node or provider (Pinata, Infura, Web3/NFT.Storage)
+- Implement Filecoin wallet setup and storage deal negotiation
+- Add persistence verification and deal renewal scheduling
+- Replace mock CID paths with real upload/download operations
+- Create end-to-end tests for provider flows and cost monitoring
+
+## Calibration Testnet Constraints
+
+- Custom Rust/WASM FVM actors cannot be installed on public Calibration via `lotus`
+- Use a local Lotus devnet or FVM harness for actor install and method invocation
+- Public Calibration flow should validate WASM and record build metadata, then defer install
+
 ## What Actually Works
 
 ✅ **IPFS Integration** (`src/ipfs-integration/`)

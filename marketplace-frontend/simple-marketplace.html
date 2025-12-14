@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE Bitte Marketplace - ACTUALLY WORKING</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .listing { border: 1px solid #444; padding: 20px; margin: 10px 0; border-radius: 8px; background: #2a2a2a; }
+        .loading { color: #888; text-align: center; padding: 40px; }
+        .error { color: #ff6666; text-align: center; padding: 40px; }
+        .success { color: #66ff66; }
+        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #45a049; }
+        .price { color: #4CAF50; font-weight: bold; font-size: 1.2em; }
+        .title { font-size: 1.3em; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Bitte AI Marketplace - SIMPLE VERSION</h1>
+        <div id="status" class="loading">Loading marketplace data...</div>
+        <div id="listings"></div>
+    </div>
+
+    <script>
+        // Simple function to load marketplace data
+        async function loadMarketplace() {
+            const statusEl = document.getElementById('status');
+            const listingsEl = document.getElementById('listings');
+            
+            try {
+                console.log('Fetching from: http://localhost:3002/api/marketplace/listings');
+                
+                const response = await fetch('http://localhost:3002/api/marketplace/listings');
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                if (data.success && data.listings && data.listings.length > 0) {
+                    statusEl.innerHTML = '<div class="success">✅ Marketplace loaded successfully!</div>';
+                    
+                    listingsEl.innerHTML = data.listings.map(listing => `
+                        <div class="listing">
+                            <div class="title">${listing.title}</div>
+                            <div>${listing.description}</div>
+                            <div class="price">${listing.price} ${listing.currency}</div>
+                            <div>Category: ${listing.category}</div>
+                            <div>Seller: ${listing.seller}</div>
+                            <div>Views: ${listing.views} | Likes: ${listing.likes}</div>
+                            <button onclick="alert('Buy functionality would go here')">Buy Now</button>
+                        </div>
+                    `).join('');
+                } else {
+                    throw new Error('No listings found or invalid data format');
+                }
+                
+            } catch (error) {
+                console.error('Failed to load marketplace:', error);
+                statusEl.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Failed to load marketplace</h3>
+                        <p>Error: ${error.message}</p>
+                        <p>Check console for details</p>
+                        <button onclick="loadMarketplace()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load on page load
+        window.addEventListener('load', loadMarketplace);
+    </script>
+</body>
+</html>

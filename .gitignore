@@ -87,6 +87,8 @@ src-minimal/
 clean-project/
 test-website/
 pkg/
+external-grants/
+src/solana-program/
 
 # Generated files
 *.stackdump

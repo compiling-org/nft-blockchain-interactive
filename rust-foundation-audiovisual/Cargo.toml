@@ -26,11 +26,20 @@ web-sys = { version = "0.3", features = [
     "CanvasRenderingContext2d",
     "WebGlRenderingContext",
     "WebGl2RenderingContext",
+    "WebGlProgram",
+    "WebGlShader",
+    "WebGlBuffer",
+    "WebGlUniformLocation",
+    "WebGlActiveInfo",
+    "WebGlUniformLocation",
     "AudioContext",
     "AudioBuffer",
     "OscillatorNode",
     "GainNode",
     "AudioDestinationNode",
+    "AnalyserNode",
+    "OscillatorType",
+    "AudioParam",
     "MouseEvent",
     "TouchEvent",
     "TouchList",
@@ -41,6 +50,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 console_error_panic_hook = "0.1"
+wgpu = "0.19"
+wasm-bindgen-futures = "0.4"
+bytemuck = { version = "1.14", features = ["derive"] }
 
 # Optional dependencies for native builds
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

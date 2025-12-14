@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount, Mint};
-use anchor_spl::associated_token::AssociatedToken;
+use anchor_lang::solana_program::hash::hash;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -8,169 +7,242 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod biometric_nft {
     use super::*;
 
-    pub fn initialize_nft(
-        ctx: Context<InitializeNft>,
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        let nft_account = &mut ctx.accounts.nft_account;
+        nft_account.owner = *ctx.accounts.user.key;
+        nft_account.is_initialized = true;
+        nft_account.biometric_hash = String::new();
+        nft_account.emotion_data = EmotionData::default();
+        nft_account.quality_score = 0.0;
+        nft_account.soulbound = true; // All biometric NFTs are soulbound
+        nft_account.cross_chain_id = String::new();
+        
+        msg!("Biometric NFT initialized for user: {}", ctx.accounts.user.key);
+        Ok(())
+    }
+
+    pub fn mint_biometric_nft(
+        ctx: Context<MintBiometricNFT>,
         emotion_data: EmotionData,
         quality_score: f64,
         biometric_hash: String,
+        cross_chain_id: String,
     ) -> Result<()> {
         let nft_account = &mut ctx.accounts.nft_account;
         
-        // Validate biometric quality
+        // Validate biometric data quality
         require!(quality_score >= 0.7, ErrorCode::LowQualityScore);
+        require!(biometric_hash.len() == 64, ErrorCode::InvalidBiometricHash);
         
-        nft_account.owner = ctx.accounts.payer.key();
-        nft_account.biometric_hash = biometric_hash;
+        // Verify emotion data is within valid ranges
+        require!(emotion_data.happiness >= 0.0 && emotion_data.happiness <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(emotion_data.sadness >= 0.0 && emotion_data.sadness <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(emotion_data.anger >= 0.0 && emotion_data.anger <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(emotion_data.fear >= 0.0 && emotion_data.fear <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(emotion_data.surprise >= 0.0 && emotion_data.surprise <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(emotion_data.neutral >= 0.0 && emotion_data.neutral <= 1.0, ErrorCode::InvalidEmotionData);
+        
+        // Store biometric data
+        nft_account.biometric_hash = biometric_hash.clone();
         nft_account.emotion_data = emotion_data.clone();
         nft_account.quality_score = quality_score;
-        nft_account.device_id = "emotiv_epoc_x".to_string();
-        nft_account.timestamp = Clock::get()?.unix_timestamp as u64;
-        nft_account.verification_method = "AI-Enhanced".to_string();
-        nft_account.is_soulbound = true;
+        nft_account.cross_chain_id = cross_chain_id.clone();
+        nft_account.mint_timestamp = Clock::get()?.unix_timestamp;
         
-        // Create emotion history record
-        let emotion_record = EmotionRecord {
-            timestamp: nft_account.timestamp,
-            emotion_data: emotion_data.clone(),
-            context: "Minting".to_string(),
-        };
+        // Generate unique token ID from biometric hash and owner
+        let token_id_seed = format!("{}{}", nft_account.owner, biometric_hash);
+        nft_account.token_id = hash(token_id_seed.as_bytes()).to_string();
         
-        nft_account.emotion_history = vec![emotion_record];
-        
-        msg!("Biometric NFT minted for {} with emotion: {} (confidence: {:.2})", 
-             ctx.accounts.payer.key(), 
-             emotion_data.primary_emotion.clone(), 
-             emotion_data.confidence);
+        msg!("Biometric NFT minted with token ID: {}", nft_account.token_id);
+        msg!("Emotion data - Happiness: {}, Sadness: {}, Anger: {}", 
+              emotion_data.happiness, emotion_data.sadness, emotion_data.anger);
+        msg!("Quality score: {}", quality_score);
+        msg!("Cross-chain ID: {}", cross_chain_id);
         
         Ok(())
     }
-    
-    pub fn verify_biometric(
-        ctx: Context<VerifyBiometric>,
+
+    pub fn verify_biometric_data(
+        ctx: Context<VerifyBiometricData>,
         biometric_hash: String,
     ) -> Result<bool> {
         let nft_account = &ctx.accounts.nft_account;
-        Ok(nft_account.biometric_hash == biometric_hash)
+        
+        // Verify the provided biometric hash matches the stored one
+        let is_verified = nft_account.biometric_hash == biometric_hash;
+        
+        msg!("Biometric verification result: {}", is_verified);
+        msg!("Stored hash: {}", nft_account.biometric_hash);
+        msg!("Provided hash: {}", biometric_hash);
+        
+        Ok(is_verified)
     }
-    
-    pub fn get_emotion_history(ctx: Context<GetEmotionHistory>) -> Result<Vec<EmotionRecord>> {
-        Ok(ctx.accounts.nft_account.emotion_history.clone())
+
+    pub fn get_emotion_data(ctx: Context<GetEmotionData>) -> Result<EmotionData> {
+        let nft_account = &ctx.accounts.nft_account;
+        
+        msg!("Retrieving emotion data for NFT: {}", nft_account.token_id);
+        msg!("Happiness: {}, Sadness: {}, Anger: {}", 
+              nft_account.emotion_data.happiness, 
+              nft_account.emotion_data.sadness, 
+              nft_account.emotion_data.anger);
+        
+        Ok(nft_account.emotion_data.clone())
     }
-    
-    // Override transfer to make tokens soulbound
-    pub fn transfer_soulbound(
-        _ctx: Context<TransferSoulbound>,
-        _to: Pubkey,
+
+    pub fn update_emotion_data(
+        ctx: Context<UpdateEmotionData>,
+        new_emotion_data: EmotionData,
     ) -> Result<()> {
-        err!(ErrorCode::SoulboundTransfer)
+        let nft_account = &mut ctx.accounts.nft_account;
+        
+        // Only the owner can update emotion data
+        require!(
+            nft_account.owner == *ctx.accounts.user.key,
+            ErrorCode::Unauthorized
+        );
+        
+        // Validate new emotion data
+        require!(new_emotion_data.happiness >= 0.0 && new_emotion_data.happiness <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(new_emotion_data.sadness >= 0.0 && new_emotion_data.sadness <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(new_emotion_data.anger >= 0.0 && new_emotion_data.anger <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(new_emotion_data.fear >= 0.0 && new_emotion_data.fear <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(new_emotion_data.surprise >= 0.0 && new_emotion_data.surprise <= 1.0, ErrorCode::InvalidEmotionData);
+        require!(new_emotion_data.neutral >= 0.0 && new_emotion_data.neutral <= 1.0, ErrorCode::InvalidEmotionData);
+        
+        // Update emotion data
+        nft_account.emotion_data = new_emotion_data.clone();
+        nft_account.last_update_timestamp = Clock::get()?.unix_timestamp;
+        
+        msg!("Emotion data updated for NFT: {}", nft_account.token_id);
+        msg!("New emotion data - Happiness: {}, Sadness: {}, Anger: {}", 
+              new_emotion_data.happiness, new_emotion_data.sadness, new_emotion_data.anger);
+        
+        Ok(())
+    }
+
+    pub fn transfer_nft(
+        ctx: Context<TransferNFT>,
+        new_owner: Pubkey,
+    ) -> Result<()> {
+        let nft_account = &mut ctx.accounts.nft_account;
+        
+        // Check if NFT is soulbound (non-transferable)
+        require!(!nft_account.soulbound, ErrorCode::SoulboundTransferRestricted);
+        
+        // Only the owner can transfer
+        require!(
+            nft_account.owner == *ctx.accounts.user.key,
+            ErrorCode::Unauthorized
+        );
+        
+        // Update ownership
+        nft_account.owner = new_owner;
+        nft_account.last_update_timestamp = Clock::get()?.unix_timestamp;
+        
+        msg!("NFT transferred from {} to {}", ctx.accounts.user.key, new_owner);
+        
+        Ok(())
+    }
+
+    pub fn get_cross_chain_id(ctx: Context<GetCrossChainId>) -> Result<String> {
+        let nft_account = &ctx.accounts.nft_account;
+        
+        msg!("Cross-chain ID for NFT {}: {}", nft_account.token_id, nft_account.cross_chain_id);
+        
+        Ok(nft_account.cross_chain_id.clone())
     }
 }
 
 #[derive(Accounts)]
-pub struct InitializeNft<'info> {
+pub struct Initialize<'info> {
+    #[account(init, payer = user, space = 8 + 1024)]
+    pub nft_account: Account<'info, BiometricNFT>,
     #[account(mut)]
-    pub payer: Signer<'info>,
-    
-    #[account(
-        init,
-        payer = payer,
-        space = 8 + BiometricNftAccount::MAX_SIZE,
-        seeds = [b"biometric_nft", payer.key().as_ref()],
-        bump
-    )]
-    pub nft_account: Account<'info, BiometricNftAccount>,
-    
-    #[account(
-        init,
-        payer = payer,
-        mint::decimals = 0,
-        mint::authority = payer,
-    )]
-    pub mint: Account<'info, Mint>,
-    
-    #[account(
-        init,
-        payer = payer,
-        associated_token::mint = mint,
-        associated_token::authority = payer,
-    )]
-    pub token_account: Account<'info, TokenAccount>,
-    
-    pub token_program: Program<'info, Token>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
-pub struct VerifyBiometric<'info> {
-    pub nft_account: Account<'info, BiometricNftAccount>,
-}
-
-#[derive(Accounts)]
-pub struct GetEmotionHistory<'info> {
-    pub nft_account: Account<'info, BiometricNftAccount>,
-}
-
-#[derive(Accounts)]
-pub struct TransferSoulbound<'info> {
+pub struct MintBiometricNFT<'info> {
     #[account(mut)]
-    pub nft_account: Account<'info, BiometricNftAccount>,
+    pub nft_account: Account<'info, BiometricNFT>,
+    pub user: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct VerifyBiometricData<'info> {
+    pub nft_account: Account<'info, BiometricNFT>,
+    pub user: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct GetEmotionData<'info> {
+    pub nft_account: Account<'info, BiometricNFT>,
+    pub user: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateEmotionData<'info> {
+    #[account(mut)]
+    pub nft_account: Account<'info, BiometricNFT>,
+    pub user: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct TransferNFT<'info> {
+    #[account(mut)]
+    pub nft_account: Account<'info, BiometricNFT>,
+    pub user: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct GetCrossChainId<'info> {
+    pub nft_account: Account<'info, BiometricNFT>,
+    pub user: Signer<'info>,
 }
 
 #[account]
-pub struct BiometricNftAccount {
+pub struct BiometricNFT {
     pub owner: Pubkey,
+    pub is_initialized: bool,
     pub biometric_hash: String,
     pub emotion_data: EmotionData,
     pub quality_score: f64,
-    pub device_id: String,
-    pub timestamp: u64,
-    pub verification_method: String,
-    pub is_soulbound: bool,
-    pub emotion_history: Vec<EmotionRecord>,
+    pub soulbound: bool,
+    pub cross_chain_id: String,
+    pub token_id: String,
+    pub mint_timestamp: i64,
+    pub last_update_timestamp: i64,
 }
 
-impl BiometricNftAccount {
-    const MAX_SIZE: usize = 32 + // owner
-        64 + // biometric_hash
-        EmotionData::MAX_SIZE + // emotion_data
-        8 + // quality_score
-        32 + // device_id
-        8 + // timestamp
-        32 + // verification_method
-        1 + // is_soulbound
-        4 + 1024; // emotion_history - estimated max size
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct EmotionData {
-    pub primary_emotion: String,
-    pub confidence: f64,
-    pub secondary_emotions: Vec<(String, f64)>,
-    pub arousal: f64,
-    pub valence: f64,
-}
-
-impl EmotionData {
-    const MAX_SIZE: usize = 32 + // primary_emotion
-        8 + // confidence
-        4 + 256 + // secondary_emotions - estimated max size
-        8 + // arousal
-        8; // valence
-}
-
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
-pub struct EmotionRecord {
-    pub timestamp: u64,
-    pub emotion_data: EmotionData,
-    pub context: String,
+    pub happiness: f32,
+    pub sadness: f32,
+    pub anger: f32,
+    pub fear: f32,
+    pub surprise: f32,
+    pub neutral: f32,
 }
 
 #[error_code]
 pub enum ErrorCode {
-    #[msg("Biometric quality score too low")]
+    #[msg("Low quality score - biometric data quality too low")]
     LowQualityScore,
-    #[msg("Soulbound tokens are non-transferable")]
-    SoulboundTransfer,
+    
+    #[msg("Invalid biometric hash format")]
+    InvalidBiometricHash,
+    
+    #[msg("Invalid emotion data values")]
+    InvalidEmotionData,
+    
+    #[msg("Unauthorized access")]
+    Unauthorized,
+    
+    #[msg("Soulbound tokens cannot be transferred")]
+    SoulboundTransferRestricted,
+    
+    #[msg("Generic error occurred")]
+    GenericError,
 }

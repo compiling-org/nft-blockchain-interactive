@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import FractalBlockchainIntegration from '../components/FractalBlockchainIntegration';
+// import FractalBlockchainIntegration from '../components/FractalBlockchainIntegration';
 
 interface EmotionalState {
   valence: number;
@@ -329,11 +329,11 @@ export default function AIFractalStudio() {
         </div>
         
         {/* AI Blockchain Integration */}
-        <FractalBlockchainIntegration 
+        {/* <FractalBlockchainIntegration 
           canvasRef={canvasRef}
           emotionalState={emotionalState}
           fractalParams={fractalParams}
-        />
+        /> */}
       </div>
     </div>
   );

@@ -2,7 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use web_sys::window;
+use wasm_bindgen::JsValue;
+use web_sys::{window, Window};
+use js_sys::{Object, Reflect};
 use std::collections::HashMap;
 
 /// Multi-chain NFT interface
@@ -476,9 +478,9 @@ impl AdvancedBlockchainConnector {
         // For demonstration, we'll just add the modulation value to a "creativity" parameter
         // if it exists in the params object
         // Simple approach: always return the params with emotional modulation added if possible
-        match params.dyn_ref::<js_sys::Object>() {
+        match params.dyn_ref::<Object>() {
             Some(obj) => {
-                let _ = js_sys::Reflect::set(
+                let _ = Reflect::set(
                     obj, 
                     &"emotional_modulation".into(), 
                     &JsValue::from(modulated_value)

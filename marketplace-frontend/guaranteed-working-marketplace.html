@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitte Marketplace - GUARANTEED WORKING</title>
+    <style>
+        body { 
+            background: #0a0a0a; 
+            color: #fff; 
+            font-family: 'Courier New', monospace; 
+            margin: 0; 
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 30px; 
+            border-radius: 15px; 
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .status { 
+            background: #1a1a1a; 
+            border: 2px solid #333; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .listing { 
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); 
+            border: 1px solid #444; 
+            padding: 25px; 
+            margin: 20px 0; 
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .listing h3 { color: #667eea; margin-top: 0; font-size: 1.4em; }
+        .price { color: #4CAF50; font-weight: bold; font-size: 1.3em; }
+        .button { 
+            background: linear-gradient(45deg, #667eea, #764ba2); 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1.1em;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .error { color: #ff4757; background: rgba(255, 71, 87, 0.1); border: 1px solid #ff4757; }
+        .success { color: #2ed573; background: rgba(46, 213, 115, 0.1); border: 1px solid #2ed573; }
+        .loading { color: #ffa502; background: rgba(255, 165, 2, 0.1); border: 1px solid #ffa502; }
+        .hidden { display: none; }
+        .log { margin: 5px 0; padding: 8px; border-radius: 5px; }
+        .stats { background: #1a1a1a; padding: 15px; border-radius: 10px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Bitte AI Marketplace</h1>
+            <p>Real AI-powered NFTs with biometric emotional metadata</p>
+        </div>
+
+        <div id="status" class="status loading">
+            <strong>🔍 INITIALIZING MARKETPLACE...</strong><br>
+            Connecting to Bitte Protocol backend at http://localhost:3002
+        </div>
+
+        <div id="error-log" class="status hidden"></div>
+        <div id="success-log" class="status hidden"></div>
+
+        <div id="marketplace-content" class="hidden">
+            <div class="stats">
+                <strong>📊 Market Statistics:</strong>
+                <div id="market-stats">Loading statistics...</div>
+            </div>
+            
+            <h2>🎨 Available AI NFT Listings</h2>
+            <div id="listings-container"></div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <button class="button" onclick="loadMarketplaceData()">🔄 Refresh Data</button>
+                <button class="button" onclick="testBackendConnection()">🔍 Test Connection</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global logging function
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const statusEl = document.getElementById('status');
+            const errorLogEl = document.getElementById('error-log');
+            const successLogEl = document.getElementById('success-log');
+            
+            if (type === 'error') {
+                errorLogEl.innerHTML += `<div class="log error">[${timestamp}] ❌ ${message}</div>`;
+                errorLogEl.classList.remove('hidden');
+            } else if (type === 'success') {
+                successLogEl.innerHTML += `<div class="log success">[${timestamp}] ✅ ${message}</div>`;
+                successLogEl.classList.remove('hidden');
+            }
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Global error handlers
+        window.addEventListener('error', function(e) {
+            log(`JavaScript Error: ${e.message} at line ${e.lineno}`, 'error');
+            showError(`JavaScript Error: ${e.message}`);
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            log(`Promise Rejection: ${e.reason}`, 'error');
+            showError(`Promise Rejection: ${e.reason}`);
+        });
+
+        function showError(message) {
+            document.getElementById('status').innerHTML = `<strong>❌ ERROR:</strong><br>${message}`;
+            document.getElementById('status').className = 'status error';
+            document.getElementById('marketplace-content').classList.add('hidden');
+        }
+
+        function showSuccess(message) {
+            document.getElementById('status').innerHTML = `<strong>✅ SUCCESS:</strong><br>${message}`;
+            document.getElementById('status').className = 'status success';
+        }
+
+        function showLoading(message) {
+            document.getElementById('status').innerHTML = `<strong>⏳ LOADING:</strong><br>${message}`;
+            document.getElementById('status').className = 'status loading';
+        }
+
+        // Test backend connection
+        async function testBackendConnection() {
+            log('Testing backend connection...');
+            showLoading('Testing connection to localhost:3002...');
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const response = await fetch('http://localhost:3002/api/marketplace/listings', {
+                    method: 'GET',
+                    mode: 'cors',
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                log(`Response received - Status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`Data received: ${data.listings?.length || 0} listings`);
+                
+                showSuccess(`Backend connection successful! Found ${data.listings?.length || 0} listings.`);
+                
+                return data;
+                
+            } catch (error) {
+                log(`Connection test failed: ${error.message}`, 'error');
+                showError(`Connection test failed: ${error.message}`);
+                return null;
+            }
+        }
+
+        // Load marketplace data
+        async function loadMarketplaceData() {
+            log('Starting marketplace data load...');
+            showLoading('Fetching marketplace data from backend...');
+            
+            try {
+                const data = await testBackendConnection();
+                
+                if (data && data.success && data.listings && data.listings.length > 0) {
+                    displayListings(data.listings);
+                    updateMarketStats(data);
+                    
+                    document.getElementById('marketplace-content').classList.remove('hidden');
+                    showSuccess(`Loaded ${data.listings.length} AI NFT listings successfully!`);
+                    
+                    log('Marketplace data loaded and displayed successfully!', 'success');
+                } else {
+                    throw new Error('No valid marketplace data received from backend');
+                }
+                
+            } catch (error) {
+                log(`Failed to load marketplace data: ${error.message}`, 'error');
+                showError(`Failed to load marketplace data: ${error.message}`);
+            }
+        }
+
+        function displayListings(listings) {
+            const container = document.getElementById('listings-container');
+            
+            if (!listings || listings.length === 0) {
+                container.innerHTML = '<div class="status error">No listings found</div>';
+                return;
+            }
+            
+            container.innerHTML = listings.map(listing => `
+                <div class="listing">
+                    <h3>🎨 ${listing.title}</h3>
+                    <p><strong>Description:</strong> ${listing.description}</p>
+                    <div class="price">💰 ${listing.price} ${listing.currency}</div>
+                    <div><strong>🎯 Category:</strong> ${listing.category}</div>
+                    <div><strong>👤 Seller:</strong> ${listing.seller}</div>
+                    <div><strong>📈 Stats:</strong> ${listing.views} views, ${listing.likes} likes</div>
+                    <div><strong>🤖 AI Model:</strong> ${listing.ai_model}</div>
+                    <div><strong>😊 Emotion Vector:</strong> 
+                        V:${listing.emotion_vector.valence.toFixed(2)} 
+                        A:${listing.emotion_vector.arousal.toFixed(2)} 
+                        D:${listing.emotion_vector.dominance.toFixed(2)}
+                    </div>
+                    <div><strong>🏷️ Tags:</strong> ${listing.tags.join(', ')}</div>
+                    <div style="margin-top: 15px;">
+                        <button class="button" onclick="alert('Buy functionality would connect to NEAR wallet')">💸 Buy Now</button>
+                        <button class="button" onclick="alert('View details')">👁️ View Details</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            log(`Displayed ${listings.length} listings`, 'success');
+        }
+
+        function updateMarketStats(data) {
+            const statsEl = document.getElementById('market-stats');
+            const listings = data.listings || [];
+            const totalValue = listings.reduce((sum, listing) => sum + parseFloat(listing.price), 0);
+            
+            statsEl.innerHTML = `
+                <div>📋 Total Listings: ${listings.length}</div>
+                <div>💎 Total Market Value: ${totalValue.toFixed(2)} NEAR</div>
+                <div>🏷️ Categories: ${[...new Set(listings.map(l => l.category))].join(', ')}</div>
+                <div>👥 Active Sellers: ${[...new Set(listings.map(l => l.seller))].length}</div>
+            `;
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            log('Page loaded, starting marketplace initialization...');
+            setTimeout(loadMarketplaceData, 1000); // Small delay to ensure everything is ready
+        });
+    </script>
+</body>
+</html>

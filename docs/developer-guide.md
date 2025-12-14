@@ -598,6 +598,43 @@ solana config set --url https://api.devnet.solana.com
 export POLKADOT_NETWORK=rococo
 ./deploy-to-testnets.sh polkadot
 
+### 💰 Filecoin Calibration Faucet (Test FIL)
+
+```bash
+# 1) Ensure Lotus daemon is running and syncing on Calibration
+#    In WSL/Ubuntu:
+export LOTUS_PATH=$HOME/.lotus-calibnet
+lotus daemon
+# In a second terminal, confirm sync:
+lotus sync status
+
+# 2) Create or retrieve a wallet address (BLS recommended)
+lotus wallet list | grep 't3' | head -1 | awk '{print $1}' \
+  || lotus wallet new bls
+# Save the printed address for faucet requests, e.g.:
+# t3u4mgld5fu3uzdt... (Calibration address)
+
+# 3a) Request via ChainSafe Faucet (browser)
+#    Open: https://faucet.calibrationnet.chainsafe-fil.io/
+#    Paste your t3/f3 address and request funds (rate-limited).
+
+# 3b) Request via Fildev Faucet API (CLI)
+ADDR=$(lotus wallet default)
+curl -X POST "https://faucet.calibration.fildev.network/send" \
+  -H "Content-Type: application/json" \
+  -d "{\"address\":\"$ADDR\",\"amount\":10}"
+
+# 4) Wait and verify funds (balance may show 0 while syncing)
+sleep 30
+lotus wallet balance "$ADDR"
+
+# Notes:
+# - Faucet responses are rate-limited; retry later if throttled.
+# - Balance display depends on sync progress; confirm 'Height diff' is small.
+# - Store the address in config if needed:
+#   echo "WALLET_ADDRESS=$ADDR" >> src/config/filecoin-calibration.env
+```
+
 # 📊 Post-deployment verification
 ./VERIFY_COMPLETION.sh --network testnet
 ```

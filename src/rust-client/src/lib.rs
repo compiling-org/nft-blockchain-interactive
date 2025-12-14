@@ -18,6 +18,7 @@ pub mod blockchain_integration;
 pub mod enhanced_webgpu_engine;
 pub mod ai_blockchain_integration;
 pub mod enhanced_soulbound;
+pub mod real_ai_inference;
 
 // Re-export for convenience
 pub use webgpu_engine::*;
@@ -25,6 +26,7 @@ pub use blockchain_integration::*;
 pub use enhanced_webgpu_engine::*;
 pub use ai_blockchain_integration::*;
 pub use enhanced_soulbound::*;
+pub use real_ai_inference::*;
 
 // WASM initialization
 #[wasm_bindgen(start)]

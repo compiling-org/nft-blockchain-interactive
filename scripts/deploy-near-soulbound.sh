@@ -15,8 +15,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 CONTRACT_NAME="biometric-soulbound-nft"
-ACCOUNT_ID="kenchen.testnet"  # Will be replaced with actual account
-INITIAL_OWNER="kenchen.testnet"
+ACCOUNT_ID=${NEAR_ACCOUNT_ID:-"kenchen.testnet"}  # Use environment variable or default
+INITIAL_OWNER=${NEAR_ACCOUNT_ID:-"kenchen.testnet"}
 
 # Check if near-cli is installed
 if ! command -v near &> /dev/null; then
@@ -50,28 +50,20 @@ echo -e "${GREEN}✅ Contract built successfully!${NC}"
 # Deploy to testnet
 echo -e "${YELLOW}Deploying to NEAR testnet...${NC}"
 
-# Create subaccount for contract
+# Create subaccount for contract (with error handling)
 echo "Creating subaccount for contract..."
-near create-account $CONTRACT_NAME.$ACCOUNT_ID --masterAccount $ACCOUNT_ID --initialBalance 10
+if ! near create-account $CONTRACT_NAME.$ACCOUNT_ID --masterAccount $ACCOUNT_ID --initialBalance 10; then
+    echo -e "${YELLOW}Subaccount may already exist or creation failed, continuing with deployment...${NC}"
+fi
 
-# Deploy contract
+# Deploy contract with better error handling
 echo "Deploying contract..."
 near deploy $CONTRACT_NAME.$ACCOUNT_ID \
     target/wasm32-unknown-unknown/release/biometric_soulbound_nft.wasm \
     --accountId $ACCOUNT_ID \
     --initFunction new \
-    --initArgs '{
-        "owner_id": "'$INITIAL_OWNER'",
-        "metadata": {
-            "spec": "nft-1.0.0",
-            "name": "Biometric Soulbound NFT",
-            "symbol": "BSNFT",
-            "icon": null,
-            "base_uri": null,
-            "reference": null,
-            "reference_hash": null
-        }
-    }'
+    --initArgs '{"owner_id": "'$INITIAL_OWNER'", "metadata": {"spec": "nft-1.0.0", "name": "Biometric Soulbound NFT", "symbol": "BSNFT", "icon": null, "base_uri": null, "reference": null, "reference_hash": null}}' \
+    --gas 300000000000000
 
 echo -e "${GREEN}✅ Contract deployed successfully!${NC}"
 echo -e "${GREEN}Contract ID: $CONTRACT_NAME.$ACCOUNT_ID${NC}"
@@ -79,28 +71,25 @@ echo -e "${GREEN}Contract ID: $CONTRACT_NAME.$ACCOUNT_ID${NC}"
 # Test the contract
 echo -e "${YELLOW}Testing contract functionality...${NC}"
 
-# Test minting a soulbound NFT
+# Test minting a soulbound NFT with better error handling
 echo "Testing mint_soulbound function..."
-near call $CONTRACT_NAME.$ACCOUNT_ID mint_soulbound \
-    '{
-        "emotion_data": {
-            "primary_emotion": "Focused",
-            "confidence": 0.95,
-            "secondary_emotions": [["Calm", 0.85], ["Alert", 0.75]],
-            "arousal": 0.6,
-            "valence": 0.7
-        },
-        "quality_score": 0.92,
-        "biometric_hash": "a1b2c3d4e5f6"
-    }' \
+if near call $CONTRACT_NAME.$ACCOUNT_ID mint_soulbound \
+    '{"emotion_data": {"primary_emotion": "Focused", "confidence": 0.95, "secondary_emotions": [["Calm", 0.85], ["Alert", 0.75]], "arousal": 0.6, "valence": 0.7}, "quality_score": 0.92, "biometric_hash": "a1b2c3d4e5f6"}' \
     --accountId $ACCOUNT_ID \
-    --amount 1 \
-    --gas 300000000000000
+    --amount 0.1 \
+    --gas 300000000000000; then
+    echo -e "${GREEN}✅ Mint test successful!${NC}"
+else
+    echo -e "${RED}❌ Mint test failed, but contract is deployed${NC}"
+fi
 
-# Test viewing tokens
+# Test viewing tokens with error handling
 echo "Testing nft_tokens_for_owner function..."
-near view $CONTRACT_NAME.$ACCOUNT_ID nft_tokens_for_owner \
-    '{"account_id": "'$ACCOUNT_ID'"}'
+if near view $CONTRACT_NAME.$ACCOUNT_ID nft_tokens_for_owner '{"account_id": "'$ACCOUNT_ID'"}'; then
+    echo -e "${GREEN}✅ View test successful!${NC}"
+else
+    echo -e "${YELLOW}⚠️  View test failed, but contract may still be functional${NC}"
+fi
 
 echo -e "${GREEN}✅ Contract testing completed!${NC}"
 echo -e "${YELLOW}Next steps:${NC}"

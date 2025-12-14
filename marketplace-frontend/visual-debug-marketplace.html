@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitte Marketplace - VISUAL ERROR CHECK</title>
+    <style>
+        body { 
+            background: #111; 
+            color: white; 
+            font-family: monospace; 
+            margin: 0; 
+            padding: 20px;
+            line-height: 1.4;
+        }
+        .log { margin: 5px 0; padding: 10px; border-radius: 4px; }
+        .error { background: #441111; border-left: 4px solid #ff4444; }
+        .success { background: #114411; border-left: 4px solid #44ff44; }
+        .info { background: #111144; border-left: 4px solid #4444ff; }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .listing { 
+            background: #222; 
+            border: 1px solid #444; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+        }
+        button { 
+            background: #4CAF50; 
+            color: white; 
+            padding: 8px 16px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Bitte Marketplace - VISUAL DEBUG</h1>
+    <div id="logs"></div>
+    <div id="loading" class="loading">Starting marketplace test...</div>
+    <div id="results" class="hidden"></div>
+
+    <script>
+        const logsEl = document.getElementById('logs');
+        const loadingEl = document.getElementById('loading');
+        const resultsEl = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logsEl.innerHTML += `<div class="log ${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function error(message) {
+            log(message, 'error');
+            loadingEl.classList.add('hidden');
+        }
+        
+        function success(message) {
+            log(message, 'success');
+        }
+        
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            error(`GLOBAL ERROR: ${event.error.message} at line ${event.lineno}`);
+        });
+        
+        // Global promise rejection handler
+        window.addEventListener('unhandledrejection', function(event) {
+            error(`PROMISE REJECTION: ${event.reason}`);
+        });
+        
+        async function testMarketplace() {
+            try {
+                log('Starting marketplace test...');
+                log('User Agent: ' + navigator.userAgent);
+                log('Current URL: ' + window.location.href);
+                
+                // Test 1: Basic connectivity
+                log('Test 1: Testing basic connectivity to localhost:3002');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
+                const response = await fetch('http://localhost:3002/api/marketplace/listings', {
+                    method: 'GET',
+                    mode: 'cors',
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                log(`Response received - Status: ${response.status} ${response.statusText}`);
+                
+                // Check response headers
+                log('Response headers:');
+                for (let [key, value] of response.headers.entries()) {
+                    log(`  ${key}: ${value}`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                // Test 2: Parse JSON
+                log('Test 2: Parsing JSON response');
+                const text = await response.text();
+                log(`Raw response length: ${text.length} characters`);
+                log(`First 200 chars: ${text.substring(0, 200)}`);
+                
+                const data = JSON.parse(text);
+                log('JSON parsing successful');
+                log(`Data structure: success=${data.success}, listings=${data.listings?.length || 0}`);
+                
+                // Test 3: Display results
+                if (data.success && data.listings && data.listings.length > 0) {
+                    success(`Found ${data.listings.length} listings!`);
+                    displayListings(data.listings);
+                } else {
+                    throw new Error('No listings found in response');
+                }
+                
+            } catch (fetchError) {
+                error(`Fetch failed: ${fetchError.message}`);
+                
+                // Try to diagnose the specific error
+                if (fetchError.name === 'AbortError') {
+                    error('Request timed out - server might be down');
+                } else if (fetchError.message.includes('CORS')) {
+                    error('CORS error - backend needs proper CORS headers');
+                } else if (fetchError.message.includes('Failed to fetch')) {
+                    error('Network error - check if server is running on port 3002');
+                } else {
+                    error(`Unknown error: ${fetchError.name} - ${fetchError.message}`);
+                }
+                
+                // Try alternative test
+                log('Trying alternative test with img tag...');
+                testWithImage();
+            }
+        }
+        
+        function testWithImage() {
+            const img = new Image();
+            img.onload = function() {
+                success('Server is reachable via image request');
+            };
+            img.onerror = function() {
+                error('Server not reachable even via image request');
+            };
+            img.src = 'http://localhost:3002/api/marketplace/listings?' + Date.now();
+        }
+        
+        function displayListings(listings) {
+            loadingEl.classList.add('hidden');
+            resultsEl.classList.remove('hidden');
+            
+            resultsEl.innerHTML = '<h2>Available Listings</h2>' + 
+                listings.map(listing => `
+                    <div class="listing">
+                        <h3>${listing.title}</h3>
+                        <p>${listing.description}</p>
+                        <div><strong>Price:</strong> <span style="color: #4CAF50;">${listing.price} ${listing.currency}</span></div>
+                        <div><strong>Category:</strong> ${listing.category}</div>
+                        <div><strong>Seller:</strong> ${listing.seller}</div>
+                        <div><strong>Stats:</strong> ${listing.views} views, ${listing.likes} likes</div>
+                        <button onclick="alert('Would buy: ${listing.title}')">Buy Now</button>
+                    </div>
+                `).join('');
+        }
+        
+        // Start the test
+        setTimeout(testMarketplace, 1000);
+    </script>
+</body>
+</html>

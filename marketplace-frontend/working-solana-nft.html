@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Solana Biometric NFT - WORKING VERSION</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success { background: rgba(46, 204, 113, 0.3); border: 1px solid #2ecc71; }
+        .error { background: rgba(231, 76, 60, 0.3); border: 1px solid #e74c3c; }
+        .info { background: rgba(52, 152, 219, 0.3); border: 1px solid #3498db; }
+        .biometric-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Solana Biometric NFT Platform</h1>
+        <p>Create unique NFTs powered by your biometric data and emotional state</p>
+        
+        <div class="card">
+            <h2>🔐 Wallet Connection</h2>
+            <div id="wallet-status" class="status info">Wallet: Not Connected</div>
+            <button id="connect-wallet" class="button">Connect Solana Wallet</button>
+            <button id="disconnect-wallet" class="button" disabled>Disconnect Wallet</button>
+        </div>
+
+        <div class="card">
+            <h2>🧠 Biometric Data Collection</h2>
+            <div id="biometric-status" class="status info">Biometric: Inactive</div>
+            
+            <div class="biometric-data" id="biometric-display" style="display: none;">
+                <div class="metric">
+                    <div class="metric-value" id="attention">0</div>
+                    <div class="metric-label">Attention</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="meditation">0</div>
+                    <div class="metric-label">Meditation</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="valence">0.0</div>
+                    <div class="metric-label">Valence</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="arousal">0.0</div>
+                    <div class="metric-label">Arousal</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="dominance">0.0</div>
+                    <div class="metric-label">Dominance</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="quality">0%</div>
+                    <div class="metric-label">Signal Quality</div>
+                </div>
+            </div>
+            
+            <button id="start-biometric" class="button">Start Biometric Collection</button>
+            <button id="stop-biometric" class="button" disabled>Stop Collection</button>
+        </div>
+
+        <div class="card" id="mint-section" style="display: none;">
+            <h2>🎨 Mint Biometric NFT</h2>
+            <div>
+                <label>NFT Title:</label><br>
+                <input type="text" id="nft-title" placeholder="My Biometric State #1" style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.2); color: white;">
+            </div>
+            <div>
+                <label>Description:</label><br>
+                <textarea id="nft-description" placeholder="Created during meditation..." style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.2); color: white; height: 80px;"></textarea>
+            </div>
+            <button id="mint-nft" class="button">🎭 Mint Emotional NFT</button>
+            <div id="mint-status"></div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Your NFTs</h2>
+            <div id="nft-list">No NFTs minted yet</div>
+        </div>
+    </div>
+
+    <script>
+        // Simple working implementation
+        let isWalletConnected = false;
+        let isBiometricActive = false;
+        let biometricInterval = null;
+        let currentBiometricData = null;
+        let mintedNFTs = [];
+
+        // Wallet connection (simplified)
+        document.getElementById('connect-wallet').addEventListener('click', async () => {
+            try {
+                // Simulate wallet connection
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                isWalletConnected = true;
+                document.getElementById('wallet-status').textContent = 'Wallet: Connected (Demo Mode)';
+                document.getElementById('wallet-status').className = 'status success';
+                document.getElementById('connect-wallet').disabled = true;
+                document.getElementById('disconnect-wallet').disabled = false;
+                
+                // Show mint section
+                document.getElementById('mint-section').style.display = 'block';
+            } catch (error) {
+                document.getElementById('wallet-status').textContent = 'Wallet Connection Failed';
+                document.getElementById('wallet-status').className = 'status error';
+            }
+        });
+
+        document.getElementById('disconnect-wallet').addEventListener('click', () => {
+            isWalletConnected = false;
+            document.getElementById('wallet-status').textContent = 'Wallet: Not Connected';
+            document.getElementById('wallet-status').className = 'status info';
+            document.getElementById('connect-wallet').disabled = false;
+            document.getElementById('disconnect-wallet').disabled = true;
+            document.getElementById('mint-section').style.display = 'none';
+        });
+
+        // Biometric data simulation
+        function generateBiometricData() {
+            const time = Date.now() * 0.001;
+            return {
+                attention: Math.floor(50 + Math.sin(time * 0.5) * 30 + Math.random() * 20),
+                meditation: Math.floor(40 + Math.cos(time * 0.3) * 35 + Math.random() * 25),
+                valence: (Math.sin(time * 0.7) * 0.8 + Math.random() * 0.4 - 0.2).toFixed(3),
+                arousal: (Math.cos(time * 0.4) * 0.6 + Math.random() * 0.3 - 0.15).toFixed(3),
+                dominance: (Math.sin(time * 0.6) * 0.7 + Math.random() * 0.2 - 0.1).toFixed(3),
+                quality: Math.floor(60 + Math.sin(time) * 30 + Math.random() * 10)
+            };
+        }
+
+        function updateBiometricDisplay(data) {
+            document.getElementById('attention').textContent = data.attention;
+            document.getElementById('meditation').textContent = data.meditation;
+            document.getElementById('valence').textContent = data.valence;
+            document.getElementById('arousal').textContent = data.arousal;
+            document.getElementById('dominance').textContent = data.dominance;
+            document.getElementById('quality').textContent = data.quality + '%';
+        }
+
+        document.getElementById('start-biometric').addEventListener('click', () => {
+            if (!isWalletConnected) {
+                alert('Please connect your wallet first');
+                return;
+            }
+            
+            isBiometricActive = true;
+            document.getElementById('biometric-status').textContent = 'Biometric: Active';
+            document.getElementById('biometric-status').className = 'status success';
+            document.getElementById('start-biometric').disabled = true;
+            document.getElementById('stop-biometric').disabled = false;
+            document.getElementById('biometric-display').style.display = 'grid';
+            
+            // Start generating data
+            biometricInterval = setInterval(() => {
+                currentBiometricData = generateBiometricData();
+                updateBiometricDisplay(currentBiometricData);
+            }, 500);
+        });
+
+        document.getElementById('stop-biometric').addEventListener('click', () => {
+            isBiometricActive = false;
+            document.getElementById('biometric-status').textContent = 'Biometric: Inactive';
+            document.getElementById('biometric-status').className = 'status info';
+            document.getElementById('start-biometric').disabled = false;
+            document.getElementById('stop-biometric').disabled = true;
+            
+            if (biometricInterval) {
+                clearInterval(biometricInterval);
+                biometricInterval = null;
+            }
+        });
+
+        // NFT Minting
+        document.getElementById('mint-nft').addEventListener('click', async () => {
+            if (!currentBiometricData) {
+                alert('Please start biometric collection first');
+                return;
+            }
+            
+            const title = document.getElementById('nft-title').value.trim();
+            if (!title) {
+                alert('Please enter a title for your NFT');
+                return;
+            }
+            
+            const description = document.getElementById('nft-description').value;
+            
+            try {
+                document.getElementById('mint-nft').disabled = true;
+                document.getElementById('mint-status').innerHTML = '<div class="status info">Minting NFT...</div>';
+                
+                // Simulate minting process
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Generate NFT data
+                const nftData = {
+                    id: 'nft_' + Date.now(),
+                    title: title,
+                    description: description,
+                    biometricData: currentBiometricData,
+                    timestamp: new Date().toISOString(),
+                    hash: '0x' + Math.random().toString(36).substr(2, 16)
+                };
+                
+                mintedNFTs.push(nftData);
+                
+                // Update UI
+                document.getElementById('mint-status').innerHTML = '<div class="status success">✅ NFT Minted Successfully!</div>';
+                
+                // Update NFT list
+                updateNFTList();
+                
+                // Reset form
+                document.getElementById('nft-title').value = '';
+                document.getElementById('nft-description').value = '';
+                
+                setTimeout(() => {
+                    document.getElementById('mint-nft').disabled = false;
+                    document.getElementById('mint-status').innerHTML = '';
+                }, 3000);
+                
+            } catch (error) {
+                document.getElementById('mint-status').innerHTML = '<div class="status error">❌ Minting Failed: ' + error.message + '</div>';
+                document.getElementById('mint-nft').disabled = false;
+            }
+        });
+
+        function updateNFTList() {
+            const nftList = document.getElementById('nft-list');
+            if (mintedNFTs.length === 0) {
+                nftList.innerHTML = 'No NFTs minted yet';
+                return;
+            }
+            
+            nftList.innerHTML = mintedNFTs.map(nft => `
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);">
+                    <h4>${nft.title}</h4>
+                    <p style="opacity: 0.8; font-size: 14px;">${nft.description}</p>
+                    <div style="font-size: 12px; opacity: 0.7; margin-top: 10px;">
+                        <div>Attention: ${nft.biometricData.attention} | Meditation: ${nft.biometricData.meditation}</div>
+                        <div>Valence: ${nft.biometricData.valence} | Arousal: ${nft.biometricData.arousal}</div>
+                        <div>Hash: ${nft.hash}</div>
+                        <div>Minted: ${new Date(nft.timestamp).toLocaleString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Solana Biometric NFT Platform Loaded');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Wallet Test</title>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/@solana/wallet-adapter-base@latest/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/@solana/wallet-adapter-react@latest/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/@solana/wallet-adapter-react-ui@latest/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/@solana/wallet-adapter-wallets@latest/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .wallet-button {
+            background: #9945ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .wallet-button:hover {
+            background: #7c3aed;
+        }
+        .status {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Solana Wallet Integration Test</h1>
+        <p>This page tests the real Solana wallet connection functionality.</p>
+        
+        <div class="status">
+            <h3>Connection Status</h3>
+            <div id="wallet-status">Checking wallet availability...</div>
+            <div id="connection-status">Not connected</div>
+            <div id="public-key">No public key</div>
+        </div>
+        
+        <div id="wallet-container"></div>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        function WalletTest() {
+            const [status, setStatus] = useState('Checking wallet availability...');
+            const [connected, setConnected] = useState(false);
+            const [publicKey, setPublicKey] = useState(null);
+            
+            useEffect(() => {
+                // Check if Solana wallets are available
+                if (window.solana || window.solflare || window.torus) {
+                    setStatus('✅ Solana wallets detected! Click connect above.');
+                } else {
+                    setStatus('❌ No Solana wallets detected. Please install Phantom, Solflare, or Torus wallet.');
+                }
+                
+                // Listen for wallet events
+                const handleConnect = () => {
+                    setConnected(true);
+                    setPublicKey(window.solana?.publicKey?.toString() || 'Unknown');
+                    setStatus('🎉 Wallet connected successfully!');
+                };
+                
+                const handleDisconnect = () => {
+                    setConnected(false);
+                    setPublicKey(null);
+                    setStatus('👋 Wallet disconnected');
+                };
+                
+                if (window.solana) {
+                    window.solana.on('connect', handleConnect);
+                    window.solana.on('disconnect', handleDisconnect);
+                }
+                
+                return () => {
+                    if (window.solana) {
+                        window.solana.removeListener('connect', handleConnect);
+                        window.solana.removeListener('disconnect', handleDisconnect);
+                    }
+                };
+            }, []);
+            
+            return (
+                <div>
+                    <div className={`status ${connected ? 'success' : ''}`}>
+                        <h3>🎭 Wallet Status</h3>
+                        <p>{status}</p>
+                        <p><strong>Connected:</strong> {connected ? '✅ Yes' : '❌ No'}</p>
+                        {publicKey && (
+                            <p><strong>Public Key:</strong> {publicKey}</p>
+                        )}
+                    </div>
+                    
+                    {connected && (
+                        <div className="status success">
+                            <h3>🚀 Solana Wallet Integration SUCCESS!</h3>
+                            <p>✅ Real wallet connection established</p>
+                            <p>✅ No more mocked Keypair.generate()</p>
+                            <p>✅ Ready for devnet transactions</p>
+                            <button 
+                                className="wallet-button"
+                                onClick={async () => {
+                                    try {
+                                        const response = await window.solana.connect();
+                                        alert('Wallet reconnected! Ready for NFT minting.');
+                                    } catch (error) {
+                                        alert('Connection failed: ' + error.message);
+                                    }
+                                }}
+                            >
+                                Test Connection
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
+        // Render the component
+        ReactDOM.render(<WalletTest />, document.getElementById('test-results'));
+        
+        // Add wallet button
+        document.getElementById('wallet-container').innerHTML = `
+            <button class="wallet-button" onclick="connectWallet()">
+                🔗 Connect Solana Wallet
+            </button>
+        `;
+        
+        async function connectWallet() {
+            try {
+                if (window.solana) {
+                    const response = await window.solana.connect();
+                    document.getElementById('connection-status').textContent = '✅ Connected to Phantom';
+                    document.getElementById('public-key').textContent = 'Public Key: ' + window.solana.publicKey.toString();
+                } else if (window.solflare) {
+                    const response = await window.solflare.connect();
+                    document.getElementById('connection-status').textContent = '✅ Connected to Solflare';
+                    document.getElementById('public-key').textContent = 'Public Key: ' + window.solflare.publicKey.toString();
+                } else {
+                    alert('Please install Phantom, Solflare, or Torus wallet extension');
+                }
+            } catch (error) {
+                document.getElementById('connection-status').textContent = '❌ Connection failed: ' + error.message;
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</body>
+</html>

@@ -1,12 +1,13 @@
-//! Integration example demonstrating AI/ML blockchain integration with biometric data
+//! AI/ML blockchain integration with biometric data for enhanced soulbound tokens
 
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 use web_sys::{WebGlRenderingContext, HtmlCanvasElement};
 use crate::enhanced_webgpu_engine::{EnhancedGPUComputeEngine, AIModel, QuantizationLevel, ModelLayer};
 use crate::enhanced_soulbound::{EnhancedSoulboundToken, CollaborationRecord};
 use std::collections::HashMap;
 
-/// Complete integration example showing AI-enhanced soulbound tokens with biometric data
+/// Complete AI-enhanced soulbound tokens with biometric data integration
 #[wasm_bindgen]
 pub struct AIBlockchainIntegration {
     gpu_engine: EnhancedGPUComputeEngine,

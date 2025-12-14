@@ -1,0 +1,15 @@
+[0;34m⚡ Enforcing disciplinary rules...[0m
+[0;34m🔍 Checking for test file psychosis...[0m
+[0;32m✅ Test files: 0 (limit: 5)[0m
+[0;34m🔍 Checking for fake implementation psychosis...[0m
+[0;32m✅ Fake implementations: 0 (limit: 10)[0m
+[0;34m🔍 Checking blockchain reality...[0m
+[0;32m✅ Real blockchain: 0, Fake blockchain: 0[0m
+[0;34m🔍 Checking for smart contracts...[0m
+[0;32m✅ Smart contracts: 51[0m
+[0;34m🔍 Checking AI inference reality...[0m
+[0;31m🚨 LOGGED: MISSING_AI_INFERENCE - No real AI inference code found[0m
+[1;33m⚡ ENFORCED: VIOLATION - Missing real AI inference[0m
+[0;34m🔍 Checking for psychotic loop patterns...[0m
+[0;31m🚨 LOGGED: PSYCHOTIC_TEST_LOOP - Created 212 test files in last 24 hours[0m
+[1;33m⚡ ENFORCED: VIOLATION - Psychotic loop patterns detected[0m

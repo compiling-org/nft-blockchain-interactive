@@ -1,7 +1,9 @@
 //! Enhanced AI/ML blockchain integration with real neural network computation
 
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 use web_sys::{WebGlRenderingContext, HtmlCanvasElement};
+use js_sys::Date;
 use crate::enhanced_webgpu_engine::{EnhancedGPUComputeEngine, AIModel, QuantizationLevel, ModelLayer};
 use crate::enhanced_soulbound::{EnhancedSoulboundToken, CollaborationRecord};
 use std::collections::HashMap;
@@ -329,7 +331,7 @@ impl EnhancedAIBlockchainIntegration {
         ];
         
         // Add time-based variation
-        let time_variation = (js_sys::Date::now() as f32 / 1000.0).sin();
+        let time_variation = (Date::now() as f32 / 1000.0).sin();
         creative_input.push(time_variation);
         
         // Generate content using neural network
