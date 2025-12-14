@@ -13,14 +13,14 @@
 ### The Correct Structure (As User Intended)
 
 ```
-c:/Users/kapil/compiling/  # This is the COMPILING folder, NOT the project folder
-├── blockchain-nft-interactive/     # Main project (current location)
-├── grant-repositories/             # EXTERNAL grant repos folder
+<WORKSPACE_ROOT>/                       # External workspace root (outside this repository)
+├── blockchain-nft-interactive/         # Main project (current location)
+├── grant-repositories/                 # EXTERNAL grant repos folder
 │   ├── rust-foundation-audiovisual/
 │   ├── near-creative-engine/
-│   ├── solana-nft-marketplace/
+│   ├── solana-emotional-metadata/
 │   ├── filecoin-creative-storage/
-│   ├── bitte-protocol-ai/
+│   ├── mintbase-creative-marketplace/
 │   └── polkadot-creative-identity/
 ```
 
