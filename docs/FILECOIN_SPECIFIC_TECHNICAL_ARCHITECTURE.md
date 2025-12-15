@@ -9,295 +9,108 @@ Filecoin Creative Storage implements a sophisticated multi-layered storage archi
 ### **Storage Layer Architecture**
 
 ```mermaid
-graph TB
-    subgraph "Application Layer"
-        APP["React Frontend"]
-        API["Storage API Gateway"]
-        CACHE["Redis Cache"]
-    end
-    
-    subgraph "Compression Engine"
-        DELTA["Delta Encoder"]
-        RLE["RLE Compressor"]
-        ML["ML Predictor"]
-        EMOT_COMP["Emotional Compressor"]
-    end
-    
-    subgraph "Storage Providers"
-        IPFS_LOCAL["Local IPFS Node"]
-        WEB3["Web3.Storage"]
-        NFT_ST["NFT.Storage"]
-        PINATA["Pinata (Backup)"]
-    end
-    
-    subgraph "Filecoin Network"
-        LOTUS["Lotus Client"]
-        MINERS["Storage Miners"]
-        DEALS["Deal Market"]
-        FIL_WALLET["Filecoin Wallet"]
-    end
-    
-    subgraph "Data Integrity"
-        CID["CID Verification"]
-        MERKLE["Merkle Proofs"]
-        AUDIT["Audit Trail"]
-        BACKUP["Backup System"]
-    end
-    
-    APP --> API
-    API --> CACHE
-    API --> DELTA
-    API --> RLE
-    API --> ML
-    API --> EMOT_COMP
-    
-    DELTA --> IPFS_LOCAL
-    RLE --> IPFS_LOCAL
-    ML --> EMOT_COMP
-    EMOT_COMP --> IPFS_LOCAL
-    
-    IPFS_LOCAL --> LOTUS
-    WEB3 --> LOTUS
-    NFT_ST --> LOTUS
-    PINATA --> LOTUS
-    
-    LOTUS --> MINERS
-    LOTUS --> DEALS
-    FIL_WALLET --> DEALS
-    
-    CID --> IPFS_LOCAL
-    MERKLE --> LOTUS
-    AUDIT --> API
-    BACKUP --> PINATA
+flowchart LR
+    UI[Client UI] --> StorageClient
+    StorageClient --> Web3Storage
+    StorageClient --> NFTStorage
+    Web3Storage --> IPFSGateways
+    NFTStorage --> IPFSGateways
+    IPFSGateways --> FilecoinPersistence
+    StorageClient -.optional.-> LotusDeals
 ```
 
 ### **Data Flow Architecture**
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Frontend
-    participant Compression
-    participant IPFS
-    participant Filecoin
-    participant Analytics
-    
-    User->>Frontend: Upload Creative Data
-    Frontend->>Compression: Apply Delta Encoding
-    Compression->>Compression: RLE for Event Markers
-    Compression->>Compression: ML Prediction Models
-    Compression->>Frontend: Compressed Data
-    
-    Frontend->>IPFS: Upload to IPFS
-    IPFS->>IPFS: Generate CID
-    IPFS->>Filecoin: Create Storage Deal
-    Filecoin->>Filecoin: Select Miners
-    Filecoin->>Filecoin: Negotiate Deal
-    Filecoin->>IPFS: Deal Confirmation
-    
-    IPFS->>Frontend: Return CID & Deal ID
-    Frontend->>Analytics: Log Upload Metrics
-    Analytics->>Analytics: Update Dashboard
-    Analytics->>User: Show Success Status
+    participant U as User
+    participant UI as React UI
+    participant SC as Storage Client
+    participant W3 as Web3.Storage
+    participant NS as NFT.Storage
+    participant GW as IPFS Gateways
+    participant FC as Filecoin (provider-backed)
+
+    U->>UI: Connect token
+    UI->>SC: Initialize clients
+    SC->>W3: Upload JSON + PNG
+    alt Using NFT.Storage
+      SC->>NS: Upload JSON + PNG
+    end
+    W3-->>SC: CID
+    NS-->>SC: CID
+    SC->>GW: Resolve CID
+    GW-->>UI: Content accessible
+    GW-->>FC: Persisted via provider
+    UI-->>U: Display CID and URLs
 ```
 
 ## 🔧 Core Technical Components
 
-### **1. Advanced Compression System**
+### **1. Storage Clients**
+- `FilecoinStorageClient` initializes real `NFTStorage`/`Web3Storage` clients for uploads
+  - `src/utils/filecoin-storage.ts:1-18`
+- `FilecoinAIIntegration` retrieves metadata via `Web3.Storage`
+  - `src/utils/filecoin-ai-integration.ts:269-294`
+- `Unified IPFS/Filecoin Hub` scaffolds optional Lotus deal flow
+  - `src/utils/unified-ai-ipfs-hub.ts:93-110`, `:486-514`
 
-#### **Delta Encoding Implementation**
-```rust
-// src/solana-client/src/storage_advanced.rs:714-737
-pub struct DeltaEncoder {
-    last_value: i16,
-}
+### **2. UI Integration**
+- Connect-and-upload panel with progress and CID display
+  - `src/components/FilecoinStorageIntegration.tsx:1-34`, `:180-213`, `:214-297`
+- Accepts emotional session JSON + PNG from canvas
 
-impl DeltaEncoder {
-    pub fn encode(&mut self, value: f32) -> i16 {
-        let scaled = (value * 1000.0) as i16;
-        let delta = scaled - self.last_value;
-        self.last_value = scaled;
-        delta
-    }
-    
-    pub fn decode(&mut self, delta: i16) -> f32 {
-        self.last_value += delta;
-        (self.last_value as f32) / 1000.0
-    }
-}
-```
-
-**Performance Metrics:**
-- **Compression Ratio**: 2:1 for EEG data
-- **Processing Speed**: ~50,000 samples/second
-- **Memory Usage**: O(1) constant space
-- **Accuracy**: <0.1% reconstruction error
-
-#### **Run-Length Encoding for Events**
-```rust
-// src/solana-client/src/storage_advanced.rs:739-800
-pub struct RLEEncoder {
-    current_value: Option<u8>,
-    current_count: u16,
-    segments: Vec<RLESegment>,
-}
-
-impl RLEEncoder {
-    pub fn add(&mut self, value: u8) {
-        match self.current_value {
-            None => {
-                self.current_value = Some(value);
-                self.current_count = 1;
-            }
-            Some(v) if v == value => {
-                self.current_count += 1;
-            }
-            Some(_) => {
-                // Flush current segment
-                self.segments.push(RLESegment {
-                    value: v,
-                    count: self.current_count,
-                });
-                self.current_value = Some(value);
-                self.current_count = 1;
-            }
-        }
-    }
+### **3. Data Model**
+```json
+{
+  "name": "Emotional Art Session",
+  "description": "Session metadata and emotional state",
+  "image": "ipfs://<png-cid>",
+  "properties": {
+    "emotion": { "valence": 0.42, "arousal": 0.63, "dominance": 0.51, "confidence": 0.88 },
+    "biometrics": {
+      "heartRate": [72, 74, 76],
+      "breathingRate": [12.1, 11.8],
+      "eegBands": [{ "alpha": 0.33, "beta": 0.22, "gamma": 0.05, "delta": 0.15, "theta": 0.25 }]
+    },
+    "sessionId": "uuid",
+    "timestamp": 1734200000
+  }
 }
 ```
-
-**Compression Results:**
-- **Event Markers**: 75% size reduction
-- **Emotional States**: 66% size reduction (36→12 bytes)
-- **Processing Overhead**: <5ms per 1000 events
-
-### **2. Machine Learning Prediction Engine**
-
-#### **Emotional Sequence Predictor**
-```rust
-// src/solana-client/src/storage_advanced.rs:222-336
-pub struct EmotionalSequencePredictor {
-    historical_sequences: Vec<Vec<CompressedEmotionalState>>,
-    model_parameters: Vec<f32>,
-    accuracy_history: Vec<f32>,
-}
-
-impl EmotionalSequencePredictor {
-    pub fn train_model(&mut self) {
-        // Pattern recognition for emotional transitions
-        let mut transition_counts: HashMap<(u8, u8), u32> = HashMap::new();
-        
-        for sequence in &self.historical_sequences {
-            for i in 0..sequence.len().saturating_sub(1) {
-                let current = sequence[i].valence;
-                let next = sequence[i + 1].valence;
-                let key = ((current as u8).wrapping_add(100), 
-                          (next as u8).wrapping_add(100));
-                *transition_counts.entry(key).or_insert(0) += 1;
-            }
-        }
-        
-        // Convert to probability parameters
-        // Implementation continues...
-    }
-}
-```
-
-**ML Performance:**
-- **Prediction Accuracy**: 78.3% average
-- **Training Time**: O(n²) complexity
-- **Memory Efficiency**: 100 sequences max
-- **Real-time Capability**: <100ms prediction latency
 
 ### **3. Multi-Provider Storage Integration**
 
-#### **Storage Provider Abstraction**
-```javascript
-// test-website/filecoin-storage.js:35-79
-async function uploadToIPFS(data, options = {}) {
-    const { name = 'unnamed', pinToFilecoin = true } = options;
-    
-    try {
-        let cid;
-        
-        if (currentStorageProvider === 'ipfs-local') {
-            cid = await uploadToLocalIPFS(data, name);
-        } else if (currentStorageProvider === 'web3storage') {
-            cid = await uploadToWeb3Storage(data, name);
-        } else if (currentStorageProvider === 'nftstorage') {
-            cid = await uploadToNFTStorage(data, name);
-        }
-        
-        // Record upload and pin to Filecoin
-        const upload = {
-            cid,
-            name,
-            size: JSON.stringify(data).length,
-            timestamp: Date.now(),
-            provider: currentStorageProvider,
-            pinned: false
-        };
-        
-        if (pinToFilecoin) {
-            await pinToFilecoin(cid);
-            upload.pinned = true;
-        }
-        
-        return cid;
-        
-    } catch (error) {
-        blockchain.log(`❌ Upload failed: ${error.message}`, 'error');
-        throw error;
-    }
-}
-```
-
-**Provider Performance:**
-- **IPFS Local**: 1.2s average upload time
-- **Web3.Storage**: 2.8s average upload time
-- **NFT.Storage**: 3.1s average upload time
-- **Failover Time**: <500ms between providers
+#### **Providers**
+- `web3.storage` and `nft.storage` tokens enable real uploads and provider-backed Filecoin persistence
+- IPFS gateways used for retrieval and verification
 
 ### **4. Filecoin Deal Management**
 
-#### **Deal Creation Process**
-```rust
-// src/solana-client/src/storage_advanced.rs:823-828
-impl StorageEfficiency {
-    pub fn estimate_cost_sol(size_bytes: u64, years: u32) -> f64 {
-        // Solana rent: ~0.00000348 SOL per byte per year
-        const LAMPORTS_PER_BYTE_YEAR: u64 = 3480;
-        let lamports = size_bytes * LAMPORTS_PER_BYTE_YEAR * (years as u64);
-        (lamports as f64) / 1_000_000_000.0 // Convert to SOL
-    }
-    
-    pub fn efficiency_score(original_size: u64, compressed_size: u64, 
-                           compression_time_ms: u32) -> f32 {
-        if original_size == 0 || compression_time_ms == 0 {
-            return 0.0;
-        }
-        
-        let ratio = Self::compression_ratio(original_size, compressed_size);
-        let time_efficiency = 1000.0 / compression_time_ms as f32;
-        
-        // Weighted score: 80% ratio, 20% time efficiency
-        (ratio * 80.0) + (time_efficiency * 0.2).min(20.0)
-    }
-}
+#### **Current State**
+- Direct Lotus deals are scaffolded and mocked; provider-backed persistence is used in production flows
+
+#### **Planned Lotus Sequence**
+```mermaid
+sequenceDiagram
+    participant Hub as Unified Hub
+    participant Lotus as Lotus
+    participant Miner as Storage Miner
+
+    Hub->>Lotus: clientStartDeal(CID, params)
+    Lotus-->>Miner: Propose deal
+    Miner-->>Lotus: Accept and transfer
+    Lotus-->>Hub: Deal ID and status
 ```
 
-**Filecoin Integration:**
-- **Deal Duration**: 180 days standard
-- **Storage Cost**: ~$0.01 per GB per month
-- **Miner Selection**: Based on reputation and price
-- **Deal Success Rate**: 98.7%
-
-### **5. Cross-Chain Synchronization**
-
-#### **Sync Status Management**
-```rust
-// src/solana-client/src/storage_advanced.rs:75-89
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+### **5. Configuration and Verification**
+- Token setup guide: `docs/WEB3_STORAGE_SETUP.md:1-64`
+- Calibration env: `src/config/filecoin-calibration.env:1-8`
+- Verification checklist:
+  - Set `WEB3_STORAGE_TOKEN`
+  - Connect token in UI and upload
+  - Confirm CID resolves via gateways
+  - Retrieve metadata by CID
 pub struct CrossChainSyncInfo {
     pub target_chains: Vec<String>,
     pub sync_status: HashMap<String, SyncStatus>,

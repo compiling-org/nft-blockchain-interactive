@@ -82,6 +82,23 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [userNFTs, setUserNFTs] = useState<any[]>([]);
+  const [aiPattern, setAiPattern] = useState<{
+    frequency: number;
+    amplitude: number;
+    waveThickness: number;
+    fractals: Array<{ x: number; y: number; size: number; opacity: number }>;
+  }>({
+    frequency: 0.02,
+    amplitude: 100,
+    waveThickness: 2,
+    fractals: Array.from({ length: 20 }, () => ({
+      x: Math.random() * 512,
+      y: Math.random() * 512,
+      size: Math.random() * 20 + 5,
+      opacity: Math.random() * 0.6 + 0.2
+    }))
+  });
+  const [artUrl, setArtUrl] = useState<string | null>(null);
 
   useEffect(() => {
     initializeIntegration();
@@ -342,7 +359,7 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
       // Process biometric session with basic analysis
       await integration.processBiometricSession(session);
       
-      // Use hybrid AI for enhanced analysis
+      const primaryEmotion = biometricData.emotions[biometricData.emotions.length - 1];
       const aiAnalysis = await aiManager.analyzeBiometricData([{
         timestamp: Date.now(),
         valence: primaryEmotion.valence,
@@ -357,7 +374,6 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
       setAiAnalysis(aiAnalysis);
 
       // Generate art based on AI analysis
-      const primaryEmotion = biometricData.emotions[biometricData.emotions.length - 1];
       const artBlob = await generateArtworkFromEmotion(primaryEmotion, aiAnalysis);
       
       const generatedArt: AIGeneratedArt = {
@@ -367,15 +383,15 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
         attributes: [
           {
             trait_type: 'AI Confidence',
-            value: Math.round(aiAnalysis.confidence * 100)
+            value: Math.round((aiAnalysis.averageEmotion?.confidence || 0.8) * 100)
           },
           {
             trait_type: 'Emotion Vectors',
-            value: aiAnalysis.emotionVectors || aiAnalysis.processedData?.length || 0
+            value: Math.round(((aiAnalysis.averageEmotion?.valence || 0) + (aiAnalysis.averageEmotion?.arousal || 0) + (aiAnalysis.averageEmotion?.dominance || 0)) * 100)
           },
           {
             trait_type: 'Quality Score',
-            value: Math.round((aiAnalysis.confidence || 0.8) * 100)
+            value: Math.round((aiAnalysis.averageEmotion?.confidence || 0.8) * 100)
           },
           {
             trait_type: 'Primary Emotion',
@@ -389,6 +405,10 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
       };
 
       setGeneratedArt(generatedArt);
+      try {
+        const url = URL.createObjectURL(artBlob);
+        setArtUrl(url);
+      } catch {}
       console.log('✅ AI art generated successfully with real ML models!');
 
     } catch (err) {
@@ -415,6 +435,7 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
       console.log('🚀 Starting AI-powered biometric NFT creation with real ML models...');
       
       // Create biometric hash using AI processing
+      const startTime = performance.now();
       const emotionResult = await aiManager.detectEmotion(biometricData.eeg, biometricData.heartRate);
       const biometricHash = `bio_${Date.now()}_${emotionResult.confidence}`;
       
@@ -423,10 +444,8 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
         userId: accountId || 'demo-user',
         timestamp: Date.now(),
         biometricData: {
-          ...biometricData,
-          biometricHash: biometricHash,
-        },
-        aiSignature: biometricHash
+          ...biometricData
+        }
       };
       
       const result = await integration.createAIBiometricNFT(session, generatedArt);
@@ -434,9 +453,9 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
       setCreationResult({
         ...result,
         aiAnalysis: {
-          biometricHash: (biometricHash as any).hash,
-          aiSignature: (biometricHash as any).signature,
-          processingTime: (biometricHash as any).processingTime,
+          biometricHash: biometricHash,
+          aiSignature: biometricHash,
+          processingTime: Math.round(performance.now() - startTime),
           modelVersion: 'TensorFlow.js v1.0'
         }
       });
@@ -531,11 +550,9 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
       ctx.moveTo(startX, startY);
       ctx.lineTo(endX, endY);
       ctx.stroke();
-      
-      // Add AI-enhanced nodes
       ctx.fillStyle = colors.secondary + '80';
       ctx.beginPath();
-      ctx.arc(connection.start.x, connection.start.y, 3 + connection.nodeSize * arousal * 5, 0, Math.PI * 2);
+      ctx.arc(startX, startY, 3 + arousal * 5, 0, Math.PI * 2);
       ctx.fill();
     }
     
@@ -901,8 +918,12 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
             <div className="bg-black bg-opacity-20 rounded-lg p-4">
               <h4 className="text-md font-semibold mb-3">Generated Artwork</h4>
               <div className="flex gap-4">
-                <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                  <Fingerprint className="w-12 h-12 text-purple-400" />
+                <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
+                  {artUrl ? (
+                    <img src={artUrl} alt="AI Artwork" className="w-full h-full object-cover" />
+                  ) : (
+                    <Fingerprint className="w-12 h-12 text-purple-400" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <h5 className="font-medium mb-2">{generatedArt.title}</h5>
@@ -923,15 +944,17 @@ export const NEARAIPanel: React.FC<NEARAIPanelProps> = ({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-300">Analysis Confidence:</span>
-                  <span className="text-green-400">{(aiAnalysis.confidence * 100).toFixed(1)}%</span>
+                  <span className="text-green-400">{((aiAnalysis.averageEmotion?.confidence || 0.8) * 100).toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-300">Emotion Vectors:</span>
-                  <span className="text-blue-400">{aiAnalysis.emotionVectors || 0}</span>
+                  <span className="text-gray-300">Emotion Composite:</span>
+                  <span className="text-blue-400">
+                    {Math.round(((aiAnalysis.averageEmotion?.valence || 0) + (aiAnalysis.averageEmotion?.arousal || 0) + (aiAnalysis.averageEmotion?.dominance || 0)) * 100)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-300">Quality Score:</span>
-                  <span className="text-purple-400">{(aiAnalysis.qualityScore * 100).toFixed(1)}%</span>
+                  <span className="text-purple-400">{((aiAnalysis.averageEmotion?.confidence || 0.8) * 100).toFixed(1)}%</span>
                 </div>
               </div>
             </div>

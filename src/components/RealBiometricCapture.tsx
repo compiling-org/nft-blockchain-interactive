@@ -22,22 +22,26 @@ interface BiometricData {
 interface RealBiometricCaptureProps {
   onBiometricData: (data: BiometricData) => void;
   isRecording: boolean;
+  onMicLevel?: (level: number) => void;
 }
 
 export const RealBiometricCapture: React.FC<RealBiometricCaptureProps> = ({ 
   onBiometricData, 
-  isRecording 
+  isRecording,
+  onMicLevel
 }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [heartRate, setHeartRate] = useState(0);
   const [breathingRate, setBreathingRate] = useState(0);
   const [emotion, setEmotion] = useState({ valence: 0, arousal: 0, dominance: 0 });
   const [eegBands, setEegBands] = useState({ delta: 0, theta: 0, alpha: 0, beta: 0, gamma: 0 });
+  const [micLevel, setMicLevel] = useState(0);
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const microphoneRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const waveformCanvasRef = useRef<HTMLCanvasElement | null>(null);
   
   // Audio processing for heart rate and breathing detection
   const processAudioSignal = useCallback((audioData: Float32Array): { heartRate: number; breathingRate: number } => {
@@ -182,12 +186,57 @@ export const RealBiometricCapture: React.FC<RealBiometricCaptureProps> = ({
     const { heartRate, breathingRate } = processAudioSignal(dataArray);
     const currentEmotion = estimateEmotion(dataArray);
     const currentEEGBands = generateEEGBands(dataArray);
+    const rms = Math.sqrt(dataArray.reduce((sum, v) => sum + v * v, 0) / dataArray.length);
     
     // Update state
     setHeartRate(heartRate);
     setBreathingRate(breathingRate);
     setEmotion(currentEmotion);
     setEegBands(currentEEGBands);
+    const mic = Math.min(1, Math.max(0, rms * 10));
+    setMicLevel(mic);
+    if (typeof onMicLevel === 'function') {
+      onMicLevel(mic);
+    }
+    
+    const canvas = waveformCanvasRef.current;
+    const ctx = canvas ? canvas.getContext('2d') : null;
+    if (canvas && ctx) {
+      const width = canvas.width || 300;
+      const height = canvas.height || 80;
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
+      
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#1f2937';
+      ctx.fillRect(0, 0, width, height);
+      
+      ctx.strokeStyle = '#374151';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, Math.floor(height / 2));
+      ctx.lineTo(width, Math.floor(height / 2));
+      ctx.stroke();
+      
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const step = bufferLength > 1 ? width / (bufferLength - 1) : width;
+      for (let i = 0; i < bufferLength; i++) {
+        const x = i * step;
+        const y = (0.5 - dataArray[i] * 0.5) * height;
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+      
+      ctx.fillStyle = '#f59e0b';
+      const barWidth = Math.max(2, Math.floor((width * mic)));
+      ctx.fillRect(0, height - 4, barWidth, 3);
+    }
     
     // Create biometric data object
     const biometricData: BiometricData = {
@@ -240,28 +289,33 @@ export const RealBiometricCapture: React.FC<RealBiometricCaptureProps> = ({
     }
   }, []);
   
-  // Start/stop recording
   useEffect(() => {
-    if (isRecording && isInitialized) {
-      processAudioFrame();
-    } else if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    
+    const startIfNeeded = async () => {
+      if (isRecording) {
+        if (!isInitialized) {
+          await initializeAudio();
+        }
+        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume();
+        }
+        processAudioFrame();
+      } else {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+      }
+    };
+    startIfNeeded();
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isRecording, isInitialized, processAudioFrame]);
+  }, [isRecording, isInitialized, processAudioFrame, initializeAudio]);
   
-  // Initialize on mount
   useEffect(() => {
-    initializeAudio();
-    
     return () => {
-      // Cleanup
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -272,7 +326,7 @@ export const RealBiometricCapture: React.FC<RealBiometricCaptureProps> = ({
         microphoneRef.current.mediaStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [initializeAudio]);
+  }, []);
   
   return (
     <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
@@ -295,6 +349,24 @@ export const RealBiometricCapture: React.FC<RealBiometricCaptureProps> = ({
                 <div className="flex justify-between">
                   <span className="text-gray-400">Breathing Rate:</span>
                   <span className="text-blue-400 font-mono">{breathingRate} BPM</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Mic Level:</span>
+                  <div className="w-40 bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-yellow-400 h-2 rounded-full transition-all duration-150"
+                      style={{ width: `${Math.round(micLevel * 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <div className="text-xs text-gray-400 mb-1">Audio Waveform</div>
+                  <canvas
+                    ref={waveformCanvasRef}
+                    width={300}
+                    height={80}
+                    className="w-full h-20 bg-gray-900 rounded border border-gray-700"
+                  />
                 </div>
               </div>
             </div>

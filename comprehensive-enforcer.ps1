@@ -106,6 +106,40 @@ function Test-DocumentationViolation {
     return $false
 }
 
+function IsAllowedDoc {
+    param([string]$FilePath)
+    if ($FilePath -ieq "$PROJECT_ROOT\docs\BITTE_SPECIFIC_TECHNICAL_ARCHITECTURE.md") { return $true }
+    return $false
+}
+
+function Handle-DocChange {
+    param([string]$FilePath)
+    $fileName = Split-Path -Leaf $FilePath
+    $isReadme = $fileName -ieq "README.md"
+    $isMarkdown = $fileName -like "*.md"
+    if ($isReadme -or $isMarkdown) {
+        if (-not (IsAllowedDoc -FilePath $FilePath)) {
+            try {
+                $content = Get-Content -Path $FilePath -Raw
+            } catch {
+                $content = ""
+            }
+            if ($isReadme -or ($content -like "*```mermaid*")) {
+                Write-EnforcementLog "DOCUMENTATION CHANGE BLOCKED: $fileName" "VIOLATION"
+                try {
+                    Push-Location $PROJECT_ROOT
+                    git checkout -- $FilePath | Out-Null
+                } catch {
+                    Write-EnforcementLog "FAILED TO REVERT: $FilePath" "ERROR"
+                } finally {
+                    Pop-Location
+                }
+                exit 1
+            }
+        }
+    }
+}
+
 function Test-FileCreationViolation {
     param([string]$FilePath, [string]$FileContent)
     
@@ -301,6 +335,15 @@ function Start-FileSystemMonitor {
             # Stop operation after violation
             exit 1
         }
+    }
+    
+    Register-ObjectEvent -InputObject $watcher -EventName "Changed" -Action {
+        $filePath = $Event.SourceEventArgs.FullPath
+        Handle-DocChange -FilePath $filePath
+    }
+    Register-ObjectEvent -InputObject $watcher -EventName "Renamed" -Action {
+        $filePath = $Event.SourceEventArgs.FullPath
+        Handle-DocChange -FilePath $filePath
     }
     
     Write-EnforcementLog "File System Monitor started - monitoring for violations" "INFO"

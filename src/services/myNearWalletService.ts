@@ -106,6 +106,13 @@ export class MyNearWalletService {
     return this.config.network;
   }
 
+  // Get wallet connection status
+  getConnectionStatus(): { connected: boolean; accountId: string } {
+    const connected = this.isSignedIn();
+    const accountId = connected ? this.getAccountId() : '';
+    return { connected, accountId };
+  }
+
   // Method to get current balance
   async getBalance(): Promise<string> {
     try {

@@ -3,9 +3,6 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { AnchorProvider } from '@project-serum/anchor';
 import { BiometricNFTClient } from '../utils/solana-client';
 import { FilecoinStorageClient } from '../utils/filecoin-storage';
-import { useUnifiedAIMLIntegration } from '../utils/unified-ai-ml-integration';
-import { useNEARConnection } from '../utils/near-ai-integration';
-import { useIPFSStorage } from '../utils/real-ipfs-storage';
 import { toast } from 'sonner';
 
 interface EmotionalState {
@@ -36,9 +33,6 @@ export default function FractalBlockchainIntegration({
   const [aiFractalGenerator, setAiFractalGenerator] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   
-  const { aiMLBridge, isAILoaded } = useUnifiedAIMLIntegration();
-  const { nearConnection, isConnected: isNEARConnected } = useNEARConnection();
-  const { ipfsStorage, isIPFSReady } = useIPFSStorage();
   
   const wasmInitialized = useRef(false);
 

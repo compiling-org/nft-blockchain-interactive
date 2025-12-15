@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { unifiedAIMLPipeline } from '../utils/unified-ai-ml-integration.js';
+const unifiedAIMLPipeline: any = (window as any)?.unifiedAIMLPipeline || null;
 
 interface AudioReactiveFractalRendererProps {
   width?: number;

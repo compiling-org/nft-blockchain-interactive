@@ -122,7 +122,7 @@ export interface SoulboundNFTVerification {
 }
 
 export class EnhancedBitteProtocolAI {
-  // private near: any; // Available but not used yet
+  private near: any;
   private emotionDetector: RealEmotionDetector;
   private wasmMLBridge: WASMMLBridge;
   private agents: Map<string, EnhancedBitteAIAgent> = new Map();

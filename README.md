@@ -1,66 +1,137 @@
-# Blockchain NFT Interactive — Unified Multi-Chain Creative Platform
+# Blockchain NFT Interactive
 
 ## Overview
-Blockchain NFT Interactive is a unified workspace that implements AI/ML-driven creative NFTs across six grants: NEAR, Solana, Filecoin, Mintbase/Bitte, Rust Foundation, and Web3/Polkadot. Development happens in this main repository, with surgical extraction to individual grant repositories for submissions.
-
-## Update Summary (December 2025)
-- Refreshed grant-specific docs in `docs/` (Filecoin updated; others queued)
-- Confirmed push hygiene and `.gitignore` for heavy/nested directories
-- Synchronized Filecoin grant repo with updated README/architecture
-- Next focus: comprehensive Solana client/wallet integration
+- Unified development workspace for multi-chain creative NFT grants (NEAR, Solana, Filecoin, Polkadot, Rust Foundation, Mintbase/Bitte).
+- Build here; extract and publish to individual grant repositories when ready.
 
 ## Repository Structure
-- `src/` — Frontend, clients, and integrations
-- `contracts/` — On-chain programs (NEAR, Solana, Filecoin actor, cross-chain bridge)
-- `docs/` — Grant-specific docs and technical reports
-- `scripts/` — Extraction, deployment, and repo management
-- `marketplace-frontend/` — Test marketplace UI
-- `reports/` — Project status and verification summaries
+- `src/` — Frontend, blockchain clients, integrations
+- `contracts/` — On-chain program code (per chain)
+- `docs/` — Grant-specific and technical architecture documents
+- `scripts/` — Extraction, deployment, and tooling
+- `reports/` — Implementation status and verification summaries
 
-## Quick Start
-- Prerequisites: Node 18+, Rust toolchain, Git, Anchor (for Solana), NEAR CLI (optional)
+## Development
+- Prerequisites: Node 18+, Rust toolchain, Git
 - Install: `npm install`
-- Dev: `npm run dev` or `vite` from the project root
+- Dev server: `npm run dev` → open `http://localhost:3002/`
 - Build: `npm run build`
 - Preview: `npm run preview`
+- Typecheck: `npm run typecheck` (configured and passing)
+- Lint: `npm run lint` (requires ESLint config; not enabled by default)
 
-## Grant Repositories (External)
-- External location: keep grant repositories outside this project (e.g., `<GRANTS_ROOT>/grant-repositories`)
-- Extraction scripts: `extract-*-grant.sh`
-- Push scripts: `scripts/push-updated-grants.sh`, `scripts/push-all-grants-github.sh`
-- Workflow: Develop here → extract → commit/push in each grant repo
+## Documentation
+- Solana technical architecture: `docs/SOLANA_SPECIFIC_TECHNICAL_ARCHITECTURE.md`
+- Solana README: `docs/SOLANA_SPECIFIC_README.md`
+- NEAR technical architecture: `docs/near-foundation-grant-technical-architecture.md`
+- Filecoin architecture: `docs/FILECOIN_SPECIFIC_TECHNICAL_ARCHITECTURE.md`
+- Developer guide: `docs/developer-guide.md`
 
-## Filecoin Constraints
-- Public Calibration network does not accept custom Rust/WASM actors via `lotus`
-- Use local Lotus devnet or FVM harness for install/create calls
-- Actor simulation and WASM build exist in `contracts/filecoin/biometric-nft-actor/`
+## System Architecture
 
-## What’s Working
-- NEAR: wallet integration, WASM contracts, testnet flows
-- Solana: program builds; client integration in progress
-- Filecoin: IPFS architecture, compression pipeline; provider integration pending
-- Cross-chain bridge and analytics: core scaffolding implemented
+```mermaid
+graph TB
+    classDef frontend fill:#ff6b6b,stroke:#333,stroke-width:3px,color:#fff
+    classDef application fill:#4ecdc4,stroke:#333,stroke-width:2px,color:#fff
+    classDef blockchain fill:#45b7d1,stroke:#333,stroke-width:2px,color:#fff
+    classDef storage fill:#96ceb4,stroke:#333,stroke-width:2px,color:#333
+    classDef ai fill:#feca57,stroke:#333,stroke-width:2px,color:#333
+    
+    subgraph "Frontend"
+        UI["Main UI<br/>React/Vite"]:::frontend
+        MARKET["Marketplace UI<br/>Component Library"]:::frontend
+        DEMOS["Interactive Demos<br/>Educational Tools"]:::frontend
+    end
+    
+    subgraph "Application Logic"
+        CREATIVE["Creative Engine<br/>Rust→WASM/WebGPU"]:::application
+        EMOTION["Emotional Computing<br/>VAD Processing"]:::application
+        WALLET["Wallet Interface<br/>Multi-chain Support"]:::application
+    end
+    
+    subgraph "Blockchains"
+        subgraph "NEAR"
+            NEAR_CONTRACT["WASM Contracts<br/>Fractal/Interactive"]:::blockchain
+        end
+        subgraph "Solana"
+            SOL_PROG["Anchor Programs<br/>Emotional Metadata"]:::blockchain
+            SOL_MEMO["Memo Program<br/>CID Anchoring"]:::blockchain
+        end
+        subgraph "Polkadot"
+            DOT_CLIENT["Subxt Client<br/>Identity/Reputation"]:::blockchain
+        end
+    end
+    
+    subgraph "Storage & AI"
+        IPFS["IPFS/Filecoin<br/>Session Packages"]:::storage
+        META["Cross-Chain Metadata<br/>Standardized Schema"]:::storage
+        AI_MODELS["AI Models<br/>Stream Diffusion/FER"]:::ai
+    end
+    
+    UI --> WALLET
+    UI --> CREATIVE
+    UI --> EMOTION
+    WALLET --> NEAR_CONTRACT
+    WALLET --> SOL_PROG
+    WALLET --> DOT_CLIENT
+    CREATIVE --> IPFS
+    EMOTION --> META
+    SOL_PROG --> IPFS
+    SOL_MEMO --> IPFS
+    AI_MODELS --> EMOTION
+```
 
-## What’s Next
-- Finish Solana wallet adapter and end-to-end client flows
-- Stand up devnet/FVM harness for Filecoin actor invocation
-- Replace mocked IPFS with Web3.Storage/NFT.Storage providers
-- Finalize grant extractions and push with updated docs
+## Cross-Chain Bridge Overview
 
-## Push Hygiene
-- Heavy/nested directories are ignored by `.gitignore`
-- Do not commit large binaries (`*.wasm`, `*.zip`, `target/`, `node_modules/`)
-- Nested repos like `external-grants/` and `src/solana-program/` are ignored
+```mermaid
+graph LR
+    SOLANA["Solana Program"] --> CCMD["CrossChainMetadata"]
+    CCMD --> BRIDGE["Bridge Service"]
+    BRIDGE --> NEAR["NEAR Contract"]
+    BRIDGE --> DOT["Polkadot Runtime"]
+    BRIDGE --> ETH["Ethereum Contract"]
+    
+    HASH["Emotional State Hash"] --> VERIFY["Verification on Target"]
+    VERIFY --> REPL["Metadata Replication"]
+```
 
-## Scripts
-- `extract-all-grants.sh` — Extracts code by grant
-- `push-updated-grants.sh` — Adds/commits/pushes each grant repo
-- `verify-completion.sh` — Summarizes module presence and status
+## Data & Storage Flow
 
-## Status Dashboards
-- `docs/CURRENT_IMPLEMENTATION_STATUS.md` — live implementation status
-- `reports/PROJECT_STATUS_SUMMARY.md` — summary across grants
-- `docs/*_SPECIFIC_*` — grant-specific technical architecture and reports
+```mermaid
+sequenceDiagram
+    participant UI as Client UI
+    participant IPFS as IPFS/Filecoin
+    participant MEMO as Solana Memo
+    participant PROG as Solana Program
+    participant NEAR as NEAR Contract
+    participant DOT as Polkadot Client
+    
+    UI->>UI: Capture VAD & features (sensors)
+    UI->>IPFS: Upload session.json
+    IPFS-->>UI: Return CID
+    UI->>MEMO: Write CID memo (anchor)
+    UI->>PROG: update_emotional_state(v,a,d,confidence)
+    PROG-->>UI: Confirm update
+    UI->>NEAR: Save metadata (optional)
+    UI->>DOT: Update reputation (optional)
+```
+
+## Development Pipeline
+
+```mermaid
+graph LR
+    CODE["Source Code<br/>TypeScript/Rust"] --> INSTALL["Dependencies<br/>npm install"]
+    INSTALL --> DEV["Dev Server<br/>npm run dev"]
+    DEV --> TEST["Typecheck<br/>npm run typecheck"]
+    TEST --> BUILD["Build<br/>npm run build"]
+    BUILD --> PREVIEW["Preview<br/>npm run preview"]
+    PREVIEW --> EXTRACT["Grant Extract<br/>scripts/extract-*-grant.sh"]
+    EXTRACT --> PUBLISH["Publish to Grant Repo"]
+```
+
+## Notes
+- This repository does not claim mainnet/testnet deployments; use grant-specific repos for deployment artifacts and instructions.
+- Large binaries and nested vendor directories are ignored via `.gitignore`.
 
 ## License
 MIT

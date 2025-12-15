@@ -1,138 +1,101 @@
-# 🚨 REALITY CHECK: Filecoin/IPFS Emotional Storage
+# Filecoin/IPFS Emotional Storage — Comprehensive README
 
-> **⚠️ HONEST STATUS**: This project is 60% complete with working IPFS integration but 0% Filecoin deployment. All Filecoin-specific features are mocked until we get actual storage provider access.
+## Executive Summary
+- Real uploads work via `Web3.Storage` and `NFT.Storage` when a token is configured.
+- Fallback mode uses realistic mock CIDs only when no token is provided.
+- Direct Lotus/Filecoin deal negotiation is scaffolded and currently mocked.
+- Calibration configuration exists for future direct deal testing (`src/config/filecoin-calibration.env:1-8`).
 
-## Work Done
+## Architecture Overview
+```mermaid
+flowchart LR
+    UI[Client UI] --> API[Storage Client]
+    API --> W3S[Web3.Storage]
+    API --> NFTS[NFT.Storage]
+    W3S --> IPFS[IPFS]
+    NFTS --> IPFS
+    IPFS --> FIL[Filecoin Persistence]
+    API -.optional.-> LOTUS[Lotus Deals (mocked)]
+```
 
-- Implemented modular IPFS storage layer with CID generation and metadata flow
-- Built React UI panels for storage actions and provider selection
-- Added compression pipeline (delta/RLE) hooks in client paths
-- Established multi-provider scaffolding (IPFS local, Web3.Storage, NFT.Storage)
-- Documented repository extraction rules and grant isolation strategy
+## Upload Workflow
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant UI as Client UI
+    participant SC as Storage Client
+    participant W3 as Web3.Storage
+    participant IP as IPFS
+    participant FC as Filecoin
 
-## Work Remaining
+    U->>UI: Connect token
+    UI->>SC: Initialize clients
+    SC->>W3: Upload JSON + PNG
+    W3-->>SC: Return CID
+    SC->>IP: Pin content (provider-backed)
+    IP-->>FC: Persist to Filecoin
+    SC-->>UI: Show CID and URLs
 
-- Connect to a real IPFS node or provider (Pinata, Infura, Web3/NFT.Storage)
-- Implement Filecoin wallet setup and storage deal negotiation
-- Add persistence verification and deal renewal scheduling
-- Replace mock CID paths with real upload/download operations
-- Create end-to-end tests for provider flows and cost monitoring
+    alt Failure
+      W3-->>SC: Error
+      SC-->>UI: Display error and guidance
+    end
+```
 
-## Calibration Testnet Constraints
+## Retrieval Workflow
+```mermaid
+sequenceDiagram
+    participant UI as Client UI
+    participant SC as Storage Client
+    participant W3 as Web3.Storage
 
-- Custom Rust/WASM FVM actors cannot be installed on public Calibration via `lotus`
-- Use a local Lotus devnet or FVM harness for actor install and method invocation
-- Public Calibration flow should validate WASM and record build metadata, then defer install
+    UI->>SC: Retrieve by CID
+    SC->>W3: Get files
+    W3-->>SC: Return metadata JSON
+    SC-->>UI: Render session/emotion data
+```
 
-## What Actually Works
+## Data Model
+```json
+{
+  "name": "Emotional Art Session",
+  "description": "Session metadata and emotional state",
+  "image": "ipfs://<png-cid>",
+  "properties": {
+    "emotion": { "valence": 0.42, "arousal": 0.63, "dominance": 0.51, "confidence": 0.88 },
+    "biometrics": {
+      "heartRate": [72, 74, 76],
+      "breathingRate": [12.1, 11.8],
+      "eegBands": [{ "alpha": 0.33, "beta": 0.22, "gamma": 0.05, "delta": 0.15, "theta": 0.25 }]
+    },
+    "sessionId": "uuid",
+    "timestamp": 1734200000
+  }
+}
+```
 
-✅ **IPFS Integration** (`src/ipfs-integration/`)
-- Complete CID generation using SHA-256 hashing
-- Creative asset upload with metadata handling
-- NFT metadata generation with IPFS links
-- Data integrity verification through CID comparison
-- Batch upload functionality for multiple assets
+## Configuration
+- Token setup: `docs/WEB3_STORAGE_SETUP.md:1-64`
+- Environment variable: `WEB3_STORAGE_TOKEN` or `.env`
+- Calibration env: `src/config/filecoin-calibration.env:1-8`
 
-✅ **Storage Layer Architecture**
-- Modular design supporting multiple storage backends
-- NUWE, MODURUST, and Neuroemotive specific storage implementations
-- Emotional trait support for enhanced NFTs
-- Proper serialization with JSON handling
+## UI Integration
+- Connect-and-upload panel: `src/components/FilecoinStorageIntegration.tsx:1-34`
+- Token connect and status: `src/components/FilecoinStorageIntegration.tsx:180-213`
+- Upload progress and result: `src/components/FilecoinStorageIntegration.tsx:214-297`
 
-✅ **Client Implementation**
-- Async IPFS client with proper error handling
-- Mock CID generation for development testing
-- Content pinning simulation
-- Gateway URL management
+## API Integration
+- Client initialization: `src/utils/filecoin-storage.ts:1-18`
+- Retrieval by CID: `src/utils/filecoin-ai-integration.ts:269-294`
+- Mock deal scaffold: `src/utils/unified-ai-ipfs-hub.ts:93-110`
 
-## What's Still Mocked
+## Verification Checklist
+- Set a valid `WEB3_STORAGE_TOKEN`.
+- Use the Filecoin panel to connect and upload a test session.
+- Confirm a real CID is returned and gateways resolve content.
+- Retrieve metadata by CID to verify end-to-end.
 
-❌ **Actual IPFS Node Connection**
-- All IPFS operations return mock CIDs (`Qm{:x}` format)
-- No real IPFS daemon integration
-- Pinning operations are no-ops
-- Content retrieval returns empty vectors
-
-❌ **Filecoin Storage Providers**
-- Storage provider IDs are hardcoded examples (`f0123456`)
-- No actual Filecoin network integration
-- No storage deal negotiation
-- No persistence guarantees verification
-
-❌ **Production Storage**
-- No connection to Infura, Pinata, or other IPFS services
-- No Filecoin wallet integration for storage payments
-- No storage provider selection logic
-- No redundancy or backup strategies
-
-## Code Quality Assessment
-
-**Architecture**: ⭐⭐⭐⭐⭐ (Excellent)
-- Clean modular design with clear separation of concerns
-- Proper async/await patterns throughout
-- Comprehensive error handling with `Box<dyn Error>`
-- Well-structured data types with serde serialization
-
-**Functionality**: ⭐⭐⭐ (Partial)
-- Core IPFS operations are architected correctly
-- CID generation works with proper multihash implementation
-- Metadata handling is comprehensive
-- Missing actual network integration
-
-**Testing**: ⭐⭐⭐ (Basic)
-- Unit tests for CID generation and data integrity
-- Mock-based tests for client operations
-- No integration tests with real IPFS nodes
-- Missing Filecoin-specific test scenarios
-
-## Technical Debt
-
-1. **IPFS Node Integration**: Need to connect to actual IPFS daemon
-2. **Filecoin Provider Access**: Requires Filecoin wallet and provider relationships
-3. **Storage Service Integration**: Need Pinata, Infura, or similar service accounts
-4. **Production Configuration**: Missing environment-based configuration
-
-## Grant Eligibility Status
-
-**Current State**: Core architecture complete, network integration missing
-**Blockers**: IPFS/Filecoin service access, wallet setup
-**Timeline**: 1 week to integrate with existing services
-**Risk Level**: Low (infrastructure setup, not technical complexity)
-
-## Next Steps to Production
-
-1. **Set Up IPFS Infrastructure**:
-   ```bash
-   # Option 1: Local IPFS daemon
-   ipfs init
-   ipfs daemon
-   
-   # Option 2: Use Pinata or Infura
-   # Get API keys and configure endpoints
-   ```
-
-2. **Integrate Filecoin Storage**:
-   - Set up Filecoin wallet (Lotus or similar)
-   - Configure storage provider relationships
-   - Implement storage deal negotiation
-   - Add persistence verification
-
-3. **Update Client Implementation**:
-   - Replace mock CIDs with real IPFS operations
-   - Implement actual content pinning
-   - Add proper error handling for network failures
-   - Configure production gateway URLs
-
-4. **Add Monitoring**:
-   - Storage provider health checks
-   - Content availability verification
-   - Storage cost tracking
-   - Backup and redundancy management
-
-## Honest Assessment
-
-The IPFS/Filecoin integration has solid architectural foundations but needs actual network connectivity to be functional. The code structure is production-ready with proper async patterns and error handling. The main gap is infrastructure setup rather than technical implementation.
-
-The modular design allows easy switching between different storage providers, and the emotional trait integration is innovative for NFT storage. Once we get IPFS node access, this could provide reliable decentralized storage for emotional NFT metadata.
-
-**Reality Check**: 60% complete, 0% connected to real networks, but architecture is sound for production deployment.
+## Roadmap
+- Implement direct Lotus deal negotiation and verification.
+- Add persistence checks, renewal scheduling, and provider redundancy.
+- Integrate cost monitoring and availability health checks.

@@ -49,7 +49,7 @@ function App() {
           console.log('No wallet connection found');
           setDebugInfo('No wallet connection found - please connect your wallet');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('NEAR Creative Engine wallet initialization error:', error);
         setConnectionError(`Wallet initialization failed: ${error.message}`);
       } finally {
@@ -86,7 +86,7 @@ function App() {
           }
         }, 1000);
         
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to connect NEAR wallet for creative engine:', error);
         setConnectionError(`Connection failed: ${error.message}`);
         alert('Failed to connect wallet. Please make sure you have a testnet account and try again.');

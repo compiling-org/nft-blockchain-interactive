@@ -121,6 +121,59 @@ graph TB
     SB -->|"Identity Data"| METADATA
 ```
 
+## 🧠 Emotional NFTs — Goals & Scope
+
+- Emotion-first tokens: the NFT represents emotional state and its temporal trajectory, not static media
+- On-chain truth: latest VAD vector and references to history; off-chain IPFS/Filecoin hold detailed session logs
+- Model transparency: record model ids/versions and confidence alongside outputs for auditability
+- Views optional: stream diffusion or images are renderable views, secondary to emotional metadata
+
+### Models
+- Emotion inference: maps multi-modal inputs (MediaPipe, LeapMotion, audio features) to VAD
+- Stream diffusion: generates audiovisual streams; referenced as optional artifacts
+- Feature extractors: count/summary features; avoid raw video/audio by default for privacy and size
+
+### Data Storage Plan
+- VAD history: list of `{v,a,d}` with timestamps
+- Sensor features: `faceVariance`, `handOpenness`, `poseStability`, `confidence`, sensor counts
+- Event log: timestamped `mediapipe_metrics` and `biometric_data` entries
+- Model metadata: `model`, `version`, sampling rate, confidence distribution
+- Persistence: IPFS/Filecoin session packages (JSON) + on-chain updates to emotion state/history
+
+### Session Package (stored on IPFS/Filecoin)
+- Fields: `version`, `model`, `start`, `end`, `duration_ms`, `emotion_history`, `sensor_counts`, `sensor_features`, `mic_level`, `events`
+- Stored via project IPFS hook; CID linked in UI and available to mint metadata
+
+### Implementation References
+- Session event capture: `src/pages/SolanaEmotionalNFT.tsx:88`
+- Session save to IPFS: `src/pages/SolanaEmotionalNFT.tsx:236`
+- MediaPipe metrics appended to events: `src/pages/SolanaEmotionalNFT.tsx:324`
+- Biometric data appended to events: `src/pages/SolanaEmotionalNFT.tsx:352`
+- Solana client mint with emotion: `src/utils/solana-client.ts:150`
+- NEAR dynamic metadata structure (example): `src/near-wasm/src/dynamic_nft.rs:37`
+
+### Why This Design
+- Aligns with Solana grant focus on neuroemotive AI and stream diffusion
+- Preserves emotional trajectories with verifiable, decentralized storage
+- Keeps visual outputs optional, preventing confusion with “image-only NFTs”
+
+### Recent Implementation Update — Solana Emotional NFTs (Dec 2025)
+- Session tools: Save to IPFS and Download JSON (`src/pages/SolanaEmotionalNFT.tsx:900`, `src/pages/SolanaEmotionalNFT.tsx:927–942`)
+- Session inspector: last emotion, mic and sensors (`src/pages/SolanaEmotionalNFT.tsx:944–951`)
+- Load session by CID, preview, apply last emotion to sliders (`src/pages/SolanaEmotionalNFT.tsx:944–964`)
+- Memo anchoring: Anchor session CIDs (including loaded sessions) via memo (`src/pages/SolanaEmotionalNFT.tsx:902–921`, `src/pages/SolanaEmotionalNFT.tsx:944–964`)
+- On-chain emotion: Update, refresh, preview recent history, and download on-chain history (`src/pages/SolanaEmotionalNFT.tsx:1012–1036`, `src/pages/SolanaEmotionalNFT.tsx:1037–1086`, `src/pages/SolanaEmotionalNFT.tsx:658–674`)
+- Explorer/copy UX: Transaction and account explorer/copy actions (`src/pages/SolanaEmotionalNFT.tsx:955–981`)
+- My NFTs enhancements: Refresh, sort by quality, per-item update emotion, and quick explorer/copy (`src/pages/SolanaEmotionalNFT.tsx:1074–1153`)
+- Wallet tools: Copy wallet, open explorer, refresh balance, quick airdrop (`src/pages/SolanaEmotionalNFT.tsx:1049–1061`)
+- Metadata: Load and Download JSON, open in gateway (`src/pages/SolanaEmotionalNFT.tsx:964–991`)
+
+#### Program Client References
+- Initialize NFT with emotion: `src/utils/solana-client.ts:149–181`
+- Update emotion instruction: `src/utils/solana-client.ts:209–234`
+- Fetch account and owner NFTs: `src/utils/solana-client.ts:236–266`
+- Memo transactions: `src/utils/solana-client.ts:304–324`
+
 ### 🔧 Development Environment Architecture
 
 ```mermaid

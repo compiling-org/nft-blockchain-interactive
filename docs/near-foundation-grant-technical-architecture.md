@@ -283,13 +283,13 @@ graph TB
     subgraph "Off-Chain Storage"
         IPFS_METADATA["IPFS Metadata<br/>JSON Documents"]
         ASSETS["Creative Assets<br/>Images & Media"]
-        HISTORY["Historical Data<br">Session Logs"]
+        HISTORY["Historical Data<br/>Session Logs"]
     end
     
     subgraph "Local Storage"
-        CACHE["Browser Cache<br">Temporary Data"]
-        PREFERENCES["User Preferences<br">Settings"]
-        SESSION["Session Data<br">Current State"]
+        CACHE["Browser Cache<br/>Temporary Data"]
+        PREFERENCES["User Preferences<br/>Settings"]
+        SESSION["Session Data<br/>Current State"]
     end
     
     CONTRACT_STATE --> IPFS_METADATA
@@ -309,23 +309,23 @@ graph TB
 graph TD
     subgraph "Metrics Collection"
         PERFORMANCE["Performance Metrics<br/>Render Time, FPS"]
-        USAGE["Usage Metrics<br">Session Duration"]
-        ERROR["Error Metrics<br">Failure Rates"]
-        BUSINESS["Business Metrics<br">Transaction Volume"]
+        USAGE["Usage Metrics<br/>Session Duration"]
+        ERROR["Error Metrics<br/>Failure Rates"]
+        BUSINESS["Business Metrics<br/>Transaction Volume"]
     end
     
     subgraph "Logging System"
-        CLIENT_LOGS["Client Logs<br">Browser Console"]
-        CONTRACT_LOGS["Contract Logs<br">NEAR Events"]
-        ERROR_LOGS["Error Logs<br">Exception Tracking"]
-        AUDIT_LOGS["Audit Logs<br">Security Events"]
+        CLIENT_LOGS["Client Logs<br/>Browser Console"]
+        CONTRACT_LOGS["Contract Logs<br/>NEAR Events"]
+        ERROR_LOGS["Error Logs<br/>Exception Tracking"]
+        AUDIT_LOGS["Audit Logs<br/>Security Events"]
     end
     
     subgraph "Alerting"
-        THRESHOLDS["Threshold Alerts<br">Performance Degradation"]
-        ANOMALY["Anomaly Detection<br">Unusual Patterns"]
-        SECURITY["Security Alerts<br">Threat Detection"]
-        AVAILABILITY["Availability Alerts<br">Service Down"]
+        THRESHOLDS["Threshold Alerts<br/>Performance Degradation"]
+        ANOMALY["Anomaly Detection<br/>Unusual Patterns"]
+        SECURITY["Security Alerts<br/>Threat Detection"]
+        AVAILABILITY["Availability Alerts<br/>Service Down"]
     end
     
     PERFORMANCE --> THRESHOLDS
@@ -349,20 +349,20 @@ graph LR
         CODE["Source Code<br/>Rust/TypeScript"]
         TEST["Testing Suite<br/>Unit & Integration"]
         BUILD["Build Process<br/>WASM Compilation"]
-        DEPLOY["Deployment<br">NEAR Testnet"]
+        DEPLOY["Deployment<br/>NEAR Testnet"]
     end
     
     subgraph "Production Pipeline"
-        STAGING["Staging Environment<br">NEAR Testnet"]
-        PRODUCTION["Production Environment<br">NEAR Mainnet"]
-        MONITORING["Monitoring<br">Metrics & Alerts"]
-        ROLLBACK["Rollback Strategy<br">Quick Reversion"]
+        STAGING["Staging Environment<br/>NEAR Testnet"]
+        PRODUCTION["Production Environment<br/>NEAR Mainnet"]
+        MONITORING["Monitoring<br/>Metrics & Alerts"]
+        ROLLBACK["Rollback Strategy<br/>Quick Reversion"]
     end
     
     subgraph "Infrastructure"
-        CDN["CDN Distribution<br">Global Assets"]
-        GATEWAY["IPFS Gateway<br">Content Delivery"]
-        RPC_NODES["RPC Nodes<br">Network Access"]
+        CDN["CDN Distribution<br/>Global Assets"]
+        GATEWAY["IPFS Gateway<br/>Content Delivery"]
+        RPC_NODES["RPC Nodes<br/>Network Access"]
     end
     
     CODE --> TEST
@@ -386,22 +386,22 @@ graph LR
 ```mermaid
 graph TD
     subgraph "Horizontal Scaling"
-        LOAD_BALANCER["Load Balancer<br">Traffic Distribution"]
-        MULTIPLE_INSTANCES["Multiple Instances<br">Parallel Processing"]
-        DATABASE_SHARDING["Database Sharding<br">Data Partitioning"]
-        CACHE_CLUSTER["Cache Cluster<br">Distributed Caching"]
+        LOAD_BALANCER["Load Balancer<br/>Traffic Distribution"]
+        MULTIPLE_INSTANCES["Multiple Instances<br/>Parallel Processing"]
+        DATABASE_SHARDING["Database Sharding<br/>Data Partitioning"]
+        CACHE_CLUSTER["Cache Cluster<br/>Distributed Caching"]
     end
     
     subgraph "Vertical Scaling"
-        RESOURCE_UPGRADE["Resource Upgrade<br">CPU/Memory"]
-        OPTIMIZATION["Code Optimization<br">Performance Tuning"]
-        ARCHITECTURE_REFACTOR["Architecture Refactor<br">System Redesign"]
+        RESOURCE_UPGRADE["Resource Upgrade<br/>CPU/Memory"]
+        OPTIMIZATION["Code Optimization<br/>Performance Tuning"]
+        ARCHITECTURE_REFACTOR["Architecture Refactor<br/>System Redesign"]
     end
     
     subgraph "Content Scaling"
-        STATIC_CDN["Static CDN<br">Asset Distribution"]
-        DYNAMIC_CDN["Dynamic CDN<br">API Caching"]
-        EDGE_COMPUTING["Edge Computing<br">Processing at Edge"]
+        STATIC_CDN["Static CDN<br/>Asset Distribution"]
+        DYNAMIC_CDN["Dynamic CDN<br/>API Caching"]
+        EDGE_COMPUTING["Edge Computing<br/>Processing at Edge"]
     end
     
     LOAD_BALANCER --> MULTIPLE_INSTANCES

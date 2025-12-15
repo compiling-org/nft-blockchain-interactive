@@ -6,6 +6,11 @@
     <title>Bitte AI Marketplace</title>
   </head>
   <body>
+    <script>
+      if (!location.hash) {
+        location.hash = '#/solana';
+      }
+    </script>
     <div style="background:#111;color:#eee;padding:12px;font-family:system-ui">
       Dev server is up. Open <a href="#/marketplace" style="color:#9cf">#/marketplace</a>.
       If nothing renders, hard refresh (Ctrl+Shift+R).

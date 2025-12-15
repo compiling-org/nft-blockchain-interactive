@@ -23,7 +23,7 @@ const LeapMotionSensors: React.FC<LeapMotionSensorsProps> = ({ host = 'ws://loca
         if (!running) return;
         setConnected(true);
         const enable = JSON.stringify({ enableGestures: true, background: false });
-        ws.send(enable);
+        ws?.send(enable);
       };
       ws.onmessage = (evt) => {
         if (!running) return;

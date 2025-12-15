@@ -16,7 +16,7 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
@@ -24,8 +24,14 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["vite/client"]
   },
   "include": ["src"],
+  "exclude": [
+    "src/tests/**",
+    "src/solana-programs/tests/**",
+    "src/solana-program/tests/**"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

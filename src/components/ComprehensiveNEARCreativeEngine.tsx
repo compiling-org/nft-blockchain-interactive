@@ -124,7 +124,7 @@ export const ComprehensiveNEARCreativeEngine: React.FC<NEARCreativeEngineProps> 
     if (!walletService) return;
     
     try {
-      await walletService.getTestNearFromFaucet();
+      window.open('https://near-faucet.io/', '_blank');
       await updateBalance(walletService);
     } catch (error) {
       console.error('Failed to get test NEAR:', error);
@@ -349,10 +349,13 @@ export const ComprehensiveNEARCreativeEngine: React.FC<NEARCreativeEngineProps> 
         {currentView === 'fractals' && (
           <div className="space-y-6">
             <RealAudioReactiveFractalRenderer
-              emotionalState={emotionalState}
-              onEmotionalUpdate={handleEmotionalUpdate}
-              canvasRef={canvasRef}
-              audioContextRef={audioContextRef}
+              onBiometricData={(data: any) => {
+                handleEmotionalUpdate({
+                  valence: data?.emotion?.valence ?? emotionalState.valence,
+                  arousal: data?.emotion?.arousal ?? emotionalState.arousal,
+                  dominance: data?.emotion?.dominance ?? emotionalState.dominance
+                });
+              }}
             />
           </div>
         )}
@@ -360,7 +363,6 @@ export const ComprehensiveNEARCreativeEngine: React.FC<NEARCreativeEngineProps> 
         {currentView === 'shaders' && (
           <div className="space-y-6">
             <RealAIShaderGenerator
-              emotionalState={emotionalState}
               onShaderGenerated={(shader) => {
                 const asset: CreativeAsset = {
                   id: `shader_${Date.now()}`,
@@ -380,12 +382,22 @@ export const ComprehensiveNEARCreativeEngine: React.FC<NEARCreativeEngineProps> 
           <div className="space-y-6">
             <RealBiometricCapture
               onBiometricData={(data) => {
-                handleEmotionalUpdate(data.emotionalState);
+                handleEmotionalUpdate({
+                  valence: data.emotion.valence,
+                  arousal: data.emotion.arousal,
+                  dominance: data.emotion.dominance
+                });
                 const asset: CreativeAsset = {
                   id: `biometric_${Date.now()}`,
                   type: 'biometric',
                   data,
-                  emotionalState: data.emotionalState,
+                  emotionalState: {
+                    valence: data.emotion.valence,
+                    arousal: data.emotion.arousal,
+                    dominance: data.emotion.dominance,
+                    confidence: emotionalState.confidence,
+                    primaryEmotion: emotionalState.primaryEmotion
+                  },
                   timestamp: Date.now(),
                   owner: accountId
                 };

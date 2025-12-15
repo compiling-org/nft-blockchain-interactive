@@ -6,7 +6,17 @@ import { Pose } from '@mediapipe/pose';
 
 interface MediaPipeSensorsProps {
   className?: string;
-  onMetrics?: (metrics: { hands: number; faces: number; poses: number }) => void;
+  onMetrics?: (metrics: { 
+    hands: number; 
+    faces: number; 
+    poses: number;
+    features?: {
+      faceVariance: number;
+      handOpenness: number;
+      poseStability: number;
+      confidence: number;
+    }
+  }) => void;
 }
 
 const MediaPipeSensors: React.FC<MediaPipeSensorsProps> = ({ className, onMetrics }) => {
@@ -22,10 +32,12 @@ const MediaPipeSensors: React.FC<MediaPipeSensorsProps> = ({ className, onMetric
     let faceMesh: FaceMesh | null = null;
     let pose: Pose | null = null;
     let running = true;
+    let lastPose: Array<{x:number;y:number}> | null = null;
 
     const init = async () => {
       try {
         const video = document.createElement('video');
+        video.setAttribute('playsinline', 'true');
         videoRef.current = video;
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -33,31 +45,175 @@ const MediaPipeSensors: React.FC<MediaPipeSensorsProps> = ({ className, onMetric
         if (!ctx) return;
 
         hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-        hands.setOptions({ maxHands: 2, modelComplexity: 1, selfieMode: true });
+        hands.setOptions({ maxNumHands: 2, modelComplexity: 1, selfieMode: true });
         hands.onResults((results: any) => {
           if (!running || !ctx || !canvas) return;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (results.image) {
+            ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+          }
           const handCount = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
-          setCounts((prev) => ({ ...prev, hands: handCount }));
-          onMetrics?.({ hands: handCount, faces: counts.faces, poses: counts.poses });
+          // Hand openness proxy: average bounding box area normalized
+          let handOpenness = 0;
+          if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            const areas = results.multiHandLandmarks.map((lm: any) => {
+              let minX = 1, minY = 1, maxX = 0, maxY = 0;
+              lm.forEach((p: any) => {
+                minX = Math.min(minX, p.x);
+                minY = Math.min(minY, p.y);
+                maxX = Math.max(maxX, p.x);
+                maxY = Math.max(maxY, p.y);
+              });
+              const w = Math.max(0, maxX - minX);
+              const h = Math.max(0, maxY - minY);
+              return w * h;
+            });
+            handOpenness = areas.reduce((a: number, b: number) => a + b, 0) / areas.length;
+          }
+          const next = { 
+            hands: handCount, 
+            faces: counts.faces, 
+            poses: counts.poses,
+            features: {
+              faceVariance: 0,
+              handOpenness,
+              poseStability: 0,
+              confidence: Math.min(1, handCount * 0.3)
+            }
+          };
+          setCounts(next);
+          onMetrics?.(next);
+          if (results.multiHandLandmarks) {
+            results.multiHandLandmarks.forEach((lm: any) => {
+              // connectors
+              ctx.strokeStyle = '#a78bfa55';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              lm.forEach((p: any, idx: number) => {
+                const x = p.x * canvas.width;
+                const y = p.y * canvas.height;
+                if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+              });
+              ctx.stroke();
+              lm.forEach((p: any) => {
+                ctx.fillStyle = '#a78bfa';
+                ctx.beginPath();
+                ctx.arc(p.x * canvas.width, p.y * canvas.height, 3, 0, Math.PI * 2);
+                ctx.fill();
+              });
+            });
+          }
         });
 
         faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
         faceMesh.setOptions({ refineLandmarks: true });
         faceMesh.onResults((results: any) => {
           if (!running || !ctx || !canvas) return;
+          if (results.image) {
+            ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+          }
           const faceCount = results.multiFaceLandmarks ? results.multiFaceLandmarks.length : 0;
-          setCounts((prev) => ({ ...prev, faces: faceCount }));
-          onMetrics?.({ hands: counts.hands, faces: faceCount, poses: counts.poses });
+          // Face variance: mean distance to centroid
+          let faceVariance = 0;
+          if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+            const variances = results.multiFaceLandmarks.map((lm: any) => {
+              const cx = lm.reduce((s: number, p: any) => s + p.x, 0) / lm.length;
+              const cy = lm.reduce((s: number, p: any) => s + p.y, 0) / lm.length;
+              const v = lm.reduce((s: number, p: any) => {
+                const dx = p.x - cx; const dy = p.y - cy;
+                return s + Math.sqrt(dx*dx + dy*dy);
+              }, 0) / lm.length;
+              return v;
+            });
+            faceVariance = variances.reduce((a: number, b: number) => a + b, 0) / variances.length;
+          }
+          const next = { 
+            hands: counts.hands, 
+            faces: faceCount, 
+            poses: counts.poses,
+            features: {
+              faceVariance,
+              handOpenness: 0,
+              poseStability: 0,
+              confidence: Math.min(1, faceCount * 0.4)
+            }
+          };
+          setCounts(next);
+          onMetrics?.(next);
+          if (results.multiFaceLandmarks) {
+            results.multiFaceLandmarks.forEach((lm: any) => {
+              // connectors (subset to limit overdraw)
+              ctx.strokeStyle = '#60a5fa55';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              lm.slice(0, 100).forEach((p: any, idx: number) => {
+                const x = p.x * canvas.width;
+                const y = p.y * canvas.height;
+                if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+              });
+              ctx.stroke();
+              lm.forEach((p: any) => {
+                ctx.fillStyle = '#60a5fa';
+                ctx.beginPath();
+                ctx.arc(p.x * canvas.width, p.y * canvas.height, 2, 0, Math.PI * 2);
+                ctx.fill();
+              });
+            });
+          }
         });
 
         pose = new Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
         pose.setOptions({ modelComplexity: 1 });
         pose.onResults((results: any) => {
           if (!running || !ctx || !canvas) return;
+          if (results.image) {
+            ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+          }
           const hasPose = results.poseLandmarks && results.poseLandmarks.length > 0 ? 1 : 0;
-          setCounts((prev) => ({ ...prev, poses: hasPose }));
-          onMetrics?.({ hands: counts.hands, faces: counts.faces, poses: hasPose });
+          let poseStability = 0;
+          if (results.poseLandmarks && results.poseLandmarks.length > 0) {
+            const current = results.poseLandmarks.map((p: any) => ({ x: p.x, y: p.y }));
+            if (lastPose && lastPose.length === current.length) {
+              const deltas = current.map((p: { x: number; y: number }, i: number) => {
+                const dx = p.x - lastPose![i].x;
+                const dy = p.y - lastPose![i].y;
+                return Math.sqrt(dx*dx + dy*dy);
+              });
+              const avgDelta = deltas.reduce((a: number, b: number) => a + b, 0) / deltas.length;
+              poseStability = Math.max(0, 1 - avgDelta * 10); // normalize
+            }
+            lastPose = current;
+          }
+          const next = { 
+            hands: counts.hands, 
+            faces: counts.faces, 
+            poses: hasPose,
+            features: {
+              faceVariance: 0,
+              handOpenness: 0,
+              poseStability,
+              confidence: Math.min(1, hasPose * 0.5)
+            }
+          };
+          setCounts(next);
+          onMetrics?.(next);
+          if (results.poseLandmarks) {
+            // connectors
+            ctx.strokeStyle = '#34d39966';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            results.poseLandmarks.forEach((p: any, idx: number) => {
+              const x = p.x * canvas.width;
+              const y = p.y * canvas.height;
+              if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            results.poseLandmarks.forEach((p: any) => {
+              ctx.fillStyle = '#34d399';
+              ctx.beginPath();
+              ctx.arc(p.x * canvas.width, p.y * canvas.height, 3, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          }
         });
 
         camera = new Camera(video, {
@@ -70,7 +226,11 @@ const MediaPipeSensors: React.FC<MediaPipeSensorsProps> = ({ className, onMetric
           width: 640,
           height: 480,
         });
-        await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+          video.srcObject = stream;
+          await video.play();
+        } catch {}
         setReady(true);
         setStatus('Running');
         camera.start();

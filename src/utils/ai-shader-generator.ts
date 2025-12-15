@@ -250,7 +250,7 @@ fn fs_main(@builtin(position) frag_coord: vec4<f32>) -> @location(0) vec4<f32> {
       // Predict shader parameters using AI model
       const inputTensor = tf.tensor2d([inputFeatures]);
       const prediction = this.model.predict(inputTensor) as tf.Tensor;
-      const parameters = await prediction.array();
+      const parameters = await prediction.array() as number[][];
       
       // Get appropriate template
       const template = this.templates.get(request.type);
@@ -259,7 +259,7 @@ fn fs_main(@builtin(position) frag_coord: vec4<f32>) -> @location(0) vec4<f32> {
       }
       
       // Generate final shader with AI-predicted parameters
-      const paramsArray = Array.isArray(parameters) && Array.isArray(parameters[0]) ? parameters[0] : [0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
+      const paramsArray: number[] = Array.isArray(parameters[0]) ? parameters[0] as number[] : [0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
       const shader = this.customizeTemplate(template, paramsArray);
       
       // Clean up tensors

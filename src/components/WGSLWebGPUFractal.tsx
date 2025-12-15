@@ -107,21 +107,27 @@ export const WGSLWebGPUFractal: React.FC<WGSLWebGPUFractalProps> = ({ width = 80
         const canvas = canvasRef.current!
         context = canvas.getContext('webgpu') as GPUCanvasContext
         const format = (navigator as any).gpu.getPreferredCanvasFormat()
-        context.configure({ device, format, alphaMode: 'opaque' })
+        if (!device || !context) {
+          setError('WebGPU device/context not available')
+          return
+        }
+        const dev: GPUDevice = device
+        const ctx: GPUCanvasContext = context
+        ctx.configure({ device: dev, format, alphaMode: 'opaque' })
 
-        const module = device.createShaderModule({ code: shaderWGSL })
-        pipeline = device.createRenderPipeline({
+        const module = dev.createShaderModule({ code: shaderWGSL })
+        pipeline = dev.createRenderPipeline({
           layout: 'auto',
           vertex: { module, entryPoint: 'vs_main' },
           fragment: { module, entryPoint: 'fs_main', targets: [{ format }] },
           primitive: { topology: 'triangle-list' }
         })
 
-        uniformBuffer = device.createBuffer({
+        uniformBuffer = dev.createBuffer({
           size: (10 * 4),
           usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         })
-        bindGroup = device.createBindGroup({
+        bindGroup = dev.createBindGroup({
           layout: pipeline.getBindGroupLayout(0),
           entries: [{ binding: 0, resource: { buffer: uniformBuffer } }]
         })
@@ -135,10 +141,10 @@ export const WGSLWebGPUFractal: React.FC<WGSLWebGPUFractalProps> = ({ width = 80
           const aro = emotion?.arousal ?? 0.5
           const dom = emotion?.dominance ?? 0.5
           const u = new Float32Array([time, resolution[0], resolution[1], audio, hands, faces, gestures, val, aro, dom])
-          device!.queue.writeBuffer(uniformBuffer!, 0, u.buffer)
+          dev.queue.writeBuffer(uniformBuffer!, 0, u.buffer)
 
-          const encoder = device!.createCommandEncoder()
-          const view = (context as GPUCanvasContext).getCurrentTexture().createView()
+          const encoder = dev.createCommandEncoder()
+          const view = ctx.getCurrentTexture().createView()
           const pass = encoder.beginRenderPass({
             colorAttachments: [{ view, loadOp: 'clear', clearValue: { r: 0, g: 0, b: 0, a: 1 }, storeOp: 'store' }]
           })
@@ -146,7 +152,7 @@ export const WGSLWebGPUFractal: React.FC<WGSLWebGPUFractalProps> = ({ width = 80
           pass.setBindGroup(0, bindGroup!)
           pass.draw(6, 1, 0, 0)
           pass.end()
-          device!.queue.submit([encoder.finish()])
+          dev.queue.submit([encoder.finish()])
           raf = requestAnimationFrame(frame)
         }
         raf = requestAnimationFrame(frame)

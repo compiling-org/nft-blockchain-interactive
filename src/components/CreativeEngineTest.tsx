@@ -262,7 +262,7 @@ export const CreativeEngineTest: React.FC<CreativeEngineTestProps> = ({ classNam
         }
       };
     } catch (error) {
-      throw new Error(`Emotional state update test failed: ${error.message}`);
+      throw new Error(`Emotional state update test failed: ${(error as Error).message}`);
     }
   };
 
@@ -299,7 +299,7 @@ export const CreativeEngineTest: React.FC<CreativeEngineTestProps> = ({ classNam
         }
       };
     } catch (error) {
-      throw new Error(`Blockchain interaction test failed: ${error.message}`);
+      throw new Error(`Blockchain interaction test failed: ${(error as Error).message}`);
     }
   };
 
@@ -335,7 +335,7 @@ export const CreativeEngineTest: React.FC<CreativeEngineTestProps> = ({ classNam
         }
       };
     } catch (error) {
-      throw new Error(`Asset minting test failed: ${error.message}`);
+      throw new Error(`Asset minting test failed: ${(error as Error).message}`);
     }
   };
 
@@ -352,7 +352,7 @@ export const CreativeEngineTest: React.FC<CreativeEngineTestProps> = ({ classNam
       const userAssets = await creativeEngine?.getUserAssets?.(accountId) || [];
       
       // Test gas estimation
-      const estimatedGas = await creativeEngine?.estimateGasForOperation?.('mint_creative_asset', {}) || '0';
+      const estimatedGas = await creativeEngine?.estimateGasForOperation?.('mint_creative_asset') || '0';
 
       return {
         success: true,
@@ -368,7 +368,7 @@ export const CreativeEngineTest: React.FC<CreativeEngineTestProps> = ({ classNam
         }
       };
     } catch (error) {
-      throw new Error(`Analytics and queries test failed: ${error.message}`);
+      throw new Error(`Analytics and queries test failed: ${(error as Error).message}`);
     }
   };
 

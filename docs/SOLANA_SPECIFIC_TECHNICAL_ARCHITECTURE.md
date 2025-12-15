@@ -10,6 +10,7 @@ graph TB
         A[Anchor Client SDK]
         B[Wallet Adapter]
         C[Stream Diffusion Client]
+        S[Session Recorder]
     end
     
     subgraph "Solana Blockchain"
@@ -17,20 +18,25 @@ graph TB
         E[EmotionalMetadata Account]
         F[StreamDiffusionMetrics Account]
         G[CrossChainMetadata Account]
+        M[Memo Program]
     end
     
     subgraph "Off-chain Services"
         H[Compression Service]
         I[Bridge Service]
         J[Analytics Engine]
+        K[IPFS/Filecoin Session Storage]
     end
     
     A --> D
     A --> E
     C --> F
+    S --> K
+    A --> M
     D --> H
     E --> I
     F --> J
+    E --> K
 ```
 
 ## 🔧 Anchor Program Architecture
@@ -74,6 +80,90 @@ sequenceDiagram
     Program->>Account: Recalculate complexity
     Program->>Blockchain: Store updated account
     Program->>Client: Performance recorded
+```
+
+## 🧠 Session Storage & On-chain Emotion History
+
+### High-level Flow
+
+```mermaid
+sequenceDiagram
+    participant UI as Client UI
+    participant IPFS as IPFS/Filecoin
+    participant Memo as Memo Program
+    participant Prog as Anchor Program
+    participant Chain as Solana Blockchain
+    
+    UI->>IPFS: Upload session.json (VAD history, features)
+    IPFS-->>UI: Return CID
+    UI->>Memo: Write memo with CID
+    Memo->>Chain: Confirm memo transaction
+    UI->>Prog: update_emotional_state(v,a,d, confidence)
+    Prog->>Chain: Append to EmotionalMetadata trajectory
+    UI->>Prog: fetch_recent_history(account)
+    Prog-->>UI: Return latest VAD points
+```
+
+### Session Package Schema (off-chain)
+- `version`  
+- `model` and `model_version`  
+- `start`, `end`, `duration_ms`  
+- `emotion_history`: array of `{v,a,d,timestamp}`  
+- `sensor_features`: summarized metrics (no raw video/audio by default)  
+- `events`: timestamped entries for MediaPipe/LeapMotion/mic levels  
+- `confidence_distribution` and `notes`
+
+### Program Client References
+- Initialize NFT with emotion: `src/utils/solana-client.ts:149–181`
+- Update emotion instruction: `src/utils/solana-client.ts:209–234`
+- Fetch account and owner NFTs: `src/utils/solana-client.ts:236–266`
+- Memo transactions: `src/utils/solana-client.ts:304–324`
+
+### Owner NFTs UI Flow
+
+```mermaid
+sequenceDiagram
+    participant UI as Client UI
+    participant Prog as Anchor Program
+    participant Explorer as Explorer
+    
+    UI->>Prog: getNFTsByOwner(owner)
+    Prog-->>UI: Return list (accounts, quality, last emotion)
+    UI->>UI: Sort by quality / refresh list
+    UI->>Prog: update_emotional_state(item, v,a,d)
+    Prog-->>UI: Confirm update
+    UI->>Explorer: Open account/tx links
+```
+
+### Client Integration Flow
+
+```mermaid
+sequenceDiagram
+    participant UI as Client UI
+    participant Wallet as Wallet Adapter
+    participant Airdrop as Airdrop Service
+    participant Prog as Anchor Program
+    participant Explorer as Explorer
+    
+    UI->>Wallet: Connect Phantom/Solflare
+    Wallet-->>UI: Public key & balance
+    UI->>Airdrop: Request devnet SOL (optional)
+    Airdrop-->>UI: Confirm airdrop
+    UI->>Prog: initialize_nft(v,a,d,confidence)
+    Prog-->>UI: Account created, tx signature
+    UI->>Explorer: Open tx/signature link
+```
+
+### Memo Anchoring & Storage
+
+```mermaid
+graph TD
+    UI["Client UI"] --> IPFS["Upload session.json\nIPFS/Filecoin"]
+    IPFS --> CID["CID Returned"]
+    UI --> MEMO["Write Memo\nCID Anchor"]
+    MEMO --> CHAIN["Solana Blockchain"]
+    UI --> PROG["Anchor Program\nupdate_emotional_state"]
+    PROG --> META["EmotionalMetadata\nTrajectory Update"]
 ```
 
 ## 📊 Data Architecture

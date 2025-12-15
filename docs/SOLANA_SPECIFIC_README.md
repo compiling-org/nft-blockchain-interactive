@@ -96,6 +96,41 @@ pub struct EmotionalState {
 - Maintains data integrity through hashing
 - Enables efficient retrieval of compressed states
 
+## 🧠 Session Storage & On-chain History
+
+Emotion-first design: latest VAD vector is stored on-chain with trajectory updates, while full creative session logs (JSON) are persisted to IPFS/Filecoin and anchored to Solana via the Memo program.
+
+### Flow Overview
+
+```mermaid
+sequenceDiagram
+    participant UI as Client UI
+    participant IPFS as IPFS/Filecoin
+    participant Memo as Memo Program
+    participant Prog as Anchor Program
+    
+    UI->>IPFS: Upload session.json (VAD history, features)
+    IPFS-->>UI: Return CID
+    UI->>Memo: Write memo with CID
+    UI->>Prog: update_emotional_state(v,a,d, confidence)
+    Prog-->>UI: Return updated trajectory
+```
+
+### Session Package (off-chain JSON)
+- `version`, `model`, `model_version`
+- `start`, `end`, `duration_ms`
+- `emotion_history`: array of `{v,a,d,timestamp}`
+- `sensor_features` and `sensor_counts` (privacy-preserving summaries)
+- `events`: timestamped entries (MediaPipe/LeapMotion/mic)
+- `confidence_distribution`
+
+### UI Implementation References
+- Save to IPFS and Download JSON: `src/pages/SolanaEmotionalNFT.tsx:900`, `src/pages/SolanaEmotionalNFT.tsx:927–942`
+- Memo anchoring (session CID): `src/pages/SolanaEmotionalNFT.tsx:902–921`, `src/pages/SolanaEmotionalNFT.tsx:944–964`
+- On-chain emotion update and history preview: `src/pages/SolanaEmotionalNFT.tsx:1012–1086`
+- Owner NFT listing and quick actions: `src/pages/SolanaEmotionalNFT.tsx:1074–1153`
+
+## 🚀 Key Features
 ### Stream Diffusion Integration (src/solana-client/src/stream_diffusion.rs)
 
 **StreamSession Account**:

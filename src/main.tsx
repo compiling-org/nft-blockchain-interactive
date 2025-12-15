@@ -2,8 +2,9 @@ import React, { Suspense, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { HashRouter, Routes, Route, Link, Navigate } from 'react-router-dom'
 import './index.css'
-import App from './App'
-import { NEARCreativeEngine } from './pages/NEARCreativeEngine'
+const CreativeEngineApp = React.lazy(() => import('./App'))
+const NEARCreativeEngine = React.lazy(() => import('./pages/NEARCreativeEngine'))
+import SolanaEmotionalNFTWrapper from './pages/SolanaEmotionalNFT'
 const ComprehensiveBitteMarketplace = React.lazy(() => import('./pages/ComprehensiveBitteMarketplace'))
 const EnhancedBitteMarketplace = React.lazy(() => import('./pages/EnhancedBitteMarketplace'))
 
@@ -12,7 +13,7 @@ function Alive() {
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
       <div className="text-2xl font-bold">Server is running</div>
       <div className="mt-4 text-gray-300">Open the marketplace below</div>
-      <a href="/marketplace" className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">Go to Marketplace</a>
+      <a href="#/marketplace" className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">Go to Marketplace</a>
     </div>
   )
 }
@@ -87,6 +88,7 @@ function RootRouter() {
               <Link to="/marketplace" className="text-gray-300 hover:text-white">Marketplace</Link>
               <Link to="/near" className="text-gray-300 hover:text-white">NEAR Wallet Test</Link>
               <Link to="/near-engine" className="text-gray-300 hover:text-white">Creative Engine (App)</Link>
+              <Link to="/solana" className="text-gray-300 hover:text-white">Solana Emotional NFT</Link>
             </nav>
           </div>
         </header>
@@ -97,11 +99,12 @@ function RootRouter() {
             </div>
           }>
             <Routes>
-              <Route path="/" element={<Navigate to="/marketplace" replace />} />
+              <Route path="/" element={<SolanaEmotionalNFTWrapper />} />
               <Route path="/marketplace" element={<ComprehensiveBitteMarketplace />} />
               <Route path="/near" element={<NEARCreativeEngine />} />
-              <Route path="/near-engine" element={<App />} />
+              <Route path="/near-engine" element={<CreativeEngineApp />} />
               <Route path="/enhanced" element={<EnhancedBitteMarketplace />} />
+              <Route path="/solana" element={<SolanaEmotionalNFTWrapper />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

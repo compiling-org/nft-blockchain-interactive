@@ -2,6 +2,19 @@ import React, { useState, useCallback, useRef } from 'react';
 import * as tf from '@tensorflow/tfjs';
 import { supabase } from '../lib/supabase';
 
+type ShaderParams = {
+  timeScale: number;
+  colorIntensity: number;
+  waveFrequency: number;
+  complexity: number;
+  emotionInfluence: number;
+  neuralActivation: number;
+  fractalDetail: number;
+  colorShift: number;
+  waveAmplitude: number;
+  speedVariation: number;
+};
+
 interface ShaderTemplate {
   name: string;
   template: string;
@@ -245,7 +258,7 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
   }, []);
 
   // Generate shader parameters from biometric data using AI
-  const generateShaderParameters = useCallback(async (biometricInput: any) => {
+  const generateShaderParameters = useCallback(async (biometricInput: any): Promise<ShaderParams> => {
     if (!modelRef.current) {
       console.warn('AI model not initialized, using default parameters');
       return {
@@ -253,7 +266,12 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
         colorIntensity: 1.0,
         waveFrequency: 3.0,
         complexity: 0.5,
-        emotionInfluence: 0.7
+        emotionInfluence: 0.7,
+        neuralActivation: 0.5,
+        fractalDetail: 120,
+        colorShift: 0,
+        waveAmplitude: 0.4,
+        speedVariation: 1.2
       };
     }
 
@@ -279,12 +297,11 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
 
       // Generate parameters using the model
       const parameters = await modelRef.current.predict(inputTensor) as tf.Tensor;
-      const paramsArray = await parameters.array();
-      
+      const paramsArray = await parameters.array() as number[][];
       const paramVector = paramsArray[0] as number[];
       
       // Convert model output to shader parameters
-      const shaderParams = {
+      const shaderParams: ShaderParams = {
         timeScale: 0.5 + (paramVector[0] + 1) * 2.0, // 0.5 to 4.5
         colorIntensity: 0.5 + (paramVector[1] + 1) * 0.75, // 0.5 to 2.0
         waveFrequency: 1.0 + (paramVector[2] + 1) * 4.0, // 1.0 to 9.0
@@ -309,7 +326,12 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
         colorIntensity: 1.0,
         waveFrequency: 3.0,
         complexity: 0.5,
-        emotionInfluence: 0.7
+        emotionInfluence: 0.7,
+        neuralActivation: 0.5,
+        fractalDetail: 120,
+        colorShift: 0,
+        waveAmplitude: 0.4,
+        speedVariation: 1.2
       };
     }
   }, []);
@@ -361,12 +383,22 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
 
       // Store in Supabase
       try {
-        await supabase.from('ai_generated_shaders').insert({
+        const sb: any = supabase as any;
+        await sb.from('ai_generated_shaders').insert({
           id: shaderId,
           name: generatedShader.name,
           wgsl_code: wgslCode,
           biometric_inputs: generatedShader.biometricInputs,
-          parameters: parameters,
+          time_scale: parameters.timeScale,
+          color_intensity: parameters.colorIntensity,
+          wave_frequency: parameters.waveFrequency,
+          complexity: parameters.complexity,
+          emotion_influence: parameters.emotionInfluence,
+          neural_activation: parameters.neuralActivation,
+          fractal_detail: parameters.fractalDetail,
+          color_shift: parameters.colorShift,
+          wave_amplitude: parameters.waveAmplitude,
+          speed_variation: parameters.speedVariation,
           template_category: template.category,
           created_at: generatedShader.createdAt.toISOString()
         });
@@ -423,14 +455,14 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
   }, [biometricData, generateWithBiometrics]);
 
   return (
-    <div className={`real-ai-shader-generator ${className}`}>
-      <div className="generator-header">
-        <h3>AI Shader Generator</h3>
-        <p className="description">Generate WGSL shaders using real AI and biometric data</p>
+    <div className={`bg-gradient-to-br from-indigo-900 to-indigo-950 rounded-xl p-5 text-white border border-gray-700 ${className}`}>
+      <div className="mb-5">
+        <h3 className="text-lg font-semibold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">AI Shader Generator</h3>
+        <p className="text-sm text-gray-300">Generate WGSL shaders using real AI and biometric data</p>
       </div>
       
-      <div className="template-selection">
-        <label>Shader Template:</label>
+      <div className="mb-5">
+        <label className="block mb-2 font-medium text-gray-200">Shader Template:</label>
         <select 
           value={selectedTemplate.name} 
           onChange={(e) => {
@@ -438,6 +470,7 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
             if (template) setSelectedTemplate(template);
           }}
           disabled={isGenerating}
+          className="w-full px-3 py-2 bg-indigo-950/50 border border-gray-700 rounded-md text-white"
         >
           {SHADER_TEMPLATES.map(template => (
             <option key={template.name} value={template.name}>
@@ -445,14 +478,14 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
             </option>
           ))}
         </select>
-        <p className="template-description">{selectedTemplate.description}</p>
+        <p className="mt-2 text-xs text-gray-400 italic">{selectedTemplate.description}</p>
       </div>
       
-      <div className="generation-controls">
+      <div className="flex gap-3 mb-5">
         <button 
           onClick={generateWithBiometrics}
           disabled={isGenerating || !biometricData}
-          className="generate-button"
+          className="flex-1 px-4 py-2 rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 disabled:opacity-60"
         >
           {isGenerating ? 'Generating...' : 'Generate with Biometrics'}
         </button>
@@ -460,17 +493,17 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
         <button 
           onClick={() => generateShader(selectedTemplate)}
           disabled={isGenerating}
-          className="generate-button secondary"
+          className="flex-1 px-4 py-2 rounded-md bg-gradient-to-r from-gray-500 to-gray-600 disabled:opacity-60"
         >
           Generate Default
         </button>
       </div>
       
       {biometricData && (
-        <div className="biometric-status">
-          <div className="status-indicator active"></div>
+        <div className="flex items-center gap-2 p-3 bg-emerald-900/20 border border-emerald-500/30 rounded-md mb-5">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>Biometric data active</span>
-          <div className="biometric-summary">
+          <div className="ml-auto text-xs text-gray-300">
             HR: {Math.round(biometricData.heartRate || 0)} | 
             Stress: {Math.round((biometricData.stressLevel || 0) * 100)}% |
             Valence: {(biometricData.emotion?.valence || 0).toFixed(2)}
@@ -479,194 +512,21 @@ export const RealAIShaderGenerator: React.FC<RealAIShaderGeneratorProps> = ({
       )}
       
       {generatedShaders.length > 0 && (
-        <div className="generated-shaders">
-          <h4>Recently Generated Shaders</h4>
-          <div className="shader-list">
+        <div className="mt-5 pt-5 border-t border-gray-700">
+          <h4 className="text-base text-gray-200 mb-3">Recently Generated Shaders</h4>
+          <div className="flex flex-col gap-2">
             {generatedShaders.map(shader => (
-              <div key={shader.id} className="shader-item">
-                <div className="shader-name">{shader.name}</div>
-                <div className="shader-details">
-                  <span className="shader-date">
-                    {shader.createdAt.toLocaleTimeString()}
-                  </span>
-                  <span className="shader-params">
-                    {Object.keys(shader.parameters).length} parameters
-                  </span>
+              <div key={shader.id} className="p-3 bg-white/5 border border-white/10 rounded-md">
+                <div className="font-medium text-gray-200 mb-1">{shader.name}</div>
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>{shader.createdAt.toLocaleTimeString()}</span>
+                  <span>{Object.keys(shader.parameters).length} parameters</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
-      
-      <style jsx>{`
-        .real-ai-shader-generator {
-          background: linear-gradient(135deg, #1a1a2e, #16213e);
-          border-radius: 12px;
-          padding: 20px;
-          color: white;
-          font-family: 'Inter', sans-serif;
-          border: 1px solid #333;
-        }
-        
-        .generator-header {
-          margin-bottom: 20px;
-        }
-        
-        .generator-header h3 {
-          margin: 0 0 8px 0;
-          font-size: 18px;
-          font-weight: 600;
-          background: linear-gradient(45deg, #00d4ff, #ff00ff);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        
-        .description {
-          margin: 0;
-          color: #aaa;
-          font-size: 14px;
-        }
-        
-        .template-selection {
-          margin-bottom: 20px;
-        }
-        
-        .template-selection label {
-          display: block;
-          margin-bottom: 8px;
-          font-weight: 500;
-          color: #ddd;
-        }
-        
-        .template-selection select {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #444;
-          border-radius: 6px;
-          background: #2a2a3e;
-          color: white;
-          font-size: 14px;
-        }
-        
-        .template-description {
-          margin-top: 8px;
-          font-size: 12px;
-          color: #aaa;
-          font-style: italic;
-        }
-        
-        .generation-controls {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 20px;
-        }
-        
-        .generate-button {
-          flex: 1;
-          padding: 12px 20px;
-          border: none;
-          border-radius: 6px;
-          background: linear-gradient(45deg, #00d4ff, #0099cc);
-          color: white;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-        
-        .generate-button:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
-        }
-        
-        .generate-button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        
-        .generate-button.secondary {
-          background: linear-gradient(45deg, #666, #888);
-        }
-        
-        .biometric-status {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px;
-          background: rgba(0, 255, 0, 0.1);
-          border: 1px solid rgba(0, 255, 0, 0.3);
-          border-radius: 6px;
-          margin-bottom: 20px;
-        }
-        
-        .status-indicator {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #666;
-        }
-        
-        .status-indicator.active {
-          background: #00ff00;
-          animation: pulse 1.5s infinite;
-        }
-        
-        .biometric-summary {
-          margin-left: auto;
-          font-size: 12px;
-          color: #aaa;
-        }
-        
-        .generated-shaders {
-          border-top: 1px solid #333;
-          padding-top: 20px;
-        }
-        
-        .generated-shaders h4 {
-          margin: 0 0 12px 0;
-          font-size: 16px;
-          color: #ddd;
-        }
-        
-        .shader-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        
-        .shader-item {
-          padding: 10px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        
-        .shader-item:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .shader-name {
-          font-weight: 500;
-          color: #ddd;
-          margin-bottom: 4px;
-        }
-        
-        .shader-details {
-          display: flex;
-          justify-content: space-between;
-          font-size: 12px;
-          color: #aaa;
-        }
-        
-        @keyframes pulse {
-          0% { opacity: 1; }
-          50% { opacity: 0.5; }
-          100% { opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 };
