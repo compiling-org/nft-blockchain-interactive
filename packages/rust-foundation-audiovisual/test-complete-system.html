@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rust Foundation - Complete WASM System Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            text-shadow: 0 0 10px #00ff00;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #1a1a1a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #00ff00;
+            color: #0a0a0a;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .status-label {
+            color: #00ff00;
+        }
+        
+        .status-value {
+            color: #ffffff;
+        }
+        
+        .error {
+            background: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        canvas {
+            border: 1px solid #00ff00;
+            display: block;
+            margin: 20px auto;
+            background: #000000;
+        }
+        
+        .midi-devices {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .audio-controls {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+        }
+        
+        .parameters {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .parameter-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .parameter-value {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rust Foundation - Complete WASM System Test</h1>
+        
+        <div id="error-container" class="error"></div>
+        
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label">WASM Status:</span>
+                <span id="wasm-status" class="status-value">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">MIDI Support:</span>
+                <span id="midi-support" class="status-value">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Audio Context:</span>
+                <span id="audio-status" class="status-value">Not initialized</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">WebGL Support:</span>
+                <span id="webgl-status" class="status-value">Checking...</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="init-wasm">Initialize WASM</button>
+            <button id="init-midi">Initialize MIDI</button>
+            <button id="start-audio">Start Audio</button>
+            <button id="start-shader">Start Shader</button>
+            <button id="stop-all">Stop All</button>
+        </div>
+        
+        <div class="midi-devices" id="midi-devices">
+            <h3>MIDI Devices</h3>
+            <select id="midi-input-select">
+                <option value="">Select MIDI Input...</option>
+            </select>
+        </div>
+        
+        <canvas id="shader-canvas" width="800" height="600"></canvas>
+        
+        <div class="audio-controls">
+            <h3>Audio Controls</h3>
+            <div class="slider-container">
+                <label class="slider-label">Master Volume: <span id="volume-value">50</span>%</label>
+                <input type="range" id="master-volume" min="0" max="100" value="50">
+            </div>
+            <div class="slider-container">
+                <label class="slider-label">Tempo (BPM): <span id="tempo-value">120</span></label>
+                <input type="range" id="tempo" min="60" max="180" value="120">
+            </div>
+        </div>
+        
+        <div class="parameters">
+            <h3>Real-time Parameters</h3>
+            <div class="parameter-row">
+                <span class="status-label">Time:</span>
+                <span id="time-param" class="parameter-value">0.00</span>
+            </div>
+            <div class="parameter-row">
+                <span class="status-label">Mouse X:</span>
+                <span id="mouse-x-param" class="parameter-value">0.00</span>
+            </div>
+            <div class="parameter-row">
+                <span class="status-label">Mouse Y:</span>
+                <span id="mouse-y-param" class="parameter-value">0.00</span>
+            </div>
+            <div class="parameter-row">
+                <span class="status-label">Audio Level:</span>
+                <span id="audio-level-param" class="parameter-value">0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import init, { MusicEngine, ShaderRenderer, AudioAnalyzer, note_to_frequency, init_audiovisual, AudiovisualEngine } from './pkg/rust_foundation_audiovisual.js';
+        
+        let wasmInitialized = false;
+        let midiAccess = null;
+        let audioEngine = null;
+        let shaderRenderer = null;
+        let audioAnalyzer = null;
+        let engine = null;
+        let animationId = null;
+        let audioContext = null;
+        let analyserNode = null;
+        let dataArray = null;
+        
+        // DOM elements
+        const errorContainer = document.getElementById('error-container');
+        const wasmStatus = document.getElementById('wasm-status');
+        const midiSupport = document.getElementById('midi-support');
+        const audioStatus = document.getElementById('audio-status');
+        const webglStatus = document.getElementById('webgl-status');
+        const canvas = document.getElementById('shader-canvas');
+        const gl = canvas.getContext('webgl');
+        
+        // Check WebGL support
+        if (gl) {
+            webglStatus.textContent = 'Supported';
+            webglStatus.style.color = '#00ff00';
+        } else {
+            webglStatus.textContent = 'Not supported';
+            webglStatus.style.color = '#ff0000';
+        }
+        
+        // Check MIDI support
+        if (navigator.requestMIDIAccess) {
+            midiSupport.textContent = 'Available';
+            midiSupport.style.color = '#00ff00';
+        } else {
+            midiSupport.textContent = 'Not available';
+            midiSupport.style.color = '#ff0000';
+        }
+        
+        // Initialize WASM
+        document.getElementById('init-wasm').addEventListener('click', async () => {
+            try {
+                wasmStatus.textContent = 'Initializing...';
+                await init();
+                wasmInitialized = true;
+                wasmStatus.textContent = 'Ready';
+                wasmStatus.style.color = '#00ff00';
+                
+                // Create engines
+                audioEngine = MusicEngine.new();
+                shaderRenderer = ShaderRenderer.new(gl);
+                audioAnalyzer = AudioAnalyzer.new(2048);
+                engine = await init_audiovisual('shader-canvas');
+                
+                console.log('WASM modules initialized successfully');
+            } catch (error) {
+                showError('Failed to initialize WASM: ' + error.message);
+                wasmStatus.textContent = 'Failed';
+                wasmStatus.style.color = '#ff0000';
+            }
+        });
+        
+        // Initialize MIDI
+        document.getElementById('init-midi').addEventListener('click', async () => {
+            if (!wasmInitialized) {
+                showError('Please initialize WASM first');
+                return;
+            }
+            
+            try {
+                midiAccess = await navigator.requestMIDIAccess();
+                document.getElementById('midi-devices').style.display = 'block';
+                
+                const select = document.getElementById('midi-input-select');
+                select.innerHTML = '<option value="">Select MIDI Input...</option>';
+                
+                for (let input of midiAccess.inputs.values()) {
+                    const option = document.createElement('option');
+                    option.value = input.id;
+                    option.textContent = input.name;
+                    select.appendChild(option);
+                }
+                
+                select.addEventListener('change', (e) => {
+                    if (e.target.value) {
+                        const input = midiAccess.inputs.get(e.target.value);
+                        input.onmidimessage = handleMIDIMessage;
+                    }
+                });
+                
+            } catch (error) {
+                showError('Failed to initialize MIDI: ' + error.message);
+            }
+        });
+        
+        // Handle MIDI messages
+        function handleMIDIMessage(message) {
+            const [command, note, velocity] = message.data;
+            
+            if (command === 0x90 && velocity > 0) { // Note on
+                const frequency = note_to_frequency(note);
+                console.log('MIDI Note:', note, 'Frequency:', frequency);
+                
+                // Update shader parameters
+                if (shaderRenderer) {
+                    shaderRenderer.set_uniform("u_midi_note", note / 127.0);
+                    shaderRenderer.set_uniform("u_midi_velocity", velocity / 127.0);
+                }
+            }
+        }
+        
+        // Start audio
+        document.getElementById('start-audio').addEventListener('click', async () => {
+            if (!wasmInitialized) {
+                showError('Please initialize WASM first');
+                return;
+            }
+            
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyserNode = audioContext.createAnalyser();
+                analyserNode.fftSize = 2048;
+                dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+                
+                // Connect to destination
+                analyserNode.connect(audioContext.destination);
+                
+                audioStatus.textContent = 'Running';
+                audioStatus.style.color = '#00ff00';
+                
+                // Start audio analysis loop
+                analyzeAudio();
+                
+            } catch (error) {
+                showError('Failed to start audio: ' + error.message);
+                audioStatus.textContent = 'Failed';
+                audioStatus.style.color = '#ff0000';
+            }
+        });
+        
+        // Start shader (custom simple program)
+        document.getElementById('start-shader').addEventListener('click', () => {
+            if (!wasmInitialized || !shaderRenderer) {
+                showError('Please initialize WASM and start audio first');
+                return;
+            }
+            
+            // Set up basic shader
+            const vertexShaderSource = `
+                attribute vec2 a_position;
+                void main() {
+                    gl_Position = vec4(a_position, 0.0, 1.0);
+                }
+            `;
+            
+            const fragmentShaderSource = `
+                precision mediump float;
+                uniform float u_time;
+                uniform vec2 u_resolution;
+                uniform vec2 u_mouse;
+                uniform float u_midi_note;
+                uniform float u_midi_velocity;
+                uniform float u_audio_level;
+                
+                void main() {
+                    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+                    vec2 mouse = u_mouse / u_resolution.xy;
+                    
+                    float wave = sin(uv.x * 10.0 + u_time * 2.0) * 0.1;
+                    float midi_effect = u_midi_note * 0.5;
+                    float audio_effect = u_audio_level * 0.3;
+                    
+                    vec3 color = vec3(
+                        sin(uv.x * 3.14159 + u_time) * (0.5 + midi_effect),
+                        cos(uv.y * 3.14159 + u_time * 0.7) * (0.5 + audio_effect),
+                        sin((uv.x + uv.y) * 3.14159 + u_time * 1.3) * (0.5 + midi_effect * 0.5)
+                    );
+                    
+                    gl_FragColor = vec4(color, 1.0);
+                }
+            `;
+            
+            shaderRenderer.create_program("main", vertexShaderSource, fragmentShaderSource);
+            shaderRenderer.use_program("main");
+            
+            // Start animation loop
+            animate();
+        });
+        
+        // Start preset (built-in fractal)
+        const startPresetBtn = document.createElement('button');
+        startPresetBtn.textContent = 'Start Preset (Mandelbrot)';
+        startPresetBtn.id = 'start-preset';
+        document.querySelector('.controls').appendChild(startPresetBtn);
+        document.getElementById('start-preset').addEventListener('click', () => {
+            if (!wasmInitialized || !engine) {
+                showError('Please initialize WASM first');
+                return;
+            }
+            try {
+                engine.load_fractal_shader('mandelbrot');
+                startPresetAnimate();
+            } catch (e) {
+                showError('Failed to start preset: ' + e.message);
+            }
+        });
+        
+        // Stop all
+        document.getElementById('stop-all').addEventListener('click', () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            
+            audioStatus.textContent = 'Stopped';
+            audioStatus.style.color = '#ff0000';
+        });
+        
+        // Audio analysis loop
+        function analyzeAudio() {
+            if (!analyserNode || !dataArray) return;
+            
+            analyserNode.getByteFrequencyData(dataArray);
+            
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i];
+            }
+            const average = sum / dataArray.length;
+            const normalizedLevel = average / 255.0;
+            
+            document.getElementById('audio-level-param').textContent = normalizedLevel.toFixed(3);
+            
+            // Update shader
+            if (shaderRenderer) {
+                shaderRenderer.set_uniform("u_audio_level", normalizedLevel);
+            }
+            // Feed audio to engine for preset path
+            if (engine) {
+                const floats = new Float32Array(dataArray.length);
+                for (let i = 0; i < dataArray.length; i++) {
+                    floats[i] = dataArray[i] / 255.0;
+                }
+                // Pass as JS array for compatibility
+                engine.analyze_audio(Array.from(floats));
+            }
+            
+            requestAnimationFrame(analyzeAudio);
+        }
+        
+        // Animation loop (custom program)
+        function animate() {
+            if (!shaderRenderer) return;
+            
+            const time = performance.now() * 0.001;
+            
+            // Update shader uniforms
+            shaderRenderer.set_uniform("u_time", time);
+            shaderRenderer.set_uniform("u_resolution", [canvas.width, canvas.height]);
+            
+            // Update display
+            document.getElementById('time-param').textContent = time.toFixed(2);
+            
+            // Render
+            shaderRenderer.render();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // Animation loop (preset engine)
+        function startPresetAnimate() {
+            const loop = () => {
+                const now = performance.now() * 0.001;
+                document.getElementById('time-param').textContent = now.toFixed(2);
+                try {
+                    engine.render(0.016);
+                } catch (e) {
+                    console.warn('Render error:', e);
+                }
+                animationId = requestAnimationFrame(loop);
+            };
+            loop();
+        }
+        
+        // Mouse tracking
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            document.getElementById('mouse-x-param').textContent = x.toFixed(0);
+            document.getElementById('mouse-y-param').textContent = y.toFixed(0);
+            
+            if (shaderRenderer) {
+                shaderRenderer.set_uniform("u_mouse", [x, y]);
+            }
+        });
+        
+        // Sliders
+        document.getElementById('master-volume').addEventListener('input', (e) => {
+            document.getElementById('volume-value').textContent = e.target.value;
+        });
+        
+        document.getElementById('tempo').addEventListener('input', (e) => {
+            document.getElementById('tempo-value').textContent = e.target.value;
+        });
+        
+        // Emotion controls
+        const emotionPanel = document.createElement('div');
+        emotionPanel.className = 'parameters';
+        emotionPanel.innerHTML = `
+            <h3>Emotion Controls</h3>
+            <div class="slider-container">
+                <label class="slider-label">Valence: <span id="valence-value">0.0</span></label>
+                <input type="range" id="valence" min="-1" max="1" step="0.01" value="0">
+            </div>
+            <div class="slider-container">
+                <label class="slider-label">Arousal: <span id="arousal-value">0.0</span></label>
+                <input type="range" id="arousal" min="0" max="1" step="0.01" value="0">
+            </div>
+            <div class="slider-container">
+                <label class="slider-label">Dominance: <span id="dominance-value">0.0</span></label>
+                <input type="range" id="dominance" min="0" max="1" step="0.01" value="0">
+            </div>
+        `;
+        document.querySelector('.container').appendChild(emotionPanel);
+        ['valence','arousal','dominance'].forEach(id => {
+            const input = document.getElementById(id);
+            const label = document.getElementById(id+'-value');
+            input.addEventListener('input', (e) => {
+                label.textContent = parseFloat(e.target.value).toFixed(2);
+                if (engine) {
+                    const v = parseFloat(document.getElementById('valence').value);
+                    const a = parseFloat(document.getElementById('arousal').value);
+                    const d = parseFloat(document.getElementById('dominance').value);
+                    engine.update_emotion(v, a, d);
+                }
+            });
+        });
+        
+        // Metadata export
+        const exportPanel = document.createElement('div');
+        exportPanel.className = 'parameters';
+        exportPanel.innerHTML = `
+            <h3>Export Metadata</h3>
+            <div class="parameter-row">
+                <input id="meta-name" placeholder="Asset Name" style="width:48%">
+                <input id="meta-desc" placeholder="Description" style="width:48%">
+            </div>
+            <div class="parameter-row">
+                <input id="meta-image" placeholder="Image URL (optional)" style="width:48%">
+                <input id="meta-animation" placeholder="Animation URL (optional)" style="width:48%">
+            </div>
+            <div class="parameter-row">
+                <button id="export-metadata">Generate JSON</button>
+            </div>
+            <pre id="metadata-output" style="max-height:200px;overflow:auto;background:#0a0a0a;border:1px solid #00ff00;padding:10px;"></pre>
+        `;
+        document.querySelector('.container').appendChild(exportPanel);
+        document.getElementById('export-metadata').addEventListener('click', () => {
+            if (!engine) {
+                showError('Initialize WASM first');
+                return;
+            }
+            const name = document.getElementById('meta-name').value || 'Audiovisual Asset';
+            const desc = document.getElementById('meta-desc').value || 'Generated by Rust Foundation engine';
+            const img = document.getElementById('meta-image').value || '';
+            const anim = document.getElementById('meta-animation').value || '';
+            const json = (img || anim)
+              ? engine.generate_nft_metadata_with(name, desc, img, anim)
+              : engine.generate_nft_metadata(name, desc);
+            document.getElementById('metadata-output').textContent = json;
+        });
+        
+        const ipfsPanel = document.createElement('div');
+        ipfsPanel.className = 'parameters';
+        ipfsPanel.innerHTML = `
+            <h3>Pin to IPFS (nft.storage)</h3>
+            <div class="parameter-row">
+                <input id="nftstorage-token" placeholder="NFT.Storage API Token" style="width:100%">
+            </div>
+            <div class="parameter-row">
+                <button id="pin-ipfs">Pin Metadata</button>
+            </div>
+            <div class="status-item">
+                <span class="status-label">CID:</span>
+                <span id="cid-output" class="status-value"></span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Gateway:</span>
+                <span id="gateway-output" class="status-value"></span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">SHA-256:</span>
+                <span id="hash-output" class="status-value"></span>
+            </div>
+        `;
+        document.querySelector('.container').appendChild(ipfsPanel);
+        document.getElementById('pin-ipfs').addEventListener('click', async () => {
+            if (!engine) {
+                showError('Initialize WASM first');
+                return;
+            }
+            const token = document.getElementById('nftstorage-token').value.trim();
+            if (!token) {
+                showError('Provide NFT.Storage token');
+                return;
+            }
+            const name = document.getElementById('meta-name').value || 'Audiovisual Asset';
+            const desc = document.getElementById('meta-desc').value || 'Generated by Rust Foundation engine';
+            const json = engine.generate_nft_metadata(name, desc);
+            try {
+                const enc = new TextEncoder();
+                const hashBuf = await crypto.subtle.digest('SHA-256', enc.encode(json));
+                const hashArr = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                document.getElementById('hash-output').textContent = hashArr;
+                
+                const form = new FormData();
+                form.append('file', new Blob([json], { type: 'application/json' }), 'metadata.json');
+                const res = await fetch('https://api.nft.storage/upload', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: form
+                });
+                const out = await res.json();
+                if (out && out.ok && out.value && out.value.cid) {
+                    const cid = out.value.cid;
+                    document.getElementById('cid-output').textContent = cid;
+                    const url = `https://ipfs.io/ipfs/${cid}`;
+                    document.getElementById('gateway-output').textContent = url;
+                } else {
+                    showError('Pin failed: ' + JSON.stringify(out));
+                }
+            } catch (e) {
+                showError('Pin error: ' + e.message);
+            }
+        });
+        
+        const web3Panel = document.createElement('div');
+        web3Panel.className = 'parameters';
+        web3Panel.innerHTML = `
+            <h3>Pin to IPFS (Web3.Storage)</h3>
+            <div class="parameter-row">
+                <input id="web3-token" placeholder="Web3.Storage API Token" style="width:100%">
+            </div>
+            <div class="parameter-row">
+                <button id="pin-web3">Pin Metadata</button>
+            </div>
+            <div class="status-item">
+                <span class="status-label">CID:</span>
+                <span id="cid-web3" class="status-value"></span>
+            </div>
+        `;
+        document.querySelector('.container').appendChild(web3Panel);
+        document.getElementById('pin-web3').addEventListener('click', async () => {
+            if (!engine) {
+                showError('Initialize WASM first');
+                return;
+            }
+            const token = document.getElementById('web3-token').value.trim();
+            if (!token) {
+                showError('Provide Web3.Storage token');
+                return;
+            }
+            const name = document.getElementById('meta-name').value || 'Audiovisual Asset';
+            const desc = document.getElementById('meta-desc').value || 'Generated by Rust Foundation engine';
+            const json = engine.generate_nft_metadata(name, desc);
+            try {
+                const form = new FormData();
+                form.append('file', new Blob([json], { type: 'application/json' }), 'metadata.json');
+                const res = await fetch('https://api.web3.storage/upload', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: form
+                });
+                const out = await res.json();
+                if (out && out.cid) {
+                    document.getElementById('cid-web3').textContent = out.cid;
+                } else {
+                    showError('Pin failed: ' + JSON.stringify(out));
+                }
+            } catch (e) {
+                showError('Pin error: ' + e.message);
+            }
+        });
+        
+        const loadPanel = document.createElement('div');
+        loadPanel.className = 'parameters';
+        loadPanel.innerHTML = `
+            <h3>Load Metadata by CID</h3>
+            <div class="parameter-row">
+                <input id="load-cid" placeholder="CID" style="width:100%">
+            </div>
+            <div class="parameter-row">
+                <button id="load-metadata">Load</button>
+            </div>
+        `;
+        document.querySelector('.container').appendChild(loadPanel);
+        document.getElementById('load-metadata').addEventListener('click', async () => {
+            const cid = document.getElementById('load-cid').value.trim();
+            if (!cid) {
+                showError('Provide CID');
+                return;
+            }
+            try {
+                const res = await fetch(`https://ipfs.io/ipfs/${cid}`);
+                const text = await res.text();
+                document.getElementById('metadata-output').textContent = text;
+                const parsed = JSON.parse(text);
+                if (engine && parsed.preset) {
+                    try { engine.load_fractal_shader(parsed.preset); } catch {}
+                }
+            } catch (e) {
+                showError('Load error: ' + e.message);
+            }
+        });
+        
+        // Error handling
+        function showError(message) {
+            errorContainer.textContent = message;
+            errorContainer.style.display = 'block';
+            setTimeout(() => {
+                errorContainer.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            console.log('Page loaded, ready for WASM initialization');
+        });
+    </script>
+</body>
+</html>

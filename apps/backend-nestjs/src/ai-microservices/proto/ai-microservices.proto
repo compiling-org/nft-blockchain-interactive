@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package ai_microservices;
+
+service AiMicroservicesService {
+  rpc ProcessText(ProcessTextRequest) returns (ProcessTextResponse) {}
+  rpc AnalyzeImage(AnalyzeImageRequest) returns (AnalyzeImageResponse) {}
+}
+
+message ProcessTextRequest {
+  string text = 1;
+}
+
+message ProcessTextResponse {
+  string processed_text = 1;
+  repeated string keywords = 2;
+}
+
+message AnalyzeImageRequest {
+  bytes image_data = 1;
+  string image_format = 2;
+}
+
+message AnalyzeImageResponse {
+  string analysis_result = 1;
+  repeated string detected_objects = 2;
+}

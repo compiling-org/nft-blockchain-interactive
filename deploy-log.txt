@@ -1,0 +1,901 @@
++ echo '🚀 Starting Filecoin Calibration Network Deployment...'
+🚀 Starting Filecoin Calibration Network Deployment...
++ RED='\033[0;31m'
++ GREEN='\033[0;32m'
++ YELLOW='\033[1;33m'
++ NC='\033[0m'
++ wsl -d Ubuntu-22.04 -e bash -c 'PATH=; PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin lotus --version > /dev/null 2>&1'
++ echo -e '\033[1;33m📡 Configuring Lotus for calibration network...\033[0m'
+[1;33m📡 Configuring Lotus for calibration network...[0m
++ echo 'Executing WSL command for Lotus daemon startup: wsl -d Ubuntu-22.04 -e bash << '\''EOF_LOTUS'\'' >> /mnt/c/Users/kapil/compiling/blockchain-nft-interactive/deploy-log.txt 2>&1'
+Executing WSL command for Lotus daemon startup: wsl -d Ubuntu-22.04 -e bash << 'EOF_LOTUS' >> /mnt/c/Users/kapil/compiling/blockchain-nft-interactive/deploy-log.txt 2>&1
++ wsl -d Ubuntu-22.04 -e bash
+++ wsl -d Ubuntu-22.04 -e bash -c 'cat ./lotus-daemon.pid'
++ DAEMON_PID=775
++ echo 'DAEMON_PID: 775'
+DAEMON_PID: 775
++ wsl -d Ubuntu-22.04 -e bash -c 'if [ -f ./lotus-daemon.pid ]; then echo '\''PID file exists.'\''; else echo '\''PID file does NOT exist.'\''; fi'
+PID file exists.
++ wsl -d Ubuntu-22.04 -e bash -c 'if [ -s ./lotus-daemon.pid ]; then echo '\''PID file is NOT empty.'\''; else echo '\''PID file IS empty.'\''; fi'
+PID file is NOT empty.
++ wait_for_lotus 600
++ local timeout=600
++ local interval=5
++ local elapsed=0
++ echo -e '\033[1;33m⏳ Waiting for Lotus daemon to be ready (timeout: 600s)...\033[0m'
+[1;33m⏳ Waiting for Lotus daemon to be ready (timeout: 600s)...[0m
++ '[' 0 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=5
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (5/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (5/600s)[0m
++ '[' 5 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=10
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (10/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (10/600s)[0m
++ '[' 10 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=15
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (15/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (15/600s)[0m
++ '[' 15 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=20
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (20/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (20/600s)[0m
++ '[' 20 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=25
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (25/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (25/600s)[0m
++ '[' 25 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=30
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (30/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (30/600s)[0m
++ '[' 30 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=35
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (35/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (35/600s)[0m
++ '[' 35 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=40
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (40/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (40/600s)[0m
++ '[' 40 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=45
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (45/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (45/600s)[0m
++ '[' 45 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=50
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (50/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (50/600s)[0m
++ '[' 50 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=55
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (55/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (55/600s)[0m
++ '[' 55 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=60
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (60/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (60/600s)[0m
++ '[' 60 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=65
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (65/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (65/600s)[0m
++ '[' 65 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=70
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (70/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (70/600s)[0m
++ '[' 70 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=75
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (75/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (75/600s)[0m
++ '[' 75 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=80
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (80/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (80/600s)[0m
++ '[' 80 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=85
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (85/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (85/600s)[0m
++ '[' 85 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=90
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (90/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (90/600s)[0m
++ '[' 90 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=95
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (95/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (95/600s)[0m
++ '[' 95 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=100
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (100/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (100/600s)[0m
++ '[' 100 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=105
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (105/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (105/600s)[0m
++ '[' 105 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=110
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (110/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (110/600s)[0m
++ '[' 110 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=115
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (115/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (115/600s)[0m
++ '[' 115 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=120
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (120/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (120/600s)[0m
++ '[' 120 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=125
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (125/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (125/600s)[0m
++ '[' 125 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=130
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (130/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (130/600s)[0m
++ '[' 130 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=135
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (135/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (135/600s)[0m
++ '[' 135 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=140
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (140/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (140/600s)[0m
++ '[' 140 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=145
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (145/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (145/600s)[0m
++ '[' 145 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=150
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (150/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (150/600s)[0m
++ '[' 150 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=155
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (155/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (155/600s)[0m
++ '[' 155 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=160
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (160/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (160/600s)[0m
++ '[' 160 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=165
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (165/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (165/600s)[0m
++ '[' 165 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=170
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (170/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (170/600s)[0m
++ '[' 170 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=175
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (175/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (175/600s)[0m
++ '[' 175 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=180
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (180/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (180/600s)[0m
++ '[' 180 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=185
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (185/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (185/600s)[0m
++ '[' 185 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=190
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (190/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (190/600s)[0m
++ '[' 190 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=195
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (195/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (195/600s)[0m
++ '[' 195 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=200
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (200/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (200/600s)[0m
++ '[' 200 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=205
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (205/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (205/600s)[0m
++ '[' 205 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=210
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (210/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (210/600s)[0m
++ '[' 210 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=215
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (215/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (215/600s)[0m
++ '[' 215 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=220
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (220/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (220/600s)[0m
++ '[' 220 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=225
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (225/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (225/600s)[0m
++ '[' 225 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=230
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (230/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (230/600s)[0m
++ '[' 230 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=235
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (235/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (235/600s)[0m
++ '[' 235 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=240
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (240/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (240/600s)[0m
++ '[' 240 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=245
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (245/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (245/600s)[0m
++ '[' 245 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=250
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (250/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (250/600s)[0m
++ '[' 250 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=255
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (255/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (255/600s)[0m
++ '[' 255 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=260
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (260/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (260/600s)[0m
++ '[' 260 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=265
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (265/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (265/600s)[0m
++ '[' 265 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=270
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (270/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (270/600s)[0m
++ '[' 270 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=275
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (275/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (275/600s)[0m
++ '[' 275 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=280
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (280/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (280/600s)[0m
++ '[' 280 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=285
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (285/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (285/600s)[0m
++ '[' 285 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=290
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (290/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (290/600s)[0m
++ '[' 290 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=295
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (295/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (295/600s)[0m
++ '[' 295 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=300
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (300/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (300/600s)[0m
++ '[' 300 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=305
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (305/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (305/600s)[0m
++ '[' 305 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=310
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (310/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (310/600s)[0m
++ '[' 310 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=315
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (315/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (315/600s)[0m
++ '[' 315 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=320
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (320/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (320/600s)[0m
++ '[' 320 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=325
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (325/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (325/600s)[0m
++ '[' 325 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=330
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (330/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (330/600s)[0m
++ '[' 330 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=335
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (335/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (335/600s)[0m
++ '[' 335 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=340
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (340/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (340/600s)[0m
++ '[' 340 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=345
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (345/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (345/600s)[0m
++ '[' 345 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=350
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (350/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (350/600s)[0m
++ '[' 350 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=355
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (355/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (355/600s)[0m
++ '[' 355 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=360
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (360/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (360/600s)[0m
++ '[' 360 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=365
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (365/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (365/600s)[0m
++ '[' 365 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=370
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (370/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (370/600s)[0m
++ '[' 370 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=375
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (375/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (375/600s)[0m
++ '[' 375 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=380
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (380/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (380/600s)[0m
++ '[' 380 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=385
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (385/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (385/600s)[0m
++ '[' 385 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=390
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (390/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (390/600s)[0m
++ '[' 390 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=395
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (395/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (395/600s)[0m
++ '[' 395 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=400
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (400/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (400/600s)[0m
++ '[' 400 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=405
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (405/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (405/600s)[0m
++ '[' 405 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=410
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (410/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (410/600s)[0m
++ '[' 410 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=415
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (415/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (415/600s)[0m
++ '[' 415 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=420
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (420/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (420/600s)[0m
++ '[' 420 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=425
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (425/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (425/600s)[0m
++ '[' 425 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=430
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (430/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (430/600s)[0m
++ '[' 430 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=435
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (435/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (435/600s)[0m
++ '[' 435 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=440
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (440/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (440/600s)[0m
++ '[' 440 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=445
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (445/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (445/600s)[0m
++ '[' 445 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=450
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (450/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (450/600s)[0m
++ '[' 450 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=455
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (455/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (455/600s)[0m
++ '[' 455 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=460
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (460/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (460/600s)[0m
++ '[' 460 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=465
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (465/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (465/600s)[0m
++ '[' 465 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=470
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (470/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (470/600s)[0m
++ '[' 470 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=475
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (475/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (475/600s)[0m
++ '[' 475 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=480
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (480/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (480/600s)[0m
++ '[' 480 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=485
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (485/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (485/600s)[0m
++ '[' 485 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=490
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (490/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (490/600s)[0m
++ '[' 490 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=495
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (495/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (495/600s)[0m
++ '[' 495 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=500
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (500/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (500/600s)[0m
++ '[' 500 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=505
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (505/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (505/600s)[0m
++ '[' 505 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=510
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (510/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (510/600s)[0m
++ '[' 510 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=515
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (515/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (515/600s)[0m
++ '[' 515 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=520
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (520/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (520/600s)[0m
++ '[' 520 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=525
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (525/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (525/600s)[0m
++ '[' 525 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=530
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (530/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (530/600s)[0m
++ '[' 530 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=535
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (535/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (535/600s)[0m
++ '[' 535 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=540
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (540/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (540/600s)[0m
++ '[' 540 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=545
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (545/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (545/600s)[0m
++ '[' 545 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=550
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (550/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (550/600s)[0m
++ '[' 550 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=555
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (555/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (555/600s)[0m
++ '[' 555 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=560
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (560/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (560/600s)[0m
++ '[' 560 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=565
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (565/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (565/600s)[0m
++ '[' 565 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=570
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (570/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (570/600s)[0m
++ '[' 570 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=575
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (575/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (575/600s)[0m
++ '[' 575 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ sleep 5
++ elapsed=580
++ echo -e '\033[1;33mStill waiting for Lotus daemon... (580/600s)\033[0m'
+[1;33mStill waiting for Lotus daemon... (580/600s)[0m
++ '[' 580 -lt 600 ']'
++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status > /dev/null 2>&1'
++ echo -e '\033[0;32m✅ Lotus daemon is ready.\033[0m'
+[0;32m✅ Lotus daemon is ready.[0m
++ return 0
++ echo -e '\033[0;32m✅ Lotus daemon started for calibration network\033[0m'
+[0;32m✅ Lotus daemon started for calibration network[0m
++ echo -e '\033[1;33m⏳ Checking Lotus sync status...\033[0m'
+[1;33m⏳ Checking Lotus sync status...[0m
+++ wsl -d Ubuntu-22.04 -e bash -c 'lotus sync status 2>/dev/null | head -5'
++ SYNC_STATUS='sync status:
+worker 0:
+	Base:	[bafy2bzacecyaggy24wol5ruvs6qm73gjibs2l2iyhcqmvi7r7a4ph7zx3yqd4]
+	Target:	[bafy2bzacedea5dcw5rzlcsre75q4iy4welygpj7er7mf6yaykfimhxzvlw35e] (3311221)
+	Height diff:	3311221'
++ echo -e '\033[1;33m📊 Sync Status: sync status:
+worker 0:
+	Base:	[bafy2bzacecyaggy24wol5ruvs6qm73gjibs2l2iyhcqmvi7r7a4ph7zx3yqd4]
+	Target:	[bafy2bzacedea5dcw5rzlcsre75q4iy4welygpj7er7mf6yaykfimhxzvlw35e] (3311221)
+	Height diff:	3311221\033[0m'
+[1;33m📊 Sync Status: sync status:
+worker 0:
+	Base:	[bafy2bzacecyaggy24wol5ruvs6qm73gjibs2l2iyhcqmvi7r7a4ph7zx3yqd4]
+	Target:	[bafy2bzacedea5dcw5rzlcsre75q4iy4welygpj7er7mf6yaykfimhxzvlw35e] (3311221)
+	Height diff:	3311221[0m
++ echo -e '\033[1;33m💳 Setting up Filecoin wallet...\033[0m'
+[1;33m💳 Setting up Filecoin wallet...[0m
+++ wsl -d Ubuntu-22.04 -e bash -c '
+# Try to get existing wallet, create if none exists
+if lotus wallet list 2>/dev/null | grep -q '\''t3'\''; then
+    lotus wallet list 2>/dev/null | grep '\''t3'\'' | head -1 | awk '\''{print $1}'\''
+else
+    echo '\''Creating new wallet...'\''
+    lotus wallet new bls
+fi
+'
++ WALLET_ADDRESS='Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya'
++ echo -e '\033[0;32m💳 Wallet Address: Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya\033[0m'
+[0;32m💳 Wallet Address: Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya[0m
++ echo -e '\033[1;33m🪂 Requesting funds from calibration faucet...\033[0m'
+[1;33m🪂 Requesting funds from calibration faucet...[0m
++ wsl -d Ubuntu-22.04 -e bash -c '
+echo '\''Requesting calibration funds...'\''
+echo '\''Please visit: https://faucet.calibrationnet.chainsafe-fil.io/'\''
+echo '\''Enter wallet address: Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya'\''
+echo '\''Waiting for manual faucet request...'\''
+'
+Requesting calibration funds...
+Please visit: https://faucet.calibrationnet.chainsafe-fil.io/
+Enter wallet address: Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya
+Waiting for manual faucet request...
++ echo -e '\033[1;33m💰 Checking wallet balance...\033[0m'
+[1;33m💰 Checking wallet balance...[0m
+++ wsl -d Ubuntu-22.04 -e bash -c 'lotus wallet balance Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya 2>/dev/null || echo '\''0 FIL'\'''
+ERROR: unknown address network
+
++ BALANCE='0 FIL'
++ echo -e '\033[0;32m💰 Wallet Balance: 0 FIL\033[0m'
+[0;32m💰 Wallet Balance: 0 FIL[0m
++ cd /c/Users/kapil/compiling/blockchain-nft-interactive/packages/ipfs-integration
++ echo -e '\033[1;33m🔨 Building IPFS integration...\033[0m'
+[1;33m🔨 Building IPFS integration...[0m
++ cargo build --release
+warning: unused import: `std::collections::HashMap`
+  --> packages\ipfs-integration\src\lib.rs:11:5
+   |
+11 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `gateway_url` is never read
+  --> packages\ipfs-integration\src\lib.rs:27:5
+   |
+25 | pub struct IpfsPersistenceLayer {
+   |            -------------------- field in this struct
+26 |     client: IpfsClient,
+27 |     gateway_url: String,
+   |     ^^^^^^^^^^^
+   |
+   = note: `IpfsPersistenceLayer` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `nft-ipfs-integration` (lib) generated 2 warnings (run `cargo fix --lib -p nft-ipfs-integration` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 1.08s
+    echo -e "${GREEN}✅ Build successful--release{NC}"
+    echo -e "${RED}❌ Build failed--release{NC}"
++ '[' 0 -eq 0 ']'
++ echo -e '\033[0;32m✅ Build successful--release{NC}'
+[0;32m✅ Build successful--release{NC}
++ echo -e '\033[1;33m🌐 Setting up IPFS integration test...\033[0m'
+[1;33m🌐 Setting up IPFS integration test...[0m
++ cat
++ echo -e '\033[1;33m🧪 Testing IPFS integration...\033[0m'
+[1;33m🧪 Testing IPFS integration...[0m
++ wsl -d Ubuntu-22.04 -e bash
+Starting IPFS daemon...
+Testing IPFS operations...
+Adding test data to IPFS...
+IPFS Hash: QmU2gX9QPRRz3cAYKACddXb2V1WVVb8ysG6WcBrMx5JLDv
+Testing IPFS retrieval...
+{"test": "creative data"}
++ echo -e '\033[1;33m💎 Creating Filecoin storage deal...\033[0m'
+[1;33m💎 Creating Filecoin storage deal...[0m
++ wsl -d Ubuntu-22.04 -e bash -c '
+echo '\''Preparing storage deal...'\''
+echo '\''Miner: t01000 (Calibration miner)'\''
+echo '\''Piece CID: bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi'\''
+echo '\''Deal duration: 520000 epochs (~6 months)'\''
+echo '\''Storage price: 0 FIL (free for testing)'\''
+
+# Note: Actual deal creation requires more setup
+# This is a simplified demonstration
+echo '\''Storage deal prepared (simulated for calibration network)'\''
+'
+Preparing storage deal...
+Miner: t01000 (Calibration miner)
+Piece CID: bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi
+Deal duration: 520000 epochs (~6 months)
+Storage price: 0 FIL (free for testing)
+Storage deal prepared (simulated for calibration network)
++ mkdir -p /c/Users/kapil/compiling/blockchain-nft-interactive/apps/web/src/config
++ cat
+++ date -u '+%Y-%m-%d %H:%M:%S UTC'
++ echo -e '\033[0;32m✅ Configuration saved to src/config/filecoin-calibration.env\033[0m'
+[0;32m✅ Configuration saved to src/config/filecoin-calibration.env[0m
++ echo -e '\033[1;33m🧪 Testing Filecoin integration...\033[0m'
+[1;33m🧪 Testing Filecoin integration...[0m
++ wsl -d Ubuntu-22.04 -e bash -c '
+# Test Lotus connection
+echo '\''Testing Lotus connection...'\''
+lotus net id 2>/dev/null && echo '\''✅ Lotus connection successful'\'' || echo '\''⚠️  Lotus connection issues'\''
+
+# Test wallet
+lotus wallet balance Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya 2>/dev/null && echo '\''✅ Wallet accessible'\'' || echo '\''⚠️  Wallet issues'\''
+
+# Test sync status
+echo '\''Network sync status:'\''
+lotus sync status 2>/dev/null | head -3 || echo '\''Sync status unavailable'\''
+'
+ERROR: unknown address network
+
+KooWRFJGXjFHmkwXpYLufxwp32e9J7GxUgEEsj7iDtTcmAYM
+✅ Lotus connection successful
+⚠️  Wallet issues
+Network sync status:
+sync status:
+worker 0:
+	Base:	[bafy2bzacecyaggy24wol5ruvs6qm73gjibs2l2iyhcqmvi7r7a4ph7zx3yqd4]
+echo -e "${GREEN}🎉 Filecoin calibration network deployment completed# Create deployment summary{NC}"
++ echo -e '\033[0;32m🎉 Filecoin calibration network deployment completed# Create deployment summary{NC}'
+[0;32m🎉 Filecoin calibration network deployment completed# Create deployment summary{NC}
++ echo -e '\033[0;32m📋 Summary:\033[0m'
+[0;32m📋 Summary:[0m
++ echo -e '\033[0;32m   Network: Calibration\033[0m'
+[0;32m   Network: Calibration[0m
++ echo -e '\033[0;32m   Wallet: Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya\033[0m'
+[0;32m   Wallet: Creating new wallet...
+t3wu3whjv7davystntvc3gbbk3yfhvgbxuj6djsiqe63lp5s4cpju2triwxeiheqnhutr7jpdinat6ywb2kuya[0m
++ echo -e '\033[0;32m   Balance: 0 FIL\033[0m'
+[0;32m   Balance: 0 FIL[0m
++ echo -e '\033[0;32m   Config: src/config/filecoin-calibration.env\033[0m'
+[0;32m   Config: src/config/filecoin-calibration.env[0m
++ echo -e '\033[0;32m   IPFS Integration: Built and tested\033[0m'
+[0;32m   IPFS Integration: Built and tested[0m
++ echo -e '\033[1;33m   Note: Please visit https://faucet.calibrationnet.chainsafe-fil.io/ to fund your wallet\033[0m'
+[1;33m   Note: Please visit https://faucet.calibrationnet.chainsafe-fil.io/ to fund your wallet[0m
++ echo -e '\033[1;33m🔄 Lotus daemon will continue running in WSL\033[0m'
+[1;33m🔄 Lotus daemon will continue running in WSL[0m
++ echo -e '\033[1;33m   To stop: wsl -d Ubuntu-22.04 -e bash -c '\''pkill lotus'\''\033[0m'
+[1;33m   To stop: wsl -d Ubuntu-22.04 -e bash -c 'pkill lotus'[0m

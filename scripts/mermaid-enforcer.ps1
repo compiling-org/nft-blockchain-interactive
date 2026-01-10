@@ -17,24 +17,24 @@ foreach ($file in $changed) {
     if ($prev) { $prevMermaidCount = ([regex]::Matches($prev, '```mermaid')).Count }
 
     if ($prev -and ($currMermaidCount -lt $prevMermaidCount)) {
-        $issues += "Mermaid blocks decreased in $file ($currMermaidCount < $prevMermaidCount)"
+        $issues.Add("Mermaid blocks decreased in $file ($currMermaidCount < $prevMermaidCount)")
     }
 
     if ($current -match '```mermaid\s*```') {
-        $issues += "Empty mermaid block detected in $file"
+        $issues.Add("Empty mermaid block detected in $file")
     }
 
     # Detect unclosed mermaid fences: count of full blocks should match openings
     $fullBlockCount = ([regex]::Matches($current, '```mermaid[\s\S]*?```', 'Singleline')).Count
     if ($fullBlockCount -lt $currMermaidCount) {
-        $issues += "Unclosed mermaid block detected in $file"
+        $issues.Add("Unclosed mermaid block detected in $file")
     }
 
-    if ($current -match '<br\">') {
-        $issues += "Invalid line break '<br\">' found in $file"
+    if ($current -match '<br/>') {
+        $issues.Add("Invalid line break '<br/>' found in $file")
     }
-    if ($current -match '```mermaid[\s\S]*?<br/>' ) {
-        $issues += "HTML breaks '<br/>' found inside mermaid in $file"
+    if ($current -match '```mermaid[\s\S]*?<br/>') {
+        $issues.Add("HTML breaks '<br/>' found inside mermaid in $file")
     }
 }
 

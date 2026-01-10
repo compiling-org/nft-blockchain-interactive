@@ -38,57 +38,45 @@ graph TB
 
 ```mermaid
 graph LR
-    A["PolkadotClient"] --> B["OnlineClient<PolkadotConfig>"]
-    A --> C["EmotionalBridge"]
-    A --> D["SoulboundManager"]
-    A --> E["CrossChainBridge"]
+    A["PolkadotClient"] --> B["OnlineClient PolkadotConfig"]
+    A --> C["metadata_cache"]
+    A --> D["TokenAnalytics"]
+    A --> E["ExtrinsicSubmitter"]
     
     B --> F["RPC Connection"]
-    B --> G["Runtime Metadata"]
-    B --> H["Type Registry"]
-    
-    C --> I["analyze_trends()"]
-    C --> J["predict_emotion()"]
-    C --> K["calculate_complexity()"]
-    
-    D --> L["create_soulbound_token()"]
-    D --> M["update_reputation()"]
-    D --> N["assign_badge()"]
+    B --> G["Dynamic Storage"]
+    D --> H["predict_emotion()"]
+    D --> I["get_trending_tokens()"]
 ```
 
-### Connection Architecture (src/polkadot-client/src/lib.rs:18-70)
+### Connection Architecture (src/polkadot-client/src/lib.rs:24-41,48-50)
 
 ```rust
 pub struct PolkadotClient {
-    api: OnlineClient<PolkadotConfig>,
-    emotional_bridge: EmotionalBridge,
-    soulbound_manager: SoulboundManager,
-    cross_chain_bridge: CrossChainBridge,
-    runtime_version: RuntimeVersion,
-    metadata: Metadata,
+    client: OnlineClient<PolkadotConfig>,
+    metadata_cache: HashMap<String, serde_json::Value>,
+    pub token_analytics: TokenAnalytics,
 }
 
 impl PolkadotClient {
     pub async fn new(url: &str) -> Result<Self> {
-        let api = OnlineClient::<PolkadotConfig>::from_url(url).await?;
-        let runtime_version = api.runtime_version();
-        let metadata = api.metadata();
-        
+        let client = OnlineClient::<PolkadotConfig>::from_url(url).await?;
         Ok(Self {
-            api,
-            emotional_bridge: EmotionalBridge::new(),
-            soulbound_manager: SoulboundManager::new(),
-            cross_chain_bridge: CrossChainBridge::new(),
-            runtime_version,
-            metadata,
+            client,
+            metadata_cache: HashMap::new(),
+            token_analytics: TokenAnalytics::new(),
         })
+    }
+    
+    pub fn extrinsics(&self) -> ExtrinsicSubmitter {
+        ExtrinsicSubmitter::new(self.client.clone())
     }
 }
 ```
 
 ## 📊 Emotional Analytics Architecture
 
-### Trend Analysis Engine (src/polkadot-client/src/emotional_bridge.rs:71-150)
+### Trend Analysis Engine (src/polkadot-client/src/emotional_bridge.rs:71-97,130-151)
 
 ```mermaid
 graph TD
@@ -111,38 +99,49 @@ graph TD
 ### Algorithm Implementation
 
 ```rust
-impl EmotionalBridge {
-    pub fn analyze_trends(&self, emotional_data: &[EmotionalPoint]) -> TrendAnalysis {
-        // Calculate trend slope using linear regression
-        let trend_slope = calculate_linear_regression_slope(emotional_data);
-        
-        // Calculate volatility using standard deviation
-        let volatility = calculate_standard_deviation(emotional_data);
-        
-        // Calculate momentum using rate of change
-        let momentum = calculate_rate_of_change(emotional_data);
-        
-        // Classify trend direction
-        let direction = classify_trend_direction(trend_slope);
-        
-        // Calculate trend strength
-        let strength = calculate_trend_strength(trend_slope, volatility);
-        
-        // Calculate confidence level
-        let confidence = calculate_confidence_score(emotional_data.len(), volatility);
-        
-        TrendAnalysis {
-            direction,
-            strength,
-            momentum,
-            confidence,
-            reliability_score: calculate_reliability_score(&direction, &strength, confidence),
+impl EmotionalBridgeProcessor {
+    pub fn analyze_emotional_trend(history: &[EmotionalMetadata]) -> EmotionalTrend {
+        if history.len() < 2 {
+            return EmotionalTrend::Stable;
         }
+        let recent = history.iter().take(5.min(history.len())).collect::<Vec<_>>();
+        let oldest = recent.first().unwrap();
+        let newest = recent.last().unwrap();
+        let valence_diff = newest.valence - oldest.valence;
+        let arousal_diff = newest.arousal - oldest.arousal;
+        match (valence_diff.abs(), arousal_diff.abs()) {
+            (v, a) if v < 0.1 && a < 0.1 => EmotionalTrend::Stable,
+            (v, a) if v > 0.3 || a > 0.3 => EmotionalTrend::Volatile,
+            _ => {
+                if valence_diff > 0.1 || arousal_diff > 0.1 {
+                    EmotionalTrend::Ascending
+                } else if valence_diff < -0.1 || arousal_diff < -0.1 {
+                    EmotionalTrend::Descending
+                } else {
+                    EmotionalTrend::Stable
+                }
+            }
+        }
+    }
+    
+    pub fn calculate_emotional_complexity(history: &[EmotionalMetadata]) -> f32 {
+        if history.is_empty() {
+            return 0.0;
+        }
+        let len = history.len();
+        let avg_valence: f32 = history.iter().map(|e| e.valence).sum::<f32>() / len as f32;
+        let avg_arousal: f32 = history.iter().map(|e| e.arousal).sum::<f32>() / len as f32;
+        let avg_dominance: f32 = history.iter().map(|e| e.dominance).sum::<f32>() / len as f32;
+        let valence_variance: f32 = history.iter().map(|e| (e.valence - avg_valence).powi(2)).sum::<f32>() / len as f32;
+        let arousal_variance: f32 = history.iter().map(|e| (e.arousal - avg_arousal).powi(2)).sum::<f32>() / len as f32;
+        let dominance_variance: f32 = history.iter().map(|e| (e.dominance - avg_dominance).powi(2)).sum::<f32>() / len as f32;
+        let total_variance = (valence_variance + arousal_variance + dominance_variance).sqrt();
+        total_variance.clamp(0.0, 1.0)
     }
 }
 ```
 
-### Predictive Emotion Model (src/polkadot-client/src/emotional_bridge.rs:151-200)
+### Predictive Emotion Model (src/polkadot-client/src/emotional_bridge.rs:99-127)
 
 ```mermaid
 graph LR
@@ -171,35 +170,25 @@ graph LR
     J --> K
 ```
 
-### Complexity Scoring Algorithm (src/polkadot-client/src/emotional_bridge.rs:201-250)
+### Complexity Scoring Algorithm (src/polkadot-client/src/emotional_bridge.rs:130-151)
 
 ```rust
-pub fn calculate_complexity(&self, emotional_trajectory: &[EmotionalPoint]) -> f32 {
-    // Calculate variance in emotional states
-    let variance = calculate_variance(emotional_trajectory);
-    
-    // Calculate Shannon entropy for unpredictability
-    let entropy = calculate_shannon_entropy(emotional_trajectory);
-    
-    // Calculate fractal dimension for pattern complexity
-    let fractal_dimension = calculate_fractal_dimension(emotional_trajectory);
-    
-    // Calculate Lyapunov exponent for chaos measurement
-    let lyapunov_exponent = calculate_lyapunov_exponent(emotional_trajectory);
-    
-    // Calculate Hurst exponent for long-term memory
-    let hurst_exponent = calculate_hurst_exponent(emotional_trajectory);
-    
-    // Weighted combination of complexity measures
-    let complexity = (
-        variance * 0.25 +
-        entropy * 0.25 +
-        fractal_dimension * 0.2 +
-        lyapunov_exponent * 0.15 +
-        hurst_exponent * 0.15
-    ).clamp(0.0, 1.0);
-    
-    complexity
+impl EmotionalMetadata {
+    pub fn calculate_complexity(&mut self) {
+        if self.emotional_trajectory.len() < 2 {
+            self.emotional_complexity = 0.0;
+            return;
+        }
+        let mut total_distance = 0.0;
+        for i in 1..self.emotional_trajectory.len() {
+            let prev = &self.emotional_trajectory[i-1];
+            let curr = &self.emotional_trajectory[i];
+            let distance = ((curr.valence - prev.valence).powi(2) +
+                           (curr.arousal - prev.arousal).powi(2)).sqrt();
+            total_distance += distance;
+        }
+        self.emotional_complexity = (total_distance / self.emotional_trajectory.len() as f32).clamp(0.0, 1.0);
+    }
 }
 ```
 

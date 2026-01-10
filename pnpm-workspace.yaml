@@ -1,0 +1,11 @@
+packages:
+  - 'apps/*'
+  - 'packages/api'
+  - 'packages/ipfs-integration'
+  - 'packages/near-wasm'
+  - 'packages/rust-client'
+  - 'packages/rust-foundation-audiovisual'
+  - 'packages/solana-programs'
+  - 'packages/TypeGPU/packages/*'
+  - 'packages/TypeGPU/apps/*'
+

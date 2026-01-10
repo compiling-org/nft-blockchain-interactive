@@ -138,6 +138,36 @@ impl CrossChainEventMonitor {
 - [ ] Cross-chain data integrity verification system
 - [ ] IPFS content addressing for AI dataset persistence
 
+## 🛠️ Blockchain Tooling and Environment Context
+
+This section provides context on the blockchain tools relevant to Phase 2, detailing their roles in enabling cross-chain AI/ML integration.
+
+### 🔗 Key Blockchain Tools in Phase 2
+
+#### NEAR Protocol (NEAR CLI)
+*   **Role in Phase 2**: Essential for deploying and interacting with NEAR AI Inference Contracts. It facilitates the management of emotional NFTs and the integration of AI models on the NEAR testnet.
+*   **Usage**: Used for contract deployment, function calls (e.g., `predict_emotional_response`, `update_ai_model`), and querying contract states.
+
+#### Filecoin (Lotus Client)
+*   **Role in Phase 2**: Crucial for persistent, decentralized storage of AI/ML datasets and models. The Lotus client enables interaction with the Filecoin network for data retrieval and storage deals, supporting the AI Research Data Marketplace.
+*   **Usage**: Interacting with Filecoin for `retrieve_ai_dataset`, `store_global_model`, and verifying data integrity via IPFS hashes.
+
+#### IPFS (InterPlanetary File System)
+*   **Role in Phase 2**: Provides content addressing for all decentralized data, including AI datasets, emotional NFT session packages, and AI model outputs. It ensures data immutability and accessibility across chains.
+*   **Usage**: Generating CIDs for stored content, linking on-chain references to off-chain data, and facilitating data exchange between different blockchain components.
+
+#### Solana (Solana CLI & Anchor Framework)
+*   **Role in Phase 2**: Used for developing and deploying Solana Federated Learning Contracts and Interactive Controls Contracts. It enables the aggregation of federated models and real-time biometric-aware NFT interactions.
+*   **Usage**: Solana CLI for general network operations, and Anchor for streamlined development of programs like `submit_local_model` and `process_biometric_interaction`.
+
+#### Substrate (Polkadot/Substrate Tooling)
+*   **Role in Phase 2**: Supports the development of Soulbound Governance Tokens and the AI Research Data Marketplace on Polkadot. It's vital for cross-chain identity and community governance.
+*   **Usage**: For deploying ink! contracts (e.g., `list_ai_dataset`, `create_soulbound_identity`) and interacting with the Polkadot ecosystem for cross-chain verification.
+
+#### Ethereum (Web3.js / Ethers.js / Geth)
+*   **Role in Phase 2**: While not a primary chain for core Phase 2 contracts, Ethereum tooling is important for potential future cross-chain bridges to EVM-compatible networks, enabling broader interoperability for AI/ML assets and data.
+*   **Usage**: Primarily for potential future integrations and interacting with existing EVM-based infrastructure.
+
 ---
 
 ## 🤖 PHASE 2.2: AI/ML CONTRACT FUNCTIONALITY

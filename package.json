@@ -1,18 +1,27 @@
 {
   "name": "blockchain-nft-interactive",
   "version": "1.0.0",
+  "packageManager": "pnpm@8.6.12",
   "description": "Comprehensive blockchain/AI/ML integration platform with real wallet connections and smart contracts",
   "main": "index.js",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
     "preview": "vite preview",
     "deploy:near": "bash scripts/deploy-near-soulbound.sh",
     "deploy:solana": "bash scripts/deploy-solana-token-manager.sh",
     "deploy:polkadot": "bash scripts/deploy-polkadot-xcm.sh",
-    "test": "vitest",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "typecheck": "tsc --noEmit"
+    "storybook": "storybook dev -p 6007 --config-dir apps/web/.storybook",
+    "build-storybook": "storybook build",
+    "dev:marketplace": "http-server apps/marketplace-frontend -p 3001",
+    "clean": "rimraf node_modules dist .turbo",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,html,css,json}\""
   },
   "dependencies": {
     "@bitte-ai/chat": "latest",
@@ -42,6 +51,7 @@
     "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-node": "^4.22.0",
     "@types/bn.js": "^5.2.0",
+    "@types/protobufjs": "^6.0.0",
     "@types/react-router-dom": "^5.3.3",
     "@web3-storage/access": "^20.3.0",
     "@web3-storage/w3up-client": "^17.3.0",
@@ -53,7 +63,9 @@
     "lucide-react": "^0.263.1",
     "near-api-js": "^2.1.4",
     "nft.storage": "^7.2.0",
+    "protobufjs-cli": "^2.0.0",
     "react": "^18.2.0",
+    "react-aria-components": "^1.14.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.9.6",
     "sonner": "^1.0.3",
@@ -62,21 +74,17 @@
     "web3.storage": "^4.5.5"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "@vitejs/plugin-react": "^4.0.3",
-    "autoprefixer": "^10.4.22",
-    "eslint": "^8.45.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
-    "postcss": "^8.4.27",
     "tailwindcss": "^3.3.3",
+    "turbo": "^2.6.3",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
-    "vitest": "^0.34.4"
+    "vitest": "^0.34.4",
+    "rimraf": "^5.0.5",
+    "prettier": "^3.2.5"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:storybook/recommended"
+    ]
   }
 }

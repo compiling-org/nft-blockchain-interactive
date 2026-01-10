@@ -1,9 +1,11 @@
 #!/bin/bash
 
+set -ex # Enable command tracing and exit on error
+
+
+
 # Filecoin Calibration Network Deployment Script
 # This script deploys IPFS integration to Filecoin calibration network
-
-set -e
 
 echo "🚀 Starting Filecoin Calibration Network Deployment..."
 
@@ -14,7 +16,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Check if lotus is available in WSL
-if ! wsl -d Ubuntu-22.04 -e bash -c "lotus --version" &> /dev/null; then
+if ! wsl -d Ubuntu-22.04 -e bash -c "PATH=; PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin lotus --version > /dev/null 2>&1"; then
     echo -e "${RED}❌ Lotus CLI not found in WSL. Please install it first.${NC}"
     exit 1
 fi
@@ -22,33 +24,55 @@ fi
 echo -e "${YELLOW}📡 Configuring Lotus for calibration network...${NC}"
 
 # Set Lotus to calibration network
-wsl -d Ubuntu-22.04 -e bash -c "
+echo "Executing WSL command for Lotus daemon startup: wsl -d Ubuntu-22.04 -e bash << 'EOF_LOTUS' >> /mnt/c/Users/kapil/compiling/blockchain-nft-interactive/deploy-log.txt 2>&1"
+# Function to wait for Lotus daemon to be ready
+wait_for_lotus() {
+    local timeout=$1
+    local interval=5
+    local elapsed=0
+
+    echo -e "${YELLOW}⏳ Waiting for Lotus daemon to be ready (timeout: ${timeout}s)...${NC}"
+    while [ $elapsed -lt $timeout ]; do
+        if wsl -d Ubuntu-22.04 -e bash -c "lotus sync status > /dev/null 2>&1"; then
+            echo -e "${GREEN}✅ Lotus daemon is ready.${NC}"
+            return 0
+        fi
+        sleep $interval
+        elapsed=$((elapsed + interval))
+        echo -e "${YELLOW}Still waiting for Lotus daemon... (${elapsed}/${timeout}s)${NC}"
+    done
+
+    echo -e "${RED}❌ Lotus daemon did not become ready within ${timeout} seconds.${NC}"
+    return 1
+}
+
+wsl -d Ubuntu-22.04 -e bash << 'EOF_LOTUS'
 export LOTUS_PATH=~/.lotus-calibration
-export LOTUS_MINER_PATH=~/.lotus-miner-calibration
-export LOTUS_WORKER_PATH=~/.lotus-worker-calibration
+        export LOTUS_MINER_PATH=~/.lotus-miner-calibration
+        export LOTUS_WORKER_PATH=~/.lotus-worker-calibration
+        export FULLNODE_API_INFO="https://api.calibration.node.glif.io/rpc/v1"
 
-# Initialize Lotus for calibration network if not already done
-if [ ! -f ~/.lotus-calibration/config.toml ]; then
-    echo 'Initializing Lotus for calibration network...'
-    lotus daemon --calibration-net --import-snapshot https://snapshots.calibrationnet.filops.net/minimal/latest.zst &
-    DAEMON_PID=\$!
-    sleep 30
-    kill \$DAEMON_PID || true
-fi
+        # Disable systemd-resolved and configure DNS
+        wsl -d Ubuntu-22.04 -e bash -c "sudo systemctl disable systemd-resolved && sudo systemctl stop systemd-resolved"
+        wsl -d Ubuntu-22.04 -e bash -c "sudo rm /etc/resolv.conf"
+        wsl -d Ubuntu-22.04 -e bash -c "echo \"nameserver 8.8.8.8\" | sudo tee /etc/resolv.conf > /dev/null"
+        # Start Lotus daemon in foreground for debugging
+         env LOTUS_PATH=~/.lotus-calibration FULLNODE_API_INFO="https://api.calibration.node.glif.io/rpc/v1" lotus daemon
+EOF_LOTUS
+DAEMON_PID=$(wsl -d Ubuntu-22.04 -e bash -c "cat ./lotus-daemon.pid")
+echo "DAEMON_PID: $DAEMON_PID"
+wsl -d Ubuntu-22.04 -e bash -c "if [ -f ./lotus-daemon.pid ]; then echo 'PID file exists.'; else echo 'PID file does NOT exist.'; fi"
+wsl -d Ubuntu-22.04 -e bash -c "if [ -s ./lotus-daemon.pid ]; then echo 'PID file is NOT empty.'; else echo 'PID file IS empty.'; fi"
 
-# Start Lotus daemon in background
-echo 'Starting Lotus daemon for calibration network...'
-nohup lotus daemon --calibration-net > lotus-calibration.log 2>&1 &
-echo \$! > lotus-calibration.pid
-sleep 10
-"
+# Wait for Lotus to be ready
+wait_for_lotus 600 || { echo -e "${RED}❌ Deployment failed: Lotus daemon not ready.${NC}"; exit 1; }
 
 echo -e "${GREEN}✅ Lotus daemon started for calibration network${NC}"
 
 # Check Lotus sync status
-echo -e "${YELLOW}⏳ Checking Lotus sync status...${NC}"
-SYNC_STATUS=$(wsl -d Ubuntu-22.04 -e bash -c "lotus sync status 2>/dev/null | head -5" || echo "Not synced")
-echo -e "${YELLOW}📊 Sync Status: $SYNC_STATUS${NC}"
+echo -e "${YELLOW}⏳ Checking Lotus sync status...${NC}" >> /mnt/c/Users/kapil/compiling/blockchain-nft-interactive/deploy-log.txt
+wsl -d Ubuntu-22.04 -e bash -c "lotus sync status 2>&1" >> /mnt/c/Users/kapil/compiling/blockchain-nft-interactive/deploy-log.txt
+echo -e "${YELLOW}📊 Sync Status check complete.${NC}" >> /mnt/c/Users/kapil/compiling/blockchain-nft-interactive/deploy-log.txt
 
 # Create or import wallet
 echo -e "${YELLOW}💳 Setting up Filecoin wallet...${NC}"
@@ -79,7 +103,7 @@ BALANCE=$(wsl -d Ubuntu-22.04 -e bash -c "lotus wallet balance $WALLET_ADDRESS 2
 echo -e "${GREEN}💰 Wallet Balance: $BALANCE${NC}"
 
 # Navigate to IPFS integration directory
-cd /c/Users/kapil/compiling/blockchain-nft-interactive/src/ipfs-integration
+cd /c/Users/kapil/compiling/blockchain-nft-interactive/packages/ipfs-integration
 
 # Build the IPFS integration
 echo -e "${YELLOW}🔨 Building IPFS integration...${NC}"
@@ -118,24 +142,24 @@ EOF
 
 # Test IPFS integration
 echo -e "${YELLOW}🧪 Testing IPFS integration...${NC}"
-wsl -d Ubuntu-22.04 -e bash -c "
+wsl -d Ubuntu-22.04 -e bash << 'EOF_IPFS'
 # Start IPFS daemon if not running
-if ! pgrep -f 'ipfs daemon' > /dev/null; then
-    echo 'Starting IPFS daemon...'
+if ! pgrep -f "ipfs daemon" > /dev/null; then
+    echo "Starting IPFS daemon..."
     ipfs daemon > ipfs.log 2>&1 &
     sleep 5
 fi
 
 # Test IPFS operations
-echo 'Testing IPFS operations...'
-echo 'Adding test data to IPFS...'
-IPFS_HASH=\$(echo '{\"test\": \"creative data\"}' | ipfs add -q)
-echo \"IPFS Hash: \$IPFS_HASH"
+echo "Testing IPFS operations..."
+echo "Adding test data to IPFS..."
+IPFS_HASH=$(echo '{"test": "creative data"}' | ipfs add -q)
+echo "IPFS Hash: $IPFS_HASH"
 
 # Test retrieval
-echo 'Testing IPFS retrieval...'
-ipfs cat \$IPFS_HASH
-"
+echo "Testing IPFS retrieval..."
+ipfs cat $IPFS_HASH
+EOF_IPFS
 
 # Create a simple Filecoin storage deal
 echo -e "${YELLOW}💎 Creating Filecoin storage deal...${NC}"
@@ -152,8 +176,8 @@ echo 'Storage deal prepared (simulated for calibration network)'
 "
 
 # Save configuration
-mkdir -p /c/Users/kapil/compiling/blockchain-nft-interactive/src/config
-cat > /c/Users/kapil/compiling/blockchain-nft-interactive/src/config/filecoin-calibration.env << EOF
+mkdir -p /c/Users/kapil/compiling/blockchain-nft-interactive/apps/web/src/config
+cat > /c/Users/kapil/compiling/blockchain-nft-interactive/apps/web/src/config/filecoin-calibration.env << EOF
 # Filecoin Calibration Network Configuration
 FILECOIN_NETWORK=calibration
 LOTUS_RPC_URL=https://api.calibration.node.glif.io/rpc/v1

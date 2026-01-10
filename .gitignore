@@ -1,7 +1,9 @@
 # Dependencies and build artifacts
 node_modules/
+**/node_modules/
 dist/
 target/
+**/target/
 Cargo.lock
 package-lock.json
 yarn.lock
@@ -28,13 +30,44 @@ Thumbs.db
 *.tmp
 *.temp
 nul
+build_error.log
+build_error_v2.log
+build_error_v3.log
+build_final.log
+build_final_v2.log
+build_log.txt
+build_log_*.txt
+cargo_build_output.txt
+cargo_install_cargo_near_output.txt
+cargo_install_cargo_near_verbose_output.txt
+cargo_install_cargo_near_windows_root_verbose_output.txt
+cargo_install_cargo_near_windows_verbose_output.txt
+cargo_near_build_output.txt
+cargo_near_install_output.txt
+deploy_log.txt
+deployment_log.txt
+enforcement.log
+install_error.log
+install_error_ci.log
+install_error_web.log
+install_retry.log
+install_root_hoist.log
+lotus-calibration.log
+strace_lotus_help.log
+strace_lotus_version.log
+test_output.txt
+wsl_debug.txt
 
 # Blockchain and crypto files (private keys, etc)
 *.json
 !package.json
 !tsconfig.json
+!tsconfig.*.json
 !Cargo.toml
 !Anchor.toml
+!turbo.json
+!packages/TypeGPU/
+!**/components.json
 *.key
 *.pem
 *.seed
@@ -47,18 +80,17 @@ nul
 *.dll
 *.so
 *.dylib
+forest_snapshot_calibnet_2025-12-25_height_3311760.forest.car.zst
 
 # IPFS and Lotus
 ipfs/
 kubo/
 lotus*
 lotus-
+filecoin-fvm-localnet/
 
 # Rust build artifacts
-**/target/
-**/*.rs.bk
-**/debug/
-**/release/
+# Already covered by **/target/ and target/
 
 # Solana
 .solana/
@@ -80,7 +112,7 @@ iron_learn/
 
 # Massive blockchain tools (moved to compiling directory)
 lotus/
-target/
+# target/ (covered by global target/)
 clang-installer.exe
 go1.21.5.linux-amd64.tar.gz*
 src-minimal/
@@ -117,3 +149,15 @@ coverage/
 # Temporary files
 tmp/
 temp/
+references/
+backend/
+TypeGPU/
+references/deno/
+references/hmpl/
+references/nest/
+references/shadcn-ui/references/storybook/
+references/turborepo/
+reference_repos/TypeGPU/
+
+*storybook.log
+storybook-static

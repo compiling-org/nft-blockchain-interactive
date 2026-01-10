@@ -168,6 +168,40 @@ Extracts Filecoin grant files and creates a standalone repository structure.
 ### `setup-all-grant-repos.sh`
 Master script that runs all extraction scripts to set up all grant repositories.
 
+## 🛠️ Blockchain Tooling and Environment Context
+
+This section provides context on the blockchain tools relevant to repository setup and development, detailing their roles and basic usage.
+
+### 💻 Windows (Native / Git Bash) & WSL Environment
+
+Our development environment leverages both Windows native tools (accessible via Git Bash) and WSL (Ubuntu-22.04) for optimal compatibility and performance across different blockchain ecosystems, which is crucial for setting up and working with the various grant repositories.
+
+### 🔗 Key Blockchain Tools for Repository Setup
+
+#### NEAR Protocol (NEAR CLI)
+*   **Role**: Used for interacting with NEAR blockchain components within the `near-creative-engine` repository. Essential for deploying and managing NEAR smart contracts.
+*   **Usage**: `near <command>` for account management, contract deployment, and network queries.
+
+#### Filecoin (Lotus Client)
+*   **Role**: Facilitates interaction with the Filecoin network for the `filecoin-creative-storage` repository. Used for managing decentralized storage of creative assets and data.
+*   **Usage**: `lotus <command>` (within WSL) for storage deals, data retrieval, and network participation.
+
+#### IPFS (InterPlanetary File System)
+*   **Role**: Provides decentralized content addressing for all repositories that handle off-chain data. It's fundamental for linking immutable data to blockchain entries.
+*   **Usage**: `ipfs <command>` or through client libraries for content addressing and data storage.
+
+#### Solana (Solana CLI & Anchor Framework)
+*   **Role**: Crucial for developing and deploying Solana programs within the `solana-emotional-metadata` repository. Solana CLI handles network interaction, while Anchor streamlines program development.
+*   **Usage**: `solana <command>` for general network operations, and `anchor <command>` for building and deploying Solana programs.
+
+#### Substrate (Polkadot/Substrate Tooling)
+*   **Role**: Supports the development of custom blockchain components and interaction with the Polkadot ecosystem for the `polkadot-creative-identity` repository. Used for soulbound tokens and identity systems.
+*   **Usage**: `substrate <command>` or `polkadot <command>` for blockchain development and interaction.
+
+#### Ethereum (Web3.js / Ethers.js / Geth)
+*   **Role**: While not directly tied to a specific grant repository in this setup guide, Ethereum tooling is important for potential future cross-chain integrations and interacting with EVM-compatible networks, which might become relevant for any of the grant projects.
+*   **Usage**: Primarily through JavaScript/TypeScript libraries for dApp development and smart contract interaction.
+
 ## Best Practices
 
 ### 1. Version Management

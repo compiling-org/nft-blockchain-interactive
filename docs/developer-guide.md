@@ -65,38 +65,38 @@ graph TB
     classDef ai fill:#feca57,stroke:#333,stroke-width:2px,color:#333
 
     subgraph "🎨 Frontend Development Layer"
-        TW["Test Website<br/>🌐 Vanilla JS + HTML5<br/>No Framework Dependencies"]:::frontend
-        MF["Marketplace Frontend<br/>🏪 Component-based UI<br/>Responsive Design"]:::frontend
-        DEMO["Interactive Demos<br/>🎮 Real-time Feedback<br/>Educational Tool"]:::frontend
+        TW["Test Website\n🌐 Vanilla JS + HTML5\nNo Framework Dependencies"]:::frontend
+        MF["Marketplace Frontend\n🏪 Component-based UI\nResponsive Design"]:::frontend
+        DEMO["Interactive Demos\n🎮 Real-time Feedback\nEducational Tool"]:::frontend
     end
     
     subgraph "⚙️ Application Logic Layer"
-        CE["Creative Engine<br/>🎭 Rust → WASM Compilation<br/>WebGPU Integration"]:::application
-        EC["Emotional Computing<br/>🧠 VAD Algorithm Engine<br/>Pattern Recognition"]:::application
-        WC["Wallet Interface<br/>👛 Connection Abstraction<br/>Multi-chain Support"]:::application
+        CE["Creative Engine\n🎭 Rust → WASM Compilation\nWebGPU Integration"]:::application
+        EC["Emotional Computing\n🧠 VAD Algorithm Engine\nPattern Recognition"]:::application
+        WC["Wallet Interface\n👛 Connection Abstraction\nMulti-chain Support"]:::application
     end
     
     subgraph "⛓️ Blockchain Integration Layer"
         subgraph "🎯 NEAR Protocol Stack"
-            NC["NEAR Contracts<br/>📜 Rust → WASM<br/>AssemblyScript Alternative"]:::blockchain
-            NM["Marketplace Logic<br/>🏪 Auction Engine<br/>Trading Functions"]:::blockchain
+            NC["NEAR Contracts\n📜 Rust → WASM\nAssemblyScript Alternative"]:::blockchain
+            NM["Marketplace Logic\n🏪 Auction Engine\nTrading Functions"]:::blockchain
         end
         
         subgraph "⚡ Solana Program Stack"
-            SC["Solana Programs<br/>⚓ Anchor Framework<br/>Rust-based Programs"]:::blockchain
-            SS["Stream Diffusion<br/>🤖 AI Account Structure<br/>Neural Processing"]:::blockchain
+            SC["Solana Programs\n⚓ Anchor Framework\nRust-based Programs"]:::blockchain
+            SS["Stream Diffusion\n🤖 AI Account Structure\nNeural Processing"]:::blockchain
         end
         
         subgraph "🌉 Polkadot Integration"
-            PC["Polkadot Client<br/>🔗 Subxt Rust Library<br/>Cross-chain Bridge"]:::blockchain
-            SB["Soulbound Tokens<br/>🆔 Identity System<br/>Reputation Engine"]:::blockchain
+            PC["Polkadot Client\n🔗 Subxt Rust Library\nCross-chain Bridge"]:::blockchain
+            SB["Soulbound Tokens\n🆔 Identity System\nReputation Engine"]:::blockchain
         end
     end
     
     subgraph "💾 Data & Storage Layer"
-        IPFS["IPFS Integration<br/>🗃️ Content Addressing<br/>CID Generation"]:::storage
-        EMOTIONAL["Emotional Data<br/>📊 VAD Vector Storage<br/>Temporal Patterns"]:::ai
-        METADATA["Cross-Chain Metadata<br/>🏷️ Standardized Format<br/>Emotional Schema"]:::storage
+        IPFS["IPFS Integration\n🗃️ Content Addressing\nCID Generation"]:::storage
+        EMOTIONAL["Emotional Data\n📊 VAD Vector Storage\nTemporal Patterns"]:::ai
+        METADATA["Cross-Chain Metadata\n🏷️ Standardized Format\nEmotional Schema"]:::storage
     end
     
     %% Developer-Focused Data Flow
@@ -120,6 +120,73 @@ graph TB
     SC -->|"Standard Format"| METADATA
     SB -->|"Identity Data"| METADATA
 ```
+
+## 📦 Integrated Technologies and Their Roles
+
+This section outlines the strategic integration of key technologies into the `blockchain-nft-interactive` project, detailing their roles and how they enhance the overall system.
+
+### NestJS (`nestjs/nest`) - Backend Framework
+
+**Role**: NestJS will serve as the robust, scalable backend framework for the `blockchain-nft-interactive` application. It will handle core business logic, API endpoints, database interactions, and orchestration of blockchain-related services.
+
+**Integration Strategy**:
+*   **Modular Architecture**: Leverage NestJS's modular structure to organize backend services (e.g., user authentication, NFT management, AI/ML model serving, blockchain interactions) into distinct modules.
+*   **TypeScript-First**: Utilize NestJS's strong TypeScript support to maintain type safety and improve code maintainability across the backend.
+*   **API Gateway**: Expose a well-defined RESTful or GraphQL API for the frontend to interact with, abstracting away the complexities of direct blockchain communication.
+*   **Blockchain Service Layer**: Create dedicated NestJS services to interact with various blockchain SDKs (NEAR, Solana, Polkadot), handling transaction signing, contract calls, and event listening.
+*   **AI/ML Integration**: Integrate AI/ML model serving (e.g., for emotional computing) as microservices within the NestJS ecosystem, potentially using gRPC for high-performance communication.
+
+### shadcn/ui (`shadcn-ui/ui`) - UI Component Library
+
+**Role**: `shadcn/ui` will provide a collection of beautifully designed, accessible, and customizable UI components for the `blockchain-nft-interactive` frontend. It will accelerate UI development and ensure a consistent look and feel across the application.
+
+**Integration Strategy**:
+*   **Copy-Paste Approach**: Utilize `shadcn/ui`'s unique approach of copying component code directly into the project, allowing for full control and customization without being tied to a traditional package manager.
+*   **Tailwind CSS Integration**: Leverage `shadcn/ui`'s reliance on Tailwind CSS to maintain a highly customizable and efficient styling system, aligning with the existing project's frontend stack.
+*   **Theming**: Implement a consistent theming strategy using Tailwind CSS variables and `shadcn/ui`'s theming capabilities to ensure brand consistency and support potential dark mode features.
+*   **Accessibility**: Benefit from `shadcn/ui`'s focus on accessibility, ensuring that the application's UI is usable by a broad range of users.
+
+### HMPL (`hmpl-language/hmpl`) - Blockchain Language
+
+**Role**: HMPL (High-level Multi-chain Programming Language) will be explored as a potential language for developing smart contracts, particularly for complex logic that benefits from its high-level abstractions and multi-chain capabilities. It will serve as a reference for future smart contract development and architectural patterns.
+
+**Integration Strategy**:
+*   **Architectural Reference**: HMPL will primarily serve as an architectural reference and a source of inspiration for designing future multi-chain smart contracts, especially for complex emotional computing or cross-chain logic.
+*   **Toolchain Exploration**: Investigate the HMPL toolchain for potential use in specific contract development scenarios where its features offer significant advantages over Rust (for NEAR/Solana) or Substrate (for Polkadot).
+*   **Interoperability Patterns**: Analyze HMPL's approach to multi-chain interoperability to inform the design of cross-chain bridges and communication protocols within the project.
+*   **Future Smart Contract Development**: While initial contracts might be in Rust, HMPL could be adopted for new, more complex smart contract modules if its benefits in terms of development speed, security, or multi-chain compatibility become evident.
+
+### Storybook (`storybookjs/storybook`) - UI Component Development Environment
+
+**Role**: Storybook will provide an isolated development environment for building, testing, and documenting UI components, significantly enhancing the frontend development workflow for the `blockchain-nft-interactive` application.
+
+**Integration Strategy**:
+*   **Isolated Component Development**: Integrate Storybook into the frontend project to allow developers to build and iterate on individual UI components (including `shadcn/ui` components) in isolation, without needing to run the entire application.
+*   **Living Documentation**: Utilize Storybook to generate comprehensive, interactive documentation for all UI components, serving as a single source of truth for the design system and facilitating collaboration between designers and developers.
+*   **Visual Testing**: Leverage Storybook's capabilities for visual regression testing (potentially with add-ons) to ensure UI consistency and prevent unintended visual changes across the application.
+*   **Component States and Props**: Define various states and props for each component within Storybook stories, demonstrating their different use cases and visual permutations.
+
+### Deno (`denoland/deno`) - JavaScript/TypeScript Runtime
+
+**Role**: Deno will serve as a powerful complementary runtime for specific tasks within the `blockchain-nft-interactive` project, particularly for utility scripts, automation, and potentially specialized microservices where its security model and built-in tooling offer advantages.
+
+**Integration Strategy**:
+*   **Utility Scripts and Automation**: Leverage Deno for writing standalone scripts for development workflow automation (e.g., code generation, data processing, pre-commit hooks) due to its built-in TypeScript support and single executable nature.
+*   **Specialized Microservices**: Consider Deno for developing highly specific, isolated microservices that can benefit from its secure-by-default permissions model, built-in tooling (formatter, linter, test runner), and web-standard API compatibility. These would be distinct from the main NestJS backend.
+*   **WebAssembly (Wasm) Integration**: Utilize Deno's strong support for WebAssembly to run performance-critical computations or integrate existing Wasm modules, either within utility scripts or specialized services.
+*   **Complementary to Node.js**: Deno will complement the existing Node.js infrastructure, focusing on areas where its unique features provide distinct advantages rather than replacing established Node.js-based tools.
+
+### Turborepo (`vercel/turborepo`) - Monorepo Build System
+
+**Role**: Turborepo will be integrated as a high-performance build system for managing the `blockchain-nft-interactive` project as a monorepo. It will optimize build times, streamline development workflows, and ensure consistency across multiple packages (frontend, backend, shared libraries).
+
+**Integration Strategy**:
+*   **Monorepo Structure**: Organize the project into a monorepo, with distinct packages for the frontend (React/Vite), backend (NestJS), shared UI components (Storybook), and potentially other utilities or smart contract packages.
+*   **Task Orchestration**: Utilize Turborepo to define and orchestrate build, test, and lint tasks across all packages, leveraging its caching mechanisms to avoid redundant work and significantly speed up CI/CD pipelines.
+*   **Remote Caching**: Configure Turborepo with remote caching (e.g., Vercel Remote Cache or a self-hosted solution) to share build artifacts across team members and CI/CD runs, further reducing build times.
+*   **Dependency Graph**: Leverage Turborepo's intelligent dependency graph to understand relationships between packages and execute tasks in parallel, optimizing resource utilization.
+*   **Streamlined Development**: Provide a unified command-line interface for developers to run tasks across the entire monorepo, simplifying the development experience and ensuring consistent tooling.
+
 
 ## 🧠 Emotional NFTs — Goals & Scope
 
@@ -223,6 +290,46 @@ graph LR
 ```
 
 ---
+
+## 🛠️ Blockchain Tooling and Environment Setup
+
+This section details the various blockchain tools installed and configured for both Windows (natively or via Git Bash) and Windows Subsystem for Linux (WSL), outlining their purpose within the project and basic usage.
+
+### 💻 Windows (Native / Git Bash) & WSL Environment
+
+Our development environment leverages both Windows native tools (accessible via Git Bash) and WSL (Ubuntu-22.04) for optimal compatibility and performance across different blockchain ecosystems.
+
+### 🔗 Installed Blockchain Tools
+
+#### NEAR Protocol (NEAR CLI)
+*   **Installation**: Typically installed via `npm` or `cargo` (for `cargo-near`).
+*   **Usage**: `near <command>`
+*   **Purpose**: Interacting with the NEAR blockchain, deploying and managing smart contracts (written in Rust/WASM), account management, and querying network status. Essential for the NEAR Creative Engine and soulbound NFT functionalities.
+
+#### Filecoin (Lotus Client)
+*   **Installation**: Installed within WSL. The `install-cli-tools.sh` script does not explicitly cover Filecoin CLI, but Lotus is confirmed to be installed and accessible.
+*   **Usage**: `lotus <command>` (within WSL)
+*   **Purpose**: Interacting with the Filecoin network, managing storage deals, retrieving data, and participating in the Filecoin ecosystem. Crucial for decentralized storage of emotional NFT data and AI/ML datasets. The `deploy-filecoin-calibration.sh` script demonstrates its use for Calibration network setup.
+
+#### IPFS (InterPlanetary File System)
+*   **Installation**: Often installed as a daemon or via `npm` for client libraries.
+*   **Usage**: `ipfs <command>` or through client libraries in code.
+*   **Purpose**: Decentralized content addressing and storage. Used to store immutable data (like emotional NFT session packages and AI model outputs) and link them via CIDs (Content Identifiers) on-chain.
+
+#### Solana (Solana CLI & Anchor Framework)
+*   **Installation**: Solana CLI is installed via a shell script, and Anchor is typically installed via `cargo`.
+*   **Usage**: `solana <command>` (for CLI), `anchor <command>` (for Anchor framework).
+*   **Purpose**: Developing, deploying, and interacting with Solana programs (smart contracts). Solana CLI is for general network interaction, while Anchor provides a developer framework for writing secure and efficient Solana programs, particularly for the emotional metadata and interactive NFT controls.
+
+#### Substrate (Polkadot/Substrate Tooling)
+*   **Installation**: Typically installed via `rustup` and `cargo`.
+*   **Usage**: `substrate <command>` or `polkadot <command>` (depending on the specific tool).
+*   **Purpose**: Building custom blockchains and interacting with the Polkadot ecosystem. Used for soulbound governance tokens and cross-chain identity systems. The Polkadot WSL issue is being manually addressed.
+
+#### Ethereum (Web3.js / Ethers.js / Geth)
+*   **Installation**: Often through `npm` for libraries or direct installation for clients like Geth.
+*   **Usage**: Interacting with Ethereum networks via libraries in JavaScript/TypeScript applications.
+*   **Purpose**: While not a primary chain for core contracts in this project, Ethereum tooling (e.g., Web3.js) is essential for potential future integrations, cross-chain bridges to EVM-compatible chains, and interacting with existing Ethereum-based infrastructure or oracles.
 
 ## 🚀 Quick Start Development Guide
 
