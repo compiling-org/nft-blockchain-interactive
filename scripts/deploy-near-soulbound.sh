@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # NEAR Soulbound NFT Contract Deployment Script
 # This script deploys the biometric soulbound NFT contract to NEAR testnet
 
@@ -15,8 +17,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 CONTRACT_NAME="biometric-soulbound-nft"
-ACCOUNT_ID=${NEAR_ACCOUNT_ID:-"kenchen.testnet"}  # Use environment variable or default
-INITIAL_OWNER=${NEAR_ACCOUNT_ID:-"kenchen.testnet"}
+ACCOUNT_ID=${NEAR_ACCOUNT_ID:-"ethereios.testnet"}  # Use environment variable or default
+INITIAL_OWNER=${NEAR_ACCOUNT_ID:-"ethereios.testnet"}
 
 # Check if near-cli is installed
 if ! command -v near &> /dev/null; then
@@ -33,7 +35,7 @@ if ! command -v rustc &> /dev/null; then
 fi
 
 echo -e "${YELLOW}Building contract...${NC}"
-cd contracts/near/soulbound-nft
+cd packages/contracts/near/soulbound-nft
 
 # Build the contract
 echo "Compiling Rust contract..."
@@ -58,23 +60,25 @@ fi
 
 # Deploy contract with better error handling
 echo "Deploying contract..."
-near deploy $CONTRACT_NAME.$ACCOUNT_ID \
+near deploy \
+    $CONTRACT_NAME.$ACCOUNT_ID \
     target/wasm32-unknown-unknown/release/biometric_soulbound_nft.wasm \
-    --accountId $ACCOUNT_ID \
     --initFunction new \
-    --initArgs '{"owner_id": "'$INITIAL_OWNER'", "metadata": {"spec": "nft-1.0.0", "name": "Biometric Soulbound NFT", "symbol": "BSNFT", "icon": null, "base_uri": null, "reference": null, "reference_hash": null}}' \
-    --gas 300000000000000
+    --initArgs '{"owner_id": "'$INITIAL_OWNER'", "metadata": {"spec": "nft-1.0.0", "name": "Biometric Soulbound NFT", "symbol": "BSNFT"}}'
 
 echo -e "${GREEN}✅ Contract deployed successfully!${NC}"
 echo -e "${GREEN}Contract ID: $CONTRACT_NAME.$ACCOUNT_ID${NC}"
+
+# Ensure your NEAR_ACCOUNT_ID is logged in via 'near login' or has its key file in ~/.near-credentials/testnet/
+# For example: near login --account-id kenchen.testnet
 
 # Test the contract
 echo -e "${YELLOW}Testing contract functionality...${NC}"
 
 # Test minting a soulbound NFT with better error handling
-echo "Testing mint_soulbound function..."
-if near call $CONTRACT_NAME.$ACCOUNT_ID mint_soulbound \
-    '{"emotion_data": {"primary_emotion": "Focused", "confidence": 0.95, "secondary_emotions": [["Calm", 0.85], ["Alert", 0.75]], "arousal": 0.6, "valence": 0.7}, "quality_score": 0.92, "biometric_hash": "a1b2c3d4e5f6"}' \
+echo "Testing nft_mint function..."
+if near call $CONTRACT_NAME.$ACCOUNT_ID nft_mint \
+    '{"token_id": "biometric-1", "receiver_id": "'$ACCOUNT_ID'"}' \
     --accountId $ACCOUNT_ID \
     --amount 0.1 \
     --gas 300000000000000; then

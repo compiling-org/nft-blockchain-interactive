@@ -1,5 +1,3 @@
-[workspace]
-
 [package]
 name = "biometric-soulbound-nft"
 version = "0.1.0"
@@ -7,12 +5,14 @@ edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
+path = "src/lib.rs"
 
 [dependencies]
-near-sdk = { version = "5.1.0", features = ["legacy"] }
+near-sdk = { version = "5.1.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-borsh = { version = "1.5.7", features = ["derive"] }
+borsh = { version = "1.0", features = ["derive"] }
+near-contract-standards = "5.1.0"
 
 [profile.release]
 codegen-units = 1

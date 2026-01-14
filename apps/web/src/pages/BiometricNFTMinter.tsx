@@ -4,7 +4,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Brain, Zap, Activity, Fingerprint, Hand, Mic, Camera, Upload, Eye, EyeOff } from 'lucide-react';
-import { BiometricDataStream, BiometricSample } from '../utils/BiometricDataGenerator';
+import MediaPipeSensors from '../components/MediaPipeSensors';
 
 // NEAR blockchain integration
 import { connect, keyStores, WalletConnection, Contract } from 'near-api-js';
@@ -40,36 +40,71 @@ interface EmotionalState {
   source: string[];
 }
 
+const emotionToVAD: { [key: string]: { valence: number; arousal: number; dominance: number; confidence: number } } = {
+  'neutral': { valence: 0, arousal: 0, dominance: 0, confidence: 0.8 },
+  'happy': { valence: 0.8, arousal: 0.6, dominance: 0.7, confidence: 0.9 },
+  'sad': { valence: -0.7, arousal: -0.4, dominance: -0.5, confidence: 0.9 },
+  'angry': { valence: -0.6, arousal: 0.8, dominance: 0.9, confidence: 0.9 },
+  'fear': { valence: -0.8, arousal: 0.7, dominance: 0.3, confidence: 0.9 },
+  'surprise': { valence: 0.5, arousal: 0.7, dominance: 0.5, confidence: 0.8 },
+  'disgust': { valence: -0.7, arousal: 0.5, dominance: 0.6, confidence: 0.8 },
+};
+
 interface NEARContract {
   mint_soulbound: (args: {
     token_id: string;
     receiver_id: string;
-    emotion_data: {
-      valence: number;
-      arousal: number;
-      dominance: number;
-      confidence: number;
-      source: string[];
-    };
+    valence: number;
+    arousal: number;
+    dominance: number;
     quality_score: number;
-    biometric_hash: string;
+    mediapipe_biometric_hash: string;
+    cross_chain_id?: string;
   }, gas: string, deposit: string) => Promise<any>;
+  update_biometric_data: (args: {
+    token_id: string;
+    new_mediapipe_biometric_hash: string;
+    new_quality_score: number;
+  }, gas: string) => Promise<any>;
+  add_emotion_record: (args: {
+    token_id: string;
+    valence: number;
+    arousal: number;
+    dominance: number;
+  }, gas: string) => Promise<any>;
 }
 
 // Real AI integration - REMOVED to fix TypeScript errors
 // const hybridAI = new HybridAIManager();
 
+interface MediaPipeMetrics {
+  hands: number;
+  faces: number;
+  poses: number;
+  features?: {
+    faceVariance: number;
+    handOpenness: number;
+    poseStability: number;
+    confidence: number;
+    audio?: { pitch: number; energy: number; emotion: string } | null;
+    leapMotion?: { gesture: string; handPosition: { x: number; y: number; z: number } } | null;
+  };
+}
+
 export const BiometricNFTMinter: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
-  const [biometricStream, setBiometricStream] = useState<BiometricDataStream | null>(null);
-  const [currentBiometricData, setCurrentBiometricData] = useState<BiometricSample | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+
+  const [mediaPipeMetrics, setMediaPipeMetrics] = useState<MediaPipeMetrics | null>(null);
   const [emotionalState, setEmotionalState] = useState<EmotionalState | null>(null);
+
   const [nearWallet, setNearWallet] = useState<WalletConnection | null>(null);
   const [nearContract, setNearContract] = useState<NEARContract | null>(null);
   const [userAccount, setUserAccount] = useState<string>('');
   const [mintedNFTs, setMintedNFTs] = useState<any[]>([]);
+  const [mintedTokenId, setMintedTokenId] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [showVisualization, setShowVisualization] = useState(true);
@@ -79,34 +114,7 @@ export const BiometricNFTMinter: React.FC = () => {
     media: ''
   });
 
-  // Initialize biometric data stream
-  const initializeBiometricStream = useCallback(() => {
-    try {
-      const stream = new BiometricDataStream(30); // 30 Hz update rate
-      
-      stream.onSample((sample: BiometricSample) => {
-        setCurrentBiometricData(sample);
-        
-        // Convert to emotional state format
-        const emotionalState: EmotionalState = {
-          valence: sample.emotionalState.valence,
-          arousal: sample.emotionalState.arousal,
-          dominance: sample.emotionalState.dominance,
-          confidence: sample.signalQuality,
-          source: ['eeg', 'gesture', 'audio']
-        };
-        
-        setEmotionalState(emotionalState);
-      });
-      
-      setBiometricStream(stream);
-      console.log('✅ Biometric data stream initialized');
-      
-    } catch (error) {
-      console.error('❌ Failed to initialize biometric stream:', error);
-      setError(`Failed to initialize biometric stream: ${error}`);
-    }
-  }, []);
+
 
   // Initialize NEAR wallet connection
   const initializeNEAR = useCallback(async () => {
@@ -136,7 +144,7 @@ export const BiometricNFTMinter: React.FC = () => {
           'biometric-nft-studio.testnet', // Contract account ID
           {
             viewMethods: ['nft_token', 'nft_tokens_for_owner'],
-            changeMethods: ['mint_soulbound'],
+            changeMethods: ['mint_soulbound', 'update_biometric_data', 'add_emotion_record'],
           }
         ) as unknown as NEARContract;
         
@@ -184,39 +192,7 @@ export const BiometricNFTMinter: React.FC = () => {
     }
   };
 
-  // Start biometric data collection
-  const startBiometricCollection = () => {
-    try {
-      if (!biometricStream) {
-        initializeBiometricStream();
-      }
-      
-      biometricStream?.start();
-      setIsProcessing(true);
-      setError('');
-      setSuccess('');
-      
-      console.log('✅ Biometric data collection started');
-      
-    } catch (error) {
-      console.error('❌ Failed to start biometric collection:', error);
-      setError(`Failed to start biometric collection: ${error}`);
-    }
-  };
 
-  // Stop biometric data collection
-  const stopBiometricCollection = () => {
-    try {
-      biometricStream?.stop();
-      setIsProcessing(false);
-      
-      console.log('✅ Biometric data collection stopped');
-      
-    } catch (error) {
-      console.error('❌ Failed to stop biometric collection:', error);
-      setError(`Failed to stop biometric collection: ${error}`);
-    }
-  };
 
   // Generate biometric hash for NFT metadata - REMOVED to fix TypeScript errors
   // const generateBiometricHash = (data: BiometricSample): string => {
@@ -234,10 +210,52 @@ export const BiometricNFTMinter: React.FC = () => {
     
   // };
 
+  // Update biometric data on chain
+  const updateBiometricDataOnChain = useCallback(async () => {
+    if (!mintedTokenId || !nearContract || !mediaPipeMetrics) return;
+
+    try {
+      const newBiometricHash = `hash_${Date.now()}_stream`; // Generate a new hash for streamed data
+      const newQualityScore = mediaPipeMetrics.features?.confidence || 0.5;
+
+      await nearContract.update_biometric_data(
+        {
+          token_id: mintedTokenId,
+          new_mediapipe_biometric_hash: newBiometricHash,
+          new_quality_score: newQualityScore,
+        },
+        '100000000000000' // 100 TGas
+      );
+      console.log(`✅ Biometric data updated for ${mintedTokenId}`);
+    } catch (error) {
+      console.error('❌ Failed to update biometric data on chain:', error);
+    }
+  }, [mintedTokenId, nearContract, mediaPipeMetrics]);
+
+  // Add emotion record on chain
+  const addEmotionRecordOnChain = useCallback(async () => {
+    if (!mintedTokenId || !nearContract || !emotionalState) return;
+
+    try {
+      await nearContract.add_emotion_record(
+        {
+          token_id: mintedTokenId,
+          valence: emotionalState.valence,
+          arousal: emotionalState.arousal,
+          dominance: emotionalState.dominance,
+        },
+        '100000000000000' // 100 TGas
+      );
+      console.log(`✅ Emotion record added for ${mintedTokenId}`);
+    } catch (error) {
+      console.error('❌ Failed to add emotion record on chain:', error);
+    }
+  }, [mintedTokenId, nearContract, emotionalState]);
+
   // Mint biometric NFT with real AI processing
   const mintBiometricNFT = async () => {
     try {
-      if (!currentBiometricData || !emotionalState || !nearContract || !userAccount) {
+      if (!mediaPipeMetrics || !emotionalState || !nearContract || !userAccount) {
         throw new Error('Missing required data for NFT minting');
       }
       
@@ -256,12 +274,12 @@ export const BiometricNFTMinter: React.FC = () => {
       const aiResults = {
         biometric_hash: `hash_${Date.now()}`,
         emotions: [{
-          valence: 0.7,
-          arousal: 0.6,
-          dominance: 0.8,
-          confidence: 0.9
+          valence: emotionalState.valence,
+          arousal: emotionalState.arousal,
+          dominance: emotionalState.dominance,
+          confidence: emotionalState.confidence
         }],
-        features: [0.1, 0.2, 0.3, 0.4, 0.5]
+        quality_score: mediaPipeMetrics.features?.confidence || 0.5, // Use MediaPipe confidence as quality score
       };
       
       console.log('✅ AI processing complete:', aiResults);
@@ -278,54 +296,29 @@ export const BiometricNFTMinter: React.FC = () => {
         arousal: aiResults.emotions[0].arousal,
         dominance: aiResults.emotions[0].dominance,
         confidence: aiResults.emotions[0].confidence,
-        source: ['ai_processed', 'eeg', 'gesture', 'audio']
+        source: ['ai_processed', 'mediapipe_sensors']
       };
-      
-      // Create metadata - REMOVED to fix TypeScript unused variable error
-      // const metadata: BiometricNFTMetadata = {
-      //   title: nftMetadata.title,
-      //   description: nftMetadata.description || `Biometric NFT created with attention: ${currentBiometricData.attention.toFixed(1)}, meditation: ${currentBiometricData.meditation.toFixed(1)}`,
-      //   media: nftMetadata.media || 'https://example.com/biometric-visualization.png',
-      //   media_hash: biometricHash,
-      //   issued_at: new Date().toISOString(),
-      //   extra: JSON.stringify({
-      //     // Use the metadata variable to prevent TypeScript error
-      //     metadata_source: 'biometric_ai_integration',
-      //     biometric_data: {
-      //       attention: currentBiometricData.attention,
-      //       meditation: currentBiometricData.meditation,
-      //       quality_score: currentBiometricData.signalQuality,
-      //       eeg_patterns: currentBiometricData.eeg,
-      //       gesture_data: currentBiometricData.gesture,
-      //       audio_data: currentBiometricData.audio,
-      //       emotional_state: currentBiometricData.emotionalState,
-      //       timestamp: currentBiometricData.timestamp,
-      //       device_id: 'biometric-generator-v1'
-      //     },
-      //     visualization_params: {
-      //       complexity: 20 + (currentBiometricData.attention * 1.6),
-      //       color_shift: currentBiometricData.emotionalState.valence * 0.5,
-      //       speed: 0.5 + (currentBiometricData.emotionalState.arousal + 1) * 2,
-      //       zoom: 1 + (currentBiometricData.meditation - 50) * 0.02,
-      //       iterations: 50 + (currentBiometricData.signalQuality * 150)
-      //     }
-      //   })
-      // };
       
       // Call NEAR contract to mint NFT
       const result = await nearContract.mint_soulbound(
         {
           token_id: tokenId,
           receiver_id: userAccount,
-          emotion_data: emotionData,
-          quality_score: currentBiometricData.signalQuality,
-          biometric_hash: biometricHash
+          valence: emotionData.valence,
+          arousal: emotionData.arousal,
+          dominance: emotionData.dominance,
+          quality_score: aiResults.quality_score,
+          mediapipe_biometric_hash: biometricHash,
+          cross_chain_id: undefined, // Or a relevant cross-chain ID if applicable
         },
         '300000000000000', // 300 TGas
         '1000000000000000000000000' // 1 NEAR deposit
       );
       
       console.log('✅ Biometric NFT minted successfully:', result);
+      
+      // Store the minted token ID
+      setMintedTokenId(tokenId);
       
       // Reload user's NFTs
       await loadUserNFTs(userAccount, nearContract);
@@ -344,14 +337,56 @@ export const BiometricNFTMinter: React.FC = () => {
   };
 
   // Initialize on mount
+```
   useEffect(() => {
     initializeNEAR();
-    initializeBiometricStream();
     
+  }, [initializeNEAR]);
+
+  useEffect(() => {
+    if (mediaPipeMetrics?.features?.audio?.emotion) {
+      const emotion = mediaPipeMetrics.features.audio.emotion.toLowerCase();
+      const vad = emotionToVAD[emotion];
+      if (vad) {
+        setEmotionalState({
+          valence: vad.valence,
+          arousal: vad.arousal,
+          dominance: vad.dominance,
+          confidence: vad.confidence,
+          source: ['mediapipe_audio_vad']
+        });
+      } else {
+        // If emotion is not in our mapping, default to neutral
+        setEmotionalState({
+          valence: 0,
+          arousal: 0,
+          dominance: 0,
+          confidence: 0.5,
+          source: ['default_neutral']
+        });
+      }
+    } else {
+      // Reset emotional state if no audio emotion is detected
+      setEmotionalState(null);
+    }
+  }, [mediaPipeMetrics]);
+
+  // Effect for real-time streaming
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (isStreaming && mintedTokenId && nearContract && mediaPipeMetrics && emotionalState) {
+      intervalId = setInterval(() => {
+        updateBiometricDataOnChain();
+        addEmotionRecordOnChain();
+      }, 5000); // Update every 5 seconds
+    }
+
     return () => {
-      biometricStream?.stop();
+      clearInterval(intervalId);
     };
-  }, [initializeNEAR, initializeBiometricStream]);
+  }, [isStreaming, mintedTokenId, nearContract, mediaPipeMetrics, emotionalState, updateBiometricDataOnChain, addEmotionRecordOnChain]);
+```
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
@@ -380,8 +415,8 @@ export const BiometricNFTMinter: React.FC = () => {
               <Badge variant={isConnected ? "success" : "destructive"}>
                 {isConnected ? '✅ NEAR Wallet Connected' : '❌ NEAR Wallet Disconnected'}
               </Badge>
-              <Badge variant={isProcessing ? "success" : "default"}>
-                {isProcessing ? '🔄 Biometric Active' : '⏸️ Biometric Inactive'}
+              <Badge variant={mediaPipeMetrics ? "success" : "default"}>
+                {mediaPipeMetrics ? '🔄 Biometric Active' : '⏸️ Biometric Inactive'}
               </Badge>
               {userAccount && (
                 <Badge variant="outline" className="text-white">
@@ -421,63 +456,72 @@ export const BiometricNFTMinter: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               {/* Biometric Controls */}
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-4">
                 <Button
-                  onClick={startBiometricCollection}
-                  disabled={isProcessing || !isConnected}
-                  variant={isProcessing ? "secondary" : undefined}
+                  onClick={() => setIsStreaming(prev => !prev)}
+                  disabled={!mintedTokenId}
+                  className="w-full"
                 >
-                  <Zap className="h-4 w-4 mr-2" />
-                  Start Biometric Collection
-                </Button>
-                <Button
-                  onClick={stopBiometricCollection}
-                  disabled={!isProcessing}
-                  variant="primary"
-                >
-                  Stop Collection
+                  {isStreaming ? (
+                    <>
+                      <Zap className="h-4 w-4 mr-2" />
+                      Stop Streaming Biometrics
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4 mr-2" />
+                      Start Streaming Biometrics
+                    </>
+                  )}
                 </Button>
               </div>
 
+
               {/* Current Biometric Data */}
-              {currentBiometricData && (
+              {mediaPipeMetrics && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-purple-900/30 p-4 rounded-lg">
                     <h4 className="text-white font-medium mb-2 flex items-center gap-2">
                       <Brain className="h-4 w-4" />
-                      EEG Patterns
+                      MediaPipe Metrics
                     </h4>
                     <div className="space-y-1 text-sm text-purple-200">
-                      <div>Attention: {currentBiometricData.attention.toFixed(1)}</div>
-                      <div>Meditation: {currentBiometricData.meditation.toFixed(1)}</div>
-                      <div>Quality: {(currentBiometricData.signalQuality * 100).toFixed(1)}%</div>
+                      <div>Hands: {mediaPipeMetrics.hands}</div>
+                      <div>Faces: {mediaPipeMetrics.faces}</div>
+                      <div>Poses: {mediaPipeMetrics.poses}</div>
+                      {mediaPipeMetrics.features?.confidence && (
+                        <div>Confidence: {(mediaPipeMetrics.features.confidence * 100).toFixed(1)}%</div>
+                      )}
                     </div>
                   </div>
                   
-                  <div className="bg-blue-900/30 p-4 rounded-lg">
-                    <h4 className="text-white font-medium mb-2 flex items-center gap-2">
-                      <Hand className="h-4 w-4" />
-                      Gesture Data
-                    </h4>
-                    <div className="space-y-1 text-sm text-blue-200">
-                      <div>Type: {currentBiometricData.gesture?.gestureType || 'N/A'}</div>
-                      <div>Confidence: {(currentBiometricData.gesture?.confidence * 100).toFixed(1)}%</div>
-                      <div>Position: {currentBiometricData.gesture?.handPosition ? 
-                        `(${currentBiometricData.gesture.handPosition.x.toFixed(0)}, ${currentBiometricData.gesture.handPosition.y.toFixed(0)})` : 'N/A'}</div>
+                  {mediaPipeMetrics.features?.faceVariance && (
+                    <div className="bg-blue-900/30 p-4 rounded-lg">
+                      <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+                        <Hand className="h-4 w-4" />
+                        Face & Hand Features
+                      </h4>
+                      <div className="space-y-1 text-sm text-blue-200">
+                        <div>Face Variance: {mediaPipeMetrics.features.faceVariance.toFixed(3)}</div>
+                        <div>Hand Openness: {mediaPipeMetrics.features.handOpenness.toFixed(3)}</div>
+                        <div>Pose Stability: {mediaPipeMetrics.features.poseStability.toFixed(3)}</div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
-                  <div className="bg-green-900/30 p-4 rounded-lg">
-                    <h4 className="text-white font-medium mb-2 flex items-center gap-2">
-                      <Mic className="h-4 w-4" />
-                      Audio Analysis
-                    </h4>
-                    <div className="space-y-1 text-sm text-green-200">
-                      <div>Emotion: {currentBiometricData.audio?.emotion || 'N/A'}</div>
-                      <div>Confidence: {(currentBiometricData.audio?.confidence * 100).toFixed(1)}%</div>
-                      <div>Amplitude: {currentBiometricData.audio?.amplitude.toFixed(3) || 'N/A'}</div>
+                  {mediaPipeMetrics.features?.audio && (
+                    <div className="bg-green-900/30 p-4 rounded-lg">
+                      <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+                        <Mic className="h-4 w-4" />
+                        Audio Analysis
+                      </h4>
+                      <div className="space-y-1 text-sm text-green-200">
+                        <div>Emotion: {mediaPipeMetrics.features.audio.emotion || 'N/A'}</div>
+                        <div>Pitch: {mediaPipeMetrics.features.audio.pitch.toFixed(3)}</div>
+                        <div>Energy: {mediaPipeMetrics.features.audio.energy.toFixed(3)}</div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
@@ -513,12 +557,15 @@ export const BiometricNFTMinter: React.FC = () => {
                   </div>
                 </div>
               )}
+              {showVisualization && (
+                <MediaPipeSensors onMetrics={setMediaPipeMetrics} />
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* NFT Minting Form */}
-        {isConnected && currentBiometricData && (
+        {isConnected && mediaPipeMetrics && (
           <Card className="bg-black/20 backdrop-blur-sm border-purple-500/30">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
@@ -568,7 +615,7 @@ export const BiometricNFTMinter: React.FC = () => {
                 
                 <Button
                   onClick={mintBiometricNFT}
-                  disabled={isMinting || !currentBiometricData || !nftMetadata.title.trim()}
+                  disabled={isMinting || !mediaPipeMetrics || !nftMetadata.title.trim()}
 
                   className="w-full"
                 >

@@ -1,8 +1,9 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, UnorderedMap, Vector};
-use near_sdk::json_types::{Base64VecU8, U64, U128};
+use near_sdk::json_types::{Base64VecU8, U64};
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault, Promise, PromiseOrValue};
+use std::collections::HashMap;
+use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault, require};
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
@@ -24,8 +25,7 @@ pub struct CrossChainAIML {
     chain_ids: LookupMap<String, String>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
+#[derive(BorshSerialize, BorshDeserialize)]
 pub struct DataStream {
     pub stream_id: String,
     pub creator: AccountId,
@@ -33,10 +33,38 @@ pub struct DataStream {
     pub target_chain: String,
     pub ipfs_hash: String,
     pub encrypted_data: Base64VecU8,
-    pub timestamp: U64,
+    pub timestamp: u64,
     pub epoch: U64,
     pub active: bool,
-    pub metadata: LookupMap<String, String>,
+    pub metadata: UnorderedMap<String, String>,
+    pub cross_chain_id: Option<String>,
+}
+
+impl Serialize for DataStream {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("DataStream", 11)?;
+        state.serialize_field("stream_id", &self.stream_id)?;
+        state.serialize_field("creator", &self.creator)?;
+        state.serialize_field("source_chain", &self.source_chain)?;
+        state.serialize_field("target_chain", &self.target_chain)?;
+        state.serialize_field("ipfs_hash", &self.ipfs_hash)?;
+        state.serialize_field("encrypted_data", &self.encrypted_data)?;
+        state.serialize_field("timestamp", &self.timestamp)?;
+        state.serialize_field("epoch", &self.epoch)?;
+        state.serialize_field("active", &self.active)?;
+        
+        let mut metadata_map = HashMap::new();
+        for (key, value) in self.metadata.iter() {
+            metadata_map.insert(key, value);
+        }
+        state.serialize_field("metadata", &metadata_map)?;
+        state.serialize_field("cross_chain_id", &self.cross_chain_id)?;
+        state.end()
+    }
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, Clone)]
@@ -49,7 +77,7 @@ pub struct AIDataPacket {
     pub signature: Base64VecU8,
     pub confidence: u8, // 0-100
     pub model_version: String,
-    pub timestamp: U64,
+    pub timestamp: u64,
     pub inference_result: InferenceResult,
 }
 
@@ -72,7 +100,7 @@ pub struct EmotionalMetadata {
     pub vector_hash: String,
     pub merkle_root: String,
     pub tags: Vec<String>,
-    pub timestamp: U64,
+    pub timestamp: u64,
     pub biometric_data: Option<BiometricData>,
 }
 
@@ -142,6 +170,7 @@ impl CrossChainAIML {
         ipfs_hash: String,
         encrypted_data: Base64VecU8,
         epoch: U64,
+        cross_chain_id: Option<String>,
     ) -> String {
         require!(!stream_id.is_empty(), "Stream ID required");
         require!(!source_chain.is_empty(), "Source chain required");
@@ -152,9 +181,9 @@ impl CrossChainAIML {
         require!(source_chain != target_chain, "Source and target must differ");
 
         let creator = env::predecessor_account_id();
-        let timestamp = env::block_timestamp_ms().into();
+        let timestamp = env::block_timestamp_ms();
 
-        let mut metadata = LookupMap::new(
+        let metadata = UnorderedMap::new(
             format!("m_{}", stream_id).as_bytes()
         );
 
@@ -169,17 +198,16 @@ impl CrossChainAIML {
             epoch,
             active: true,
             metadata,
+            cross_chain_id,
         };
 
         self.data_streams.insert(&stream_id, &stream);
         self.active_stream_ids.push(&stream_id);
         self.stream_counter += 1;
-
-        env::log_str(&format!(
+env::log_str(&format!(
             "Stream created: {} by {} at {}",
             stream_id, creator, timestamp
         ));
-
         stream_id
     }
 
@@ -214,7 +242,7 @@ impl CrossChainAIML {
             "Unauthorized caller"
         );
 
-        let timestamp = env::block_timestamp_ms().into();
+        let timestamp = env::block_timestamp_ms();
 
         let packet = AIDataPacket {
             packet_id: packet_id.clone(),
@@ -266,7 +294,7 @@ impl CrossChainAIML {
             "Unauthorized caller"
         );
 
-        let timestamp = env::block_timestamp_ms().into();
+        let timestamp = env::block_timestamp_ms();
         let metadata_id = format!("{}_emotion_{}", stream_id, emotion_type);
 
         let metadata = EmotionalMetadata {
@@ -346,7 +374,7 @@ impl CrossChainAIML {
         let participant = env::predecessor_account_id();
         let update_timestamp = env::block_timestamp_ms().into();
 
-        let gradient_update = GradientUpdate {
+        let _gradient_update = GradientUpdate {
             participant: participant.clone(),
             gradient_data,
             local_loss,
@@ -363,8 +391,8 @@ impl CrossChainAIML {
     }
 
     // View functions
-    pub fn get_stream_data(&self, stream_id: String) -> Option<DataStream> {
-        self.data_streams.get(&stream_id)
+    pub fn get_stream_data(&self, stream_id: String) -> Option<String> {
+        self.data_streams.get(&stream_id).map(|stream| serde_json::to_string(&stream).unwrap_or_default())
     }
 
     pub fn get_ai_data_packet(&self, packet_id: String) -> Option<AIDataPacket> {
