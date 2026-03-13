@@ -205,7 +205,7 @@ pub fn logistic_regression(
 
 /// Predicts values using a logistic model.
 pub fn predict_logistic(x: &Tensor, weights: &Tensor) -> Result<Tensor, String> {
-    x.matmul(weights)?.sigmoid()
+    Ok(x.matmul(weights)?.sigmoid())
 }
 
 /// Placeholder for running logistic regression on CUDA.
@@ -217,7 +217,7 @@ pub fn run_logistics_cuda(
 ) -> Result<Tensor, String> {
     Err("CUDA not yet implemented for logistic regression".to_string())
 }
-use serde::{Deserialize, Serialize};
+
 use std::collections::HashMap;
 
 /// Configuration for Iron Learn ML operations
@@ -250,7 +250,7 @@ pub struct IronLearnProcessor {
 }
 
 /// Iron Learn model wrapper
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct IronLearnModel {
     pub model_type: String, // "linear", "logistic", "neural"
     pub weights: Vec<f64>,

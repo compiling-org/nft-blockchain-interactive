@@ -27,26 +27,9 @@ async function runIntegrationTests() {
     results.failed++;
   }
   
-  // Test 2: Wallet Connection
-  try {
-    console.log('\n👛 Testing Wallet Connection...');
-    const connection = await bitteService.connectWallet();
-    
-    if (connection.success) {
-      console.log('✅ Wallet Connection - PASSED');
-      console.log(`   Account: ${connection.accountId}`);
-      console.log(`   Public Key: ${connection.publicKey?.substring(0, 20)}...`);
-      results.passed++;
-      results.tests.push('Wallet Connection');
-    } else {
-      throw new Error(connection.error);
-    }
-  } catch (error) {
-    console.log('❌ Wallet Connection - FAILED:', error);
-    results.failed++;
-  }
+
   
-  // Test 3: AI Agents Loading
+  // Test 2: AI Agents Loading
   try {
     console.log('\n🤖 Testing AI Agents Loading...');
     const agents = await bitteService.loadAIAgents();
@@ -67,7 +50,7 @@ async function runIntegrationTests() {
     results.failed++;
   }
   
-  // Test 4: Fractal Generation
+  // Test 3: Fractal Generation
   try {
     console.log('\n🎨 Testing Fractal Generation...');
     const emotionData = {
@@ -94,7 +77,7 @@ async function runIntegrationTests() {
     results.failed++;
   }
   
-  // Test 5: NFT Minting
+  // Test 4: NFT Minting
   try {
     console.log('\n🖼️  Testing NFT Minting...');
     const emotionData = {
@@ -122,7 +105,7 @@ async function runIntegrationTests() {
     results.failed++;
   }
   
-  // Test 6: AI Transaction Execution
+  // Test 5: AI Transaction Execution
   try {
     console.log('\n⚡ Testing AI Transaction Execution...');
     const txResult = await bitteService.executeAITransaction('deploy_agent', {

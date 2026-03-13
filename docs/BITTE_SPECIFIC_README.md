@@ -7,16 +7,16 @@
 
 ## What Works
 - Wallet connect and authenticated transactions
-  - `src/pages/RealBitteMarketplace.tsx:1-12`, `:150-190`
-  - `src/pages/EnhancedBitteMarketplace.tsx:58-76`
-  - `src/utils/near-wallet.ts:1-20`, `:35-60`
-- Bitte wallet service and marketplace service
-  - `src/services/bitteWalletService.ts:1-26`, `:47-60`
-  - `src/services/realMarketplaceService.ts:1-16`, `:515-531`
+  - `apps/web/src/pages/RealBitteMarketplace.tsx:1-12`, `:150-190`
+  - `apps/web/src/pages/EnhancedBitteMarketplace.tsx:58-76`
+  - `apps/web/src/services/myNearWalletService.ts` - Main wallet service
+- Bitte service and marketplace service
+  - `apps/web/src/services/bitteService.ts` - Main API service (replaces bitteWalletService)
+  - `apps/web/src/services/realMarketplaceService.ts:1-16`, `:515-531`
 - AI chat and agent integration
-  - `src/components/BitteAIChatIntegration.tsx:96-106`
+  - `apps/web/src/components/BitteAIChatIntegration.tsx` - Chat component (if present)
 - Working marketplace demo
-  - `bitte-marketplace-working.html:1-40`
+  - `apps/marketplace-frontend/working-bitte-marketplace.html`
 
 ## Features
 - AI agents browsing and deployment
@@ -56,13 +56,13 @@ sequenceDiagram
 ```
 
 ## Components
-- `src/pages/BitteAIMarketplace.tsx:70-102` wallet connect and load agents/NFTs
-- `src/pages/RealBitteMarketplace.tsx:150-190` NEAR wallet connection UI
-- `src/pages/EnhancedBitteMarketplace.tsx:58-76` NEAR wallet connect flow
-- `src/services/bitteService.ts:95-138` API wallet connect
-- `src/services/realMarketplaceService.ts:515-531` AI agents data
-- `src/components/BitteAIChatIntegration.tsx:96-106` marketplace chat responses
-- `src/utils/bitte-protocol-ai-enhanced.ts:71-78` enhanced AI client
+- `apps/web/src/pages/BitteAIMarketplace.tsx:70-102` wallet connect and load agents/NFTs
+- `apps/web/src/pages/RealBitteMarketplace.tsx:150-190` NEAR wallet connection UI
+- `apps/web/src/pages/EnhancedBitteMarketplace.tsx:58-76` NEAR wallet connect flow
+- `apps/web/src/services/bitteService.ts:95-138` API wallet connect
+- `apps/web/src/services/realMarketplaceService.ts:515-531` AI agents data
+- `apps/web/src/services/myNearWalletService.ts` Main NEAR wallet implementation
+- `apps/web/src/components/NEARVisualizer.tsx` NEAR blockchain visualizer
 
 ## Setup
 - Install: `npm install`

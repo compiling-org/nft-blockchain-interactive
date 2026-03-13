@@ -8,6 +8,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/compiling-org/nft-blockchain-interactive"
 homepage = "https://compiling-org.netlify.app"
 
+
 [lib]
 crate-type = ["cdylib"]
 

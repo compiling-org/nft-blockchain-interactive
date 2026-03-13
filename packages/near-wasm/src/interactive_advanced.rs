@@ -101,19 +101,47 @@ pub struct DetailedEmotionalState {
     pub dominance: f32,
     
     /// Extended emotional dimensions
+    #[serde(default)]
     pub engagement: f32,
+    #[serde(default)]
     pub focus: f32,
+    #[serde(default)]
     pub stress: f32,
+    #[serde(default)]
     pub relaxation: f32,
     
     /// Confidence in measurement
+    #[serde(default)]
     pub confidence: f32,
     
     /// Primary emotion detected
+    #[serde(default = "default_primary_emotion")]
     pub primary_emotion: String,
     
     /// Emotion intensity
+    #[serde(default)]
     pub intensity: f32,
+}
+
+fn default_primary_emotion() -> String {
+    "neutral".to_string()
+}
+
+impl Default for DetailedEmotionalState {
+    fn default() -> Self {
+        Self {
+            valence: 0.0,
+            arousal: 0.0,
+            dominance: 0.0,
+            engagement: 0.5,
+            focus: 0.5,
+            stress: 0.0,
+            relaxation: 0.5,
+            confidence: 1.0,
+            primary_emotion: "neutral".to_string(),
+            intensity: 0.5,
+        }
+    }
 }
 
 /// Biometric snapshot from sensors

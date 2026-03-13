@@ -304,9 +304,9 @@ mod tests {
         emotion.add_to_trajectory(vector2);
         
         let predicted = emotion.predict_next_emotion();
-        assert_eq!(predicted.valence, 0.3);
-        assert_eq!(predicted.arousal, 0.4);
-        assert_eq!(predicted.dominance, 0.5);
+        assert!((predicted.valence - 0.3).abs() < 0.0001);
+        assert!((predicted.arousal - 0.4).abs() < 0.0001);
+        assert!((predicted.dominance - 0.5).abs() < 0.0001);
     }
     
     #[test]

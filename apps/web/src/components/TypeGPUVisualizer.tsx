@@ -1,12 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface TypeGPUVisualizerProps {
     emotionalState: {
         valence: number;
         arousal: number;
         dominance: number;
+        creativity: number;
+        focus: number;
     };
 }
 
@@ -57,6 +60,8 @@ export const TypeGPUVisualizer: React.FC<TypeGPUVisualizerProps> = ({ emotionalS
                     valence: f32,
                     arousal: f32,
                     dominance: f32,
+                    creativity: f32,
+                    focus: f32,
                     time: f32,
                 };
 
@@ -68,13 +73,13 @@ export const TypeGPUVisualizer: React.FC<TypeGPUVisualizerProps> = ({ emotionalS
                     let dist = length(uv);
                     let angle = atan2(uv.y, uv.x);
                     
-                    // Base color driven by valence
-                    let r = (data.valence + 1.0) * 0.5;
-                    let g = (data.arousal + 1.0) * 0.5;
+                    // Base color driven by valence, arousal, dominance, creativity, and focus
+                    let r = (data.valence + 1.0) * 0.5 + data.creativity * 0.3;
+                    let g = (data.arousal + 1.0) * 0.5 + data.focus * 0.3;
                     let b = (data.dominance + 1.0) * 0.5;
                     
-                    // Harmonic distortion driven by arousal
-                    let wave = sin(dist * 10.0 - data.time * 5.0 * data.arousal + angle * 3.0) * 0.1 * data.arousal;
+                    // Harmonic distortion and movement driven by arousal, creativity, and time
+                    let wave = sin(dist * 10.0 - data.time * 5.0 * data.arousal + angle * 3.0 + data.creativity * 2.0) * 0.1 * data.arousal;
                     let mask = smoothstep(0.6 + wave, 0.5 + wave, dist);
                     
                     let aura = vec3f(r, g, b) * mask;
@@ -89,7 +94,7 @@ export const TypeGPUVisualizer: React.FC<TypeGPUVisualizerProps> = ({ emotionalS
                 });
 
                 // Uniform Buffer for emotional state
-                const uniformBufferSize = 16; // 4 floats
+                const uniformBufferSize = 24; // 6 floats
                 const uniformBuffer = root.device.createBuffer({
                     size: uniformBufferSize,
                     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -125,10 +130,10 @@ export const TypeGPUVisualizer: React.FC<TypeGPUVisualizerProps> = ({ emotionalS
                     if (!active || !canvasRef.current) return;
 
                     const time = (Date.now() - startTime) / 1000;
-                    const { valence, arousal, dominance } = emotionalState;
+                    const { valence, arousal, dominance, creativity, focus } = emotionalState;
 
                     // Update Uniforms
-                    const uniformData = new Float32Array([valence, arousal, dominance, time]);
+                    const uniformData = new Float32Array([valence, arousal, dominance, creativity, focus, time]);
                     root.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
 
                     const commandEncoder = root.device.createCommandEncoder();
@@ -169,18 +174,22 @@ export const TypeGPUVisualizer: React.FC<TypeGPUVisualizerProps> = ({ emotionalS
     }, [emotionalState]);
 
     return (
-        <div className="bg-black/40 rounded-xl p-4 border border-blue-500/20">
-            <h4 className="text-lg font-bold text-blue-300 mb-2">⚡ TypeGPU Emotional Aura</h4>
-            <canvas
-                ref={canvasRef}
-                width={300}
-                height={200}
-                className="w-full h-40 rounded-lg shadow-inner bg-transparent"
-            />
-            <div className="mt-2 text-xs text-blue-200/60 text-center italic">
-                Real-time WGSL Render Pipeline modulated by VAD
-            </div>
-        </div>
+        <Card className="bg-black/40 border border-blue-500/20">
+            <CardHeader>
+                <CardTitle className="text-blue-300">⚡ TypeGPU Emotional Aura</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <canvas
+                    ref={canvasRef}
+                    width={300}
+                    height={200}
+                    className="w-full h-40 rounded-lg shadow-inner bg-transparent"
+                />
+                <CardDescription className="mt-2 text-xs text-blue-200/60 text-center italic">
+                    Real-time WGSL Render Pipeline modulated by VAD
+                </CardDescription>
+            </CardContent>
+        </Card>
     );
 };
 

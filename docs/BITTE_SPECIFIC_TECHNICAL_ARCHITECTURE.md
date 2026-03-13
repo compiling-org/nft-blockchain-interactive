@@ -88,16 +88,16 @@ graph LR
 ```
 
 ## Components
-- Marketplace UI: `src/pages/RealBitteMarketplace.tsx:1`, `src/pages/EnhancedBitteMarketplace.tsx:301`
-- Wallet: `src/services/myNearWalletService.ts:1`, `src/services/bitteWalletService.ts:1`
-- Marketplace service: `src/services/realMarketplaceService.ts:117`
-- Bitte demo service: `src/services/bitteService.ts:95`
-- Chat integration: `src/components/BitteAIChatIntegration.tsx:96`
+- Marketplace UI: `apps/web/src/pages/RealBitteMarketplace.tsx`, `apps/web/src/pages/EnhancedBitteMarketplace.tsx`
+- Wallet: `apps/web/src/services/myNearWalletService.ts`, `apps/web/src/services/bitteService.ts` (API service, replaces bitteWalletService)
+- Marketplace service: `apps/web/src/services/realMarketplaceService.ts`
+- Bitte service: `apps/web/src/services/bitteService.ts`
+- NEAR Visualizer: `apps/web/src/components/NEARVisualizer.tsx`
 
 ## Flows
-- Wallet connect: `myNearWalletService.signIn()` at `src/services/myNearWalletService.ts:48`
-- Buy listing: `realMarketplaceService.buyListing()` at `src/services/realMarketplaceService.ts:213`
-- Place bid: `realMarketplaceService.placeBid()` at `src/services/realMarketplaceService.ts:244`
+- Wallet connect: `myNearWalletService.signIn()` at `apps/web/src/services/myNearWalletService.ts`
+- Buy listing: `realMarketplaceService.buyListing()` at `apps/web/src/services/realMarketplaceService.ts`
+- Place bid: `realMarketplaceService.placeBid()` at `apps/web/src/services/realMarketplaceService.ts`
 - Mint biometric NFT: `realMarketplaceService.mintBiometricNFT()` at `src/services/realMarketplaceService.ts:362`
 - Demo wallet connect: `bitteService.connectWallet()` at `src/services/bitteService.ts:95`
 - AI marketplace demo connect: `src/pages/BitteAIMarketplace.tsx:70`

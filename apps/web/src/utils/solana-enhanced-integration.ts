@@ -5,7 +5,7 @@
 
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
 import { EnhancedBiometricNFTClient, createEnhancedAnchorProvider } from './solana-client-enhanced.js';
-import { Wallet } from '@project-serum/anchor';
+import { Wallet } from '@coral-xyz/anchor';
 
 // Mock wallet for demonstration - in production, use proper wallet integration
 export class MockWallet implements Wallet {

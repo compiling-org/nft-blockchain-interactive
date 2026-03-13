@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint};
 use solana_program::pubkey;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("6QcK89CQXA1GNGtGyYRq3ewCVpCn2omVfemvkbSW6CoT");
 
 #[program]
 pub mod biometric_nft {

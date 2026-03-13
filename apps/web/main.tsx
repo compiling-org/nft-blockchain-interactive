@@ -12,6 +12,8 @@ const SolanaEmotionalNFTWrapper = React.lazy(() => import('./src/pages/SolanaEmo
 const RustFoundationUI = React.lazy(() => import('./src/pages/RustFoundationUI'))
 const FilecoinStorageIntegration = React.lazy(() => import('./src/components/FilecoinStorageIntegration'))
 const PolkadotInfo = React.lazy(() => import('./src/components/PolkadotInfo'))
+const CrossChainBridge = React.lazy(() => import('./src/components/CrossChainBridge'))
+const VisualizerTest = React.lazy(() => import('./src/pages/VisualizerTest'))
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; message: string }> {
   constructor(props: { children: React.ReactNode }) {
@@ -54,8 +56,10 @@ function RootRouter() {
               <Link to="/enhanced" className="text-gray-300 hover:text-white">Enhanced</Link>
               <Link to="/solana" className="text-gray-300 hover:text-white">Solana NFT</Link>
               <Link to="/polkadot-info" className="text-gray-300 hover:text-white">Polkadot</Link>
+              <Link to="/bridge" className="text-gray-300 hover:text-white">Bridge</Link>
               <Link to="/rust-foundation" className="text-gray-300 hover:text-white">Rust</Link>
               <Link to="/filecoin" className="text-gray-300 hover:text-white">Filecoin</Link>
+              <Link to="/visualizer-test" className="text-gray-300 hover:text-white">Visualizer Test</Link>
             </nav>
           </div>
         </header>
@@ -75,8 +79,10 @@ function RootRouter() {
               <Route path="/solana" element={<SolanaEmotionalNFTWrapper />} />
               <Route path="/solana-nft" element={<SolanaEmotionalNFTWrapper />} />
               <Route path="/polkadot-info" element={<PolkadotInfo />} />
+              <Route path="/bridge" element={<div className="p-8 max-w-4xl mx-auto"><CrossChainBridge /></div>} />
               <Route path="/rust-foundation" element={<RustFoundationUI />} />
-              <Route path="/filecoin" element={<FilecoinStorageIntegration canvas={null} emotionData={{ valence: 0.5, arousal: 0.5, dominance: 0.5, confidence: 1.0 }} biometricData="" onStorageComplete={() => { }} onError={() => { }} />} />
+              <Route path="/filecoin" element={<FilecoinStorageIntegration canvas={null} emotionData={{ valence: 0.5, arousal: 0.5, dominance: 0.5, confidence: 1.0 }} biometricData="" onStorageComplete={(result) => { console.log('Storage complete:', result); }} onError={(error) => { console.error('Storage error:', error); }} />} />
+              <Route path="/visualizer-test" element={<VisualizerTest />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

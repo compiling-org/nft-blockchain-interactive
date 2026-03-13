@@ -4,6 +4,7 @@ import { MyNearWalletService } from './src/services/myNearWalletService';
 import { TestnetWalletHelper } from './src/components/TestnetWalletHelper';
 import { EmotionalFractalGenerator } from './src/components/EmotionalFractalGenerator';
 import FilecoinStorageIntegration from './src/components/FilecoinStorageIntegration';
+import AudioBiometricMarketplace from './src/pages/AudioBiometricMarketplace';
 
 function App() {
   const [wallet, setWallet] = useState<MyNearWalletService | null>(null);
@@ -28,7 +29,7 @@ function App() {
         console.log('Initializing NEAR Creative Engine wallet...');
         const myNearWallet = new MyNearWalletService({
           network: 'testnet',
-          contractName: 'test.near'
+          contractName: import.meta.env.VITE_NEAR_CONTRACT_NAME || 'test.near'
         });
 
         await myNearWallet.initialize();
@@ -412,6 +413,15 @@ function App() {
                   <button className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-white transition-colors">
                     Create Biometric Art
                   </button>
+                </div>
+
+                {/* Audio-Biometric NFT Marketplace */}
+                <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-xl p-6 border border-indigo-500/30 col-span-full">
+                  <h4 className="text-xl font-bold text-indigo-300 mb-3">🔊 Audio-Biometric NFT Marketplace</h4>
+                  <p className="text-indigo-200 text-sm mb-4">
+                    Create and trade NFTs generated from your voice and biometric data with audio-reactive shaders
+                  </p>
+                  <AudioBiometricMarketplace />
                 </div>
 
                 {/* Pattern Recognition */}

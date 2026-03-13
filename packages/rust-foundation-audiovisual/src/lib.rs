@@ -84,6 +84,11 @@ impl AudiovisualEngine {
 
     /// Render frame with extracted shader system
     #[wasm_bindgen]
+    pub fn update_audio_bands(&mut self, bands: Vec<f32>) {
+        self.shader_renderer.update_audio_bands(bands);
+    }
+
+    #[wasm_bindgen]
     pub fn render(&mut self, delta_time: f32) -> Result<(), JsValue> {
         self.time += delta_time;
         

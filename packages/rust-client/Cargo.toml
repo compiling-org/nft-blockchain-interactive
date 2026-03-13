@@ -29,6 +29,7 @@ getrandom = { version = "0.2", features = ["js"] }
 # AI/ML dependencies from reference implementations
 candle-core = { git = "https://github.com/huggingface/candle.git", optional = true }
 candle-nn = { git = "https://github.com/huggingface/candle.git", optional = true }
+rustfft = "6.1"
 # lancedb = { version = "0.22.3", optional = true }
 # tunes = { version = "0.3", optional = true }  # Music generation and audio processing
 # rodio = { version = "0.17", optional = true }  # Audio playback (kept for compatibility)
@@ -52,3 +53,8 @@ default = ["ai-ml"]
 ai-ml = []
 db = []
 audio = []
+extism-plugin = ["extism"]
+
+[dependencies.extism]
+version = "1"
+optional = true

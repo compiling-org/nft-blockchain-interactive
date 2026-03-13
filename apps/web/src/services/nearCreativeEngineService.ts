@@ -65,9 +65,44 @@ export class NEARCreativeEngineService {
       ],
       changeMethods: [
         'mint_nft',
+        'mint_interactive_nft',
         'record_interaction'
       ]
     });
+  }
+
+  async mintInteractiveNFT(
+    tokenId: string,
+    receiverId: string,
+    metadata: CreativeMetadata,
+    emotionalState: EmotionalState
+  ): Promise<{ token_id: string; transaction_hash: string }> {
+    if (!this.contract) {
+      throw new Error('Contract not initialized');
+    }
+
+    try {
+      const result = await (this.contract as any).mint_interactive_nft({
+        token_id: tokenId,
+        receiver_id: receiverId,
+        metadata,
+        initial_emotional_state: {
+          valence: emotionalState.valence,
+          arousal: emotionalState.arousal,
+          dominance: emotionalState.dominance,
+          confidence: emotionalState.confidence,
+          complexity: 0.5 // Default complexity
+        }
+      }, '30000000000000', '100000000000000000000000'); // 30 TGas, 0.1 NEAR
+
+      return {
+        token_id: tokenId,
+        transaction_hash: result?.transaction?.hash || 'unknown'
+      };
+    } catch (error) {
+      console.error('Failed to mint interactive NFT:', error);
+      throw new Error(`Interactive mint failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   async mintCreativeAsset(asset: CreativeAsset): Promise<{ token_id: string; transaction_hash: string }> {

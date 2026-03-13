@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use subxt::dynamic::{storage as dyn_storage, Value as DynValue};
 use subxt::dynamic::Value;
-use subxt::ext::sp_core::crypto::Ss58Codec;
-use subxt::ext::sp_runtime::AccountId32 as SrAccountId32;
+use sp_core::crypto::Ss58Codec;
+use sp_runtime::AccountId32 as SrAccountId32;
 
 mod emotional_bridge;
 mod soulbound;
@@ -58,7 +58,7 @@ impl PolkadotClient {
     pub async fn transfer_keep_alive_suri(
         &self,
         suri: &str,
-        dest: subxt::ext::sp_runtime::AccountId32,
+        dest: sp_runtime::AccountId32,
         amount: u128,
     ) -> Result<TransactionResult> {
         let ex = self.extrinsics();
@@ -72,7 +72,9 @@ impl PolkadotClient {
 
     pub async fn system_account_json_ss58(&self, ss58: &str) -> Result<serde_json::Value> {
         let account = self.ss58_to_account(ss58)?;
-        let acc_utils: subxt::utils::AccountId32 = account.into();
+        // Fix: Convert sp_runtime::AccountId32 to subxt::utils::AccountId32 via byte array
+        let acc_bytes: [u8; 32] = *account.as_ref();
+        let acc_utils = subxt::utils::AccountId32::from(acc_bytes);
         self.get_system_account_json(acc_utils).await
     }
 
@@ -398,7 +400,7 @@ impl Default for AdaptiveBehavior {
     }
 }
 
-#[cfg(all(test, not(target_os = "windows")))]
+#[cfg(test)]
 mod tests {
     use super::*;
     

@@ -1,140 +1,195 @@
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
-import { Program, AnchorProvider, web3, BN } from '@project-serum/anchor';
-import { NFTStorage } from 'nft.storage';
+import { Program, AnchorProvider, web3, BN, Idl } from '@coral-xyz/anchor';
 
-// IDL definition inline to avoid import issues
+// Correct IDL definition based on deployed program
 const idl = {
-  "version": "0.1.0",
-  "name": "biometric_nft",
+  "address": "6QcK89CQXA1GNGtGyYRq3ewCVpCn2omVfemvkbSW6CoT",
+  "metadata": {
+    "name": "biometric_nft",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Biometric NFT program with emotional metadata",
+    "address": "6QcK89CQXA1GNGtGyYRq3ewCVpCn2omVfemvkbSW6CoT"
+  },
   "instructions": [
     {
-      "name": "initializeNft",
+      "name": "initialize_collection",
+      "docs": [
+        "Initialize a new biometric NFT collection"
+      ],
+      "discriminator": [112, 62, 53, 139, 173, 152, 98, 93],
       "accounts": [
-        {
-          "name": "nftAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
+        { "name": "collection", "writable": true, "pda": { "seeds": [{ "kind": "const", "value": [99, 111, 108, 108, 101, 99, 116, 105, 111, 110] }, { "kind": "account", "path": "authority" }] } },
+        { "name": "authority", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
       ],
       "args": [
-        {
-          "name": "emotionData",
-          "type": {
-            "defined": "EmotionData"
-          }
-        },
-        {
-          "name": "qualityScore",
-          "type": "f64"
-        },
-        {
-          "name": "biometricHash",
-          "type": "string"
-        }
+        { "name": "name", "type": "string" },
+        { "name": "symbol", "type": "string" },
+        { "name": "uri", "type": "string" }
+      ]
+    },
+    {
+      "name": "mint_biometric_nft",
+      "docs": [
+        "Mint a new biometric NFT with emotional metadata"
+      ],
+      "discriminator": [145, 243, 177, 25, 123, 84, 217, 181],
+      "accounts": [
+        { "name": "nft", "writable": true, "pda": { "seeds": [{ "kind": "const", "value": [110, 102, 116] }, { "kind": "account", "path": "collection" }, { "kind": "account", "path": "collection.total_supply", "account": "BiometricCollection" }] } },
+        { "name": "collection", "writable": true },
+        { "name": "owner", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "biometric_hash", "type": { "array": ["u8", 32] } },
+        { "name": "emotion_data", "type": { "defined": { "name": "EmotionData" } } },
+        { "name": "uri", "type": "string" }
+      ]
+    },
+    {
+      "name": "transfer_nft",
+      "docs": [
+        "Transfer NFT with emotional state validation"
+      ],
+      "discriminator": [190, 28, 194, 8, 194, 218, 78, 78],
+      "accounts": [
+        { "name": "nft", "writable": true },
+        { "name": "current_owner", "signer": true }
+      ],
+      "args": [
+        { "name": "new_owner", "type": "pubkey" }
+      ]
+    },
+    {
+      "name": "update_emotion_state",
+      "docs": [
+        "Update emotional state of existing NFT"
+      ],
+      "discriminator": [50, 187, 2, 162, 144, 7, 168, 132],
+      "accounts": [
+        { "name": "nft", "writable": true },
+        { "name": "owner", "signer": true }
+      ],
+      "args": [
+        { "name": "new_emotion_data", "type": { "defined": { "name": "EmotionData" } } }
       ]
     }
   ],
   "accounts": [
+    { "name": "BiometricCollection", "discriminator": [154, 221, 202, 226, 157, 3, 71, 241] },
+    { "name": "BiometricNFT", "discriminator": [10, 78, 148, 3, 235, 200, 106, 226] }
+  ],
+  "events": [
+    { "name": "BiometricNFTMinted", "discriminator": [171, 167, 19, 185, 232, 147, 242, 78] },
+    { "name": "CollectionInitialized", "discriminator": [254, 157, 250, 175, 1, 48, 188, 53] },
+    { "name": "EmotionStateUpdated", "discriminator": [130, 70, 179, 181, 16, 128, 131, 105] },
+    { "name": "NFTTransferred", "discriminator": [110, 58, 15, 124, 58, 131, 70, 111] }
+  ],
+  "types": [
     {
-      "name": "NftAccount",
+      "name": "BiometricCollection",
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "owner",
-            "type": "publicKey"
-          },
-          {
-            "name": "emotionData",
-            "type": {
-              "defined": "EmotionData"
-            }
-          },
-          {
-            "name": "qualityScore",
-            "type": "f64"
-          },
-          {
-            "name": "biometricHash",
-            "type": "string"
-          },
-          {
-            "name": "isVerified",
-            "type": "bool"
-          },
-          {
-            "name": "createdAt",
-            "type": "i64"
-          }
+          { "name": "authority", "type": "pubkey" },
+          { "name": "name", "type": "string" },
+          { "name": "symbol", "type": "string" },
+          { "name": "uri", "type": "string" },
+          { "name": "total_supply", "type": "u64" }
         ]
       }
-    }
-  ],
-  "types": [
+    },
+    {
+      "name": "BiometricNFT",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "collection", "type": "pubkey" },
+          { "name": "owner", "type": "pubkey" },
+          { "name": "biometric_hash", "type": { "array": ["u8", 32] } },
+          { "name": "emotion_data", "type": { "defined": { "name": "EmotionData" } } },
+          { "name": "uri", "type": "string" },
+          { "name": "minted_at", "type": "i64" },
+          { "name": "last_updated", "type": "i64" },
+          { "name": "generation", "type": "u64" }
+        ]
+      }
+    },
+    {
+      "name": "BiometricNFTMinted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "nft", "type": "pubkey" },
+          { "name": "collection", "type": "pubkey" },
+          { "name": "owner", "type": "pubkey" },
+          { "name": "biometric_hash", "type": { "array": ["u8", 32] } },
+          { "name": "emotion_data", "type": { "defined": { "name": "EmotionData" } } },
+          { "name": "generation", "type": "u64" }
+        ]
+      }
+    },
+    {
+      "name": "CollectionInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "collection", "type": "pubkey" },
+          { "name": "authority", "type": "pubkey" },
+          { "name": "name", "type": "string" },
+          { "name": "symbol", "type": "string" }
+        ]
+      }
+    },
     {
       "name": "EmotionData",
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "valence",
-            "type": "f64"
-          },
-          {
-            "name": "arousal",
-            "type": "f64"
-          },
-          {
-            "name": "dominance",
-            "type": "f64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
+          { "name": "valence", "type": "f32" },
+          { "name": "arousal", "type": "f32" },
+          { "name": "dominance", "type": "f32" },
+          { "name": "confidence", "type": "f32" },
+          { "name": "timestamp", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "EmotionStateUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "nft", "type": "pubkey" },
+          { "name": "owner", "type": "pubkey" },
+          { "name": "new_emotion_data", "type": { "defined": { "name": "EmotionData" } } },
+          { "name": "updated_at", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "NFTTransferred",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "nft", "type": "pubkey" },
+          { "name": "from", "type": "pubkey" },
+          { "name": "to", "type": "pubkey" },
+          { "name": "emotion_data", "type": { "defined": { "name": "EmotionData" } } }
         ]
       }
     }
-  ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "LowQualityScore",
-      "msg": "Quality score is too low"
-    }
-  ],
-  "metadata": {
-    "address": "3BRGASWgfiPsxwVQq2W6JKLuWvZRBRSd3gkgfeDt9yoA"
-  }
+  ]
 };
 
-const PROGRAM_ID = new PublicKey('3BRGASWgfiPsxwVQq2W6JKLuWvZRBRSd3gkgfeDt9yoA');
+const PROGRAM_ID = new PublicKey('6QcK89CQXA1GNGtGyYRq3ewCVpCn2omVfemvkbSW6CoT');
 
-interface EmotionData {
+export interface EmotionData {
   valence: number;
   arousal: number;
   dominance: number;
-  timestamp?: number;
-}
-
-interface NFTAccount {
-  owner: PublicKey;
-  emotionData: EmotionData;
-  qualityScore: number;
-  biometricHash: string;
-  isVerified: boolean;
-  createdAt: BN;
-  emotionHistory: EmotionData[];
+  confidence: number;
+  timestamp: BN;
 }
 
 export class BiometricNFTClient {
@@ -143,229 +198,101 @@ export class BiometricNFTClient {
 
   constructor(connection: Connection, provider: AnchorProvider) {
     this.connection = connection;
-    this.program = new Program(idl as any, PROGRAM_ID, provider);
+    this.program = new Program(idl as any, provider);
   }
 
-  // Initialize a new biometric NFT
-  async initializeNFT(
-    payer: PublicKey,
-    emotionData: EmotionData,
-    qualityScore: number,
-    biometricHash: string
-  ): Promise<{ nftAccount: PublicKey; transactionSignature: string }> {
-    try {
-      // Generate a new NFT account address
-      const nftAccount = web3.Keypair.generate();
-      
-      // Add timestamp if not provided
-      const emotionDataWithTimestamp = {
-        ...emotionData,
-        timestamp: emotionData.timestamp || Date.now()
-      };
+  // Initialize a new collection
+  async initializeCollection(
+    name: string,
+    symbol: string,
+    uri: string,
+    authority: PublicKey
+  ): Promise<{ collectionPda: PublicKey; signature: string }> {
+    const [collectionPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("collection"), authority.toBuffer()],
+      PROGRAM_ID
+    );
 
-      // Create the transaction
-      const tx = await this.program.methods
-        .initializeNft(emotionDataWithTimestamp, qualityScore, biometricHash)
-        .accounts({
-          nftAccount: nftAccount.publicKey,
-          payer: payer,
-          systemProgram: SystemProgram.programId,
-        })
-        .signers([nftAccount])
-        .rpc();
+    const tx = await this.program.methods
+      .initializeCollection(name, symbol, uri)
+      .accounts({
+        collection: collectionPda,
+        authority: authority,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
 
-      return {
-        nftAccount: nftAccount.publicKey,
-        transactionSignature: tx
-      };
-    } catch (error) {
-      console.error('Error initializing NFT:', error);
-      throw error;
-    }
+    return { collectionPda, signature: tx };
   }
 
-  // Verify biometric data
-  async verifyBiometric(
-    nftAccount: PublicKey,
-    verifier: PublicKey,
-    biometricData: string
-  ): Promise<string> {
-    try {
-      const tx = await this.program.methods
-        .verifyBiometric(biometricData)
-        .accounts({
-          nftAccount: nftAccount,
-          verifier: verifier,
-        })
-        .rpc();
-
-      return tx;
-    } catch (error) {
-      console.error('Error verifying biometric:', error);
-      throw error;
-    }
-  }
-
-  // Update emotion data
-  async updateEmotion(
-    nftAccount: PublicKey,
+  // Mint a new biometric NFT
+  async mintBiometricNFT(
     owner: PublicKey,
-    newEmotionData: EmotionData
+    collectionPda: PublicKey,
+    biometricHash: number[],
+    emotionData: { valence: number; arousal: number; dominance: number; confidence: number },
+    uri: string
+  ): Promise<{ nftPda: PublicKey; signature: string }> {
+    
+    // Fetch collection to get total supply for PDA
+    const collectionAccount = await this.program.account.biometricCollection.fetch(collectionPda);
+    
+    // Safely extract totalSupply with runtime validation
+    let totalSupply: number;
+    if (collectionAccount && typeof collectionAccount === 'object' && 'totalSupply' in collectionAccount) {
+      totalSupply = Number((collectionAccount as any).totalSupply);
+      if (isNaN(totalSupply)) {
+        throw new Error('Invalid totalSupply: not a valid number');
+      }
+    } else {
+      throw new Error('Invalid collection account: missing totalSupply field');
+    }
+
+    const [nftPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("nft"), collectionPda.toBuffer(), new BN(totalSupply).toArrayLike(Buffer, 'le', 8)],
+      PROGRAM_ID
+    );
+
+    const tx = await this.program.methods
+      .mintBiometricNft(biometricHash, {
+        valence: emotionData.valence,
+        arousal: emotionData.arousal,
+        dominance: emotionData.dominance,
+        confidence: emotionData.confidence,
+        timestamp: new BN(Date.now())
+      }, uri)
+      .accounts({
+        nft: nftPda,
+        collection: collectionPda,
+        owner: owner,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    return { nftPda, signature: tx };
+  }
+
+  // Update emotional state
+  async updateEmotionState(
+    nftPda: PublicKey,
+    owner: PublicKey,
+    newEmotionData: { valence: number; arousal: number; dominance: number; confidence: number }
   ): Promise<string> {
-    try {
-      const emotionDataWithTimestamp = {
-        ...newEmotionData,
-        timestamp: newEmotionData.timestamp || Date.now()
-      };
+    const tx = await this.program.methods
+      .updateEmotionState({
+        valence: newEmotionData.valence,
+        arousal: newEmotionData.arousal,
+        dominance: newEmotionData.dominance,
+        confidence: newEmotionData.confidence,
+        timestamp: new BN(Date.now())
+      })
+      .accounts({
+        nft: nftPda,
+        owner: owner,
+      })
+      .rpc();
 
-      const tx = await this.program.methods
-        .updateEmotion(emotionDataWithTimestamp)
-        .accounts({
-          nftAccount: nftAccount,
-          owner: owner,
-        })
-        .rpc();
-
-      return tx;
-    } catch (error) {
-      console.error('Error updating emotion:', error);
-      throw error;
-    }
-  }
-
-  // Fetch NFT account data
-  async getNFTAccount(nftAccount: PublicKey): Promise<NFTAccount | null> {
-    try {
-      const account = await this.program.account.nftAccount.fetch(nftAccount);
-      return account as unknown as NFTAccount;
-    } catch (error) {
-      console.error('Error fetching NFT account:', error);
-      return null;
-    }
-  }
-
-  // Get all NFTs for a specific owner
-  async getNFTsByOwner(owner: PublicKey): Promise<PublicKey[]> {
-    try {
-      const accounts = await this.connection.getProgramAccounts(PROGRAM_ID, {
-        filters: [
-          {
-            memcmp: {
-              offset: 8, // Skip discriminator
-              bytes: owner.toBase58(),
-            },
-          },
-        ],
-      });
-
-      return accounts.map(account => account.pubkey);
-    } catch (error) {
-      console.error('Error fetching NFTs by owner:', error);
-      return [];
-    }
-  }
-
-  // Calculate emotion quality score
-  calculateQualityScore(emotionData: EmotionData): number {
-    // Simple quality calculation based on emotion parameters
-    const valenceScore = Math.abs(emotionData.valence - 0.5) * 2; // 0-1 range
-    const arousalScore = emotionData.arousal; // 0-1 range
-    const dominanceScore = emotionData.dominance; // 0-1 range
-    
-    // Weighted average
-    const qualityScore = (valenceScore * 0.4 + arousalScore * 0.3 + dominanceScore * 0.3);
-    
-    return Math.min(qualityScore, 1.0); // Cap at 1.0
-  }
-
-  // Generate biometric hash from emotion data using browser WebCrypto
-  async generateBiometricHash(emotionData: EmotionData): Promise<string> {
-    const dataString = `${emotionData.valence}-${emotionData.arousal}-${emotionData.dominance}-${Date.now()}`;
-    const encoder = new TextEncoder();
-    const data = encoder.encode(dataString);
-    const digest = await crypto.subtle.digest('SHA-256', data);
-    const bytes = new Uint8Array(digest);
-    const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-    return hex;
-  }
-
-  // Upload metadata to Arweave/IPFS (mock implementation)
-  async uploadMetadata(metadata: any): Promise<string> {
-    // In a real implementation, this would upload to Arweave or IPFS
-    // For now, we'll return a mock URL
-    console.log('Uploading metadata:', metadata);
-    
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return `https://arweave.net/mock-transaction-${Date.now()}`;
-  }
-
-  // Send a memo transaction using the connected wallet
-  async sendMemoWithWallet(wallet: any, message: string): Promise<string> {
-    const memoProgramId = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
-    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
-
-    const instruction = new web3.TransactionInstruction({
-      keys: [],
-      programId: memoProgramId,
-      data: (new TextEncoder().encode(message)) as unknown as Buffer,
-    });
-
-    const transaction = new web3.Transaction({
-      feePayer: wallet.publicKey,
-      recentBlockhash: blockhash,
-    }).add(instruction);
-
-    const signed = await wallet.signTransaction(transaction);
-    const sig = await this.connection.sendRawTransaction(signed.serialize());
-    await this.connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
-    return sig;
-  }
-
-  async sendSol(wallet: any, to: PublicKey, lamports: number): Promise<string> {
-    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
-    const ix = SystemProgram.transfer({
-      fromPubkey: wallet.publicKey,
-      toPubkey: to,
-      lamports,
-    });
-    const tx = new web3.Transaction({
-      feePayer: wallet.publicKey,
-      recentBlockhash: blockhash,
-    }).add(ix);
-    const signed = await wallet.signTransaction(tx);
-    const sig = await this.connection.sendRawTransaction(signed.serialize());
-    await this.connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
-    return sig;
-  }
-
-  async uploadMetadataNFTStorage(token: string, metadata: any): Promise<string> {
-    const client = new NFTStorage({ token });
-    const blob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
-    const cid = await client.storeBlob(blob);
-    return cid;
-  }
-
-  async uploadMetadataWeb3Storage(token: string, metadata: any): Promise<string> {
-    const json = JSON.stringify(metadata, null, 2);
-    const file = new File([json], 'metadata.json', { type: 'application/json' });
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('https://api.web3.storage/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json'
-      },
-      body: form
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Web3.Storage upload failed: ${res.status} ${text}`);
-    }
-    const out = await res.json();
-    return out.cid;
+    return tx;
   }
 }
 
@@ -378,5 +305,3 @@ export function createAnchorProvider(connection: Connection, wallet: any): Ancho
   );
   return provider;
 }
-
-export default BiometricNFTClient;

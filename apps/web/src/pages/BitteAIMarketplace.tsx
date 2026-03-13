@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { bitteService, AIAgent } from '../services/bitteService';
+import { myNearWalletService } from '../services/myNearWalletService';
 
 interface AINFT {
   id: string;
@@ -70,34 +71,21 @@ const BitteAIMarketplace: React.FC<BitteMarketplaceProps> = ({ className }) => {
   // Connect to Bitte AI Wallet
   const connectBitteWallet = async () => {
     try {
-      const connection = await bitteService.connectWallet();
+      await myNearWalletService.connectWallet();
+      const accountId = myNearWalletService.getAccountId();
       
-      if (connection.success) {
-        setAccountId(connection.accountId!);
+      if (accountId) {
+        setAccountId(accountId);
         setWalletConnected(true);
         
-        // Load AI agents and NFTs
+        // Load AI agents and NFTs using bitteService
         await loadAIAgents();
-        await loadAINFTs(connection.accountId!);
+        await loadAINFTs(accountId);
       } else {
-        console.error('Wallet connection failed:', connection.error);
-        // Fallback to mock for demo purposes
-        const mockAccountId = `bitte_user_${Math.random().toString(36).substr(2, 9)}.near`;
-        setAccountId(mockAccountId);
-        setWalletConnected(true);
-        
-        await loadAIAgents();
-        await loadAINFTs(mockAccountId);
+        console.error('MyNearWallet connection failed: No account ID returned.');
       }
     } catch (error) {
-      console.error('Failed to connect Bitte wallet:', error);
-      // Fallback to mock for demo purposes
-      const mockAccountId = `bitte_user_${Math.random().toString(36).substr(2, 9)}.near`;
-      setAccountId(mockAccountId);
-      setWalletConnected(true);
-      
-      await loadAIAgents();
-      await loadAINFTs(mockAccountId);
+      console.error('Failed to connect MyNearWallet:', error);
     }
   };
 
@@ -311,7 +299,7 @@ const BitteAIMarketplace: React.FC<BitteMarketplaceProps> = ({ className }) => {
               onClick={connectBitteWallet}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105"
             >
-              Connect Bitte AI Wallet
+              Connect MyNearWallet
             </button>
           ) : (
             <div className="text-white">

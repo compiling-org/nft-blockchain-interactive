@@ -1,11 +1,17 @@
 pub mod sim;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+
 #[cfg(target_arch = "wasm32")]
 use fvm_shared::error::ExitCode;
 #[cfg(target_arch = "wasm32")]
 use fvm_ipld_encoding::{to_vec, from_slice};
 
+#[cfg(not(target_arch = "wasm32"))]
+use fvm_ipld_encoding::{to_vec, from_slice};
+
 // Enhanced biometric NFT actor with proper IPLD storage
+
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BiometricData {
@@ -141,28 +147,35 @@ fn transfer_nft(params: u32) -> u32 {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn parse_biometric_params(_params: u32) -> Result<BiometricData, ()> {
-    Ok(BiometricData {
-        emotion_score: 0.85,
-        biometric_hash: "test_biometric_hash".to_string(),
-        timestamp: 1640995200,
-        quality_score: 0.95,
-    })
+fn get_params<T: DeserializeOwned>(params_id: u32) -> Result<T, ()> {
+    let params_raw = match fvm_sdk::message::params_raw(params_id) {
+        Ok(p) => p,
+        Err(_) => return Err(()),
+    };
+    match from_slice(&params_raw.1) {
+        Ok(p) => Ok(p),
+        Err(_) => Err(()),
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn parse_biometric_params(params: u32) -> Result<BiometricData, ()> {
+    get_params(params)
 }
 
 #[cfg(target_arch = "wasm32")]
 fn parse_token_id(params: u32) -> Result<u64, ()> {
-    Ok(params as u64)
+    get_params(params)
 }
 
 #[cfg(target_arch = "wasm32")]
 fn parse_verification_params(params: u32) -> Result<(u64, String), ()> {
-    Ok((params as u64, "verification_hash".to_string()))
+    get_params(params)
 }
 
 #[cfg(target_arch = "wasm32")]
 fn parse_transfer_params(params: u32) -> Result<(u64, u64), ()> {
-    Ok((params as u64, fvm_sdk::message::caller()))
+    get_params(params)
 }
 
 #[cfg(target_arch = "wasm32")]

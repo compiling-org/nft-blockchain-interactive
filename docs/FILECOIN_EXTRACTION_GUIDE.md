@@ -13,28 +13,19 @@ This document provides precise instructions for extracting ONLY the Filecoin-spe
 
 ### Core Filecoin Integration Files
 ```
-src/utils/filecoin-ai-integration.ts          # Main Filecoin AI integration
-src/utils/filecoin-ai-integration-enhanced.ts # Enhanced Filecoin features
-src/utils/filecoin-storage.ts                 # Filecoin storage client
+apps/web/src/utils/filecoin-storage.ts              # Filecoin storage client
 ```
 
 ### Filecoin Actor Contracts
 ```
-contracts/filecoin/biometric-nft-actor/src/lib.rs      # Biometric NFT actor
-contracts/filecoin/biometric-nft-actor/Cargo.toml     # Actor dependencies
-```
-
-### IPFS Integration
-```
-src/ipfs-integration/src/lib.rs              # IPFS client library
-src/ipfs-integration/src/ipfs_client.rs     # IPFS client implementation
-src/ipfs-integration/src/neuroemotive_storage.rs # Neuroemotive storage
+packages/contracts/filecoin/biometric-nft-actor/src/lib.rs      # Biometric NFT actor
+packages/contracts/filecoin/biometric-nft-actor/Cargo.toml     # Actor dependencies
 ```
 
 ### Supporting Files
 ```
-src/utils/unified-ai-ml-integration.js      # AI/ML bridge (shared dependency)
-src/utils/cross-chain-bridge.js            # Cross-chain bridge functionality
+apps/web/src/utils/solana-client.ts              # Solana client (for cross-chain)
+apps/web/src/config/cross-chain-bridge-config.ts  # Cross-chain configuration
 ```
 
 ### Configuration Files
@@ -61,23 +52,17 @@ The package.json must include these Filecoin-specific packages:
 ## Directory Structure for Filecoin Grant Repository
 ```
 filecoin-creative-engine/
-├── src/
-│   ├── utils/
-│   │   ├── filecoin-ai-integration.ts
-│   │   ├── filecoin-ai-integration-enhanced.ts
-│   │   ├── filecoin-storage.ts
-│   │   ├── unified-ai-ml-integration.js
-│   │   └── cross-chain-bridge.js
-│   ├── contracts/
-│   │   └── filecoin/
-│   │       └── biometric-nft-actor/
-│   │           └── src/
-│   │               └── lib.rs
-│   └── ipfs-integration/
+├── apps/
+│   └── web/
 │       └── src/
-│           ├── lib.rs
-│           ├── ipfs_client.rs
-│           └── neuroemotive_storage.rs
+│           └── utils/
+│               └── filecoin-storage.ts
+├── packages/
+│   └── contracts/
+│       └── filecoin
+│           └── biometric-nft-actor
+│               └── src/
+│                   └── lib.rs
 ├── package.json
 ├── Cargo.toml
 └── README.md

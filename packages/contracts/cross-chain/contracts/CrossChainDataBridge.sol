@@ -117,7 +117,7 @@ contract CrossChainDataBridge is Ownable, ReentrancyGuard {
         require(bytes(_ipfsHash).length > 0, "IPFS hash required");
         require(bytes(chainIdMapping[_sourceChain]).length > 0, "Invalid source chain");
         require(bytes(chainIdMapping[_targetChain]).length > 0, "Invalid target chain");
-        require(_sourceChain != _targetChain, "Source and target must differ");
+        require(keccak256(abi.encodePacked(_sourceChain)) != keccak256(abi.encodePacked(_targetChain)), "Source and target must differ");
 
         DataStream storage newStream = dataStreams[_streamId];
         require(bytes(newStream.streamId).length == 0, "Stream ID already exists");

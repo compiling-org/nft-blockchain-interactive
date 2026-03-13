@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { myNearWalletService } from '@/services/myNearWalletService';
+import { NEARCreativeEngineService } from '@/services/nearCreativeEngineService';
 import MediaPipeSensors from '../components/MediaPipeSensors';
 import LeapMotionSensors from '../components/LeapMotionSensors';
 import TypeGPUVisualizer from '../components/TypeGPUVisualizer';
@@ -14,6 +15,9 @@ export const NEARCreativeEngine: React.FC = () => {
   const [isMinting, setIsMinting] = useState(false);
   const [sensorCounts, setSensorCounts] = useState({ hands: 0, faces: 0, poses: 0 });
   const [sensorFeatures, setSensorFeatures] = useState<any>(null);
+  
+  const contractId = 'bio-nft-1764175259.sleeplessmonk-testnet-1764175172.testnet';
+  const engineService = useRef<NEARCreativeEngineService>(new NEARCreativeEngineService(myNearWalletService, contractId));
 
   const aiManagerRef = useRef<HybridAIManager | null>(null);
 
@@ -28,6 +32,7 @@ export const NEARCreativeEngine: React.FC = () => {
         if (myNearWalletService.isSignedIn()) {
           setAccountId(myNearWalletService.getAccountId());
           setIsConnected(true);
+          await engineService.current.initialize();
         }
       } catch (error) {
         console.log('No existing NEAR connection');
@@ -82,31 +87,26 @@ export const NEARCreativeEngine: React.FC = () => {
     toast.loading('Minting Biometric NFT on NEAR...', { id: 'near-mint' });
 
     try {
-      const contractId = 'bio-nft-1764175259.sleeplessmonk-testnet-1764175172.testnet';
       const tokenId = `bio-${Date.now()}`;
 
-      // Call the interactive mint function defined in the architecture
-      await myNearWalletService.callMethod(
-        contractId,
-        'mint_interactive_nft',
+      // Use the service for the interactive mint
+      await engineService.current.mintInteractiveNFT(
+        tokenId,
+        accountId,
         {
-          token_id: tokenId,
-          receiver_id: accountId,
-          metadata: {
-            title: `Emotional Fractal #${tokenId}`,
-            description: `Real-time biometric NFT driven by VAD emotional state.`,
-            media: "ipfs://placeholder", // In a real flow, we'd upload the canvas to IPFS first
-          },
-          initial_emotional_state: {
-            valence: emotionData.valence,
-            arousal: emotionData.arousal,
-            dominance: emotionData.dominance,
-            confidence: 0.9,
-            complexity: 0.5
-          }
+          title: `Emotional Fractal #${tokenId}`,
+          description: `Real-time biometric NFT driven by VAD emotional state.`,
+          media: "ipfs://placeholder", // In a real flow, we'd upload the canvas to IPFS first
+          media_hash: "", // Optional
+          issued_at: Date.now().toString()
         },
-        '30000000000000', // 30 TGas
-        '100000000000000000000000' // 0.1 NEAR deposit
+        {
+          valence: emotionData.valence,
+          arousal: emotionData.arousal,
+          dominance: emotionData.dominance,
+          confidence: 0.9,
+          primaryEmotion: "focused" // Derived from VAD usually
+        }
       );
 
       toast.success('🎉 Biometric NFT Minted Successfully!', { id: 'near-mint' });

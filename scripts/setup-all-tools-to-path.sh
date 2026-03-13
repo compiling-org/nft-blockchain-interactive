@@ -4,28 +4,31 @@
 
 echo "=== Setting up ALL Blockchain Tools to PATH ==="
 
-# Create permanent setup file
 cat > ~/.all-blockchain-tools.sh << 'EOF'
 #!/bin/bash
-# ALL Blockchain Tools - Complete setup
-
-# Add cargo bin to PATH (Windows tools)
-export PATH="/c/Users/kapil/.cargo/bin:$PATH"
-
-# Windows tools (direct access) - these work natively
-cargo-contract() { /c/Users/kapil/.cargo/bin/cargo-contract.exe "$@"; }
-anchor() { /c/Users/kapil/.cargo/bin/anchor.exe "$@"; }
-solana() { /c/Users/kapil/.cargo/bin/solana.exe "$@"; }
-
-# Ubuntu-22.04 WSL2 tools - these need WSL wrapper
-lotus() { wsl -d Ubuntu-22.04 -e lotus "$@"; }
-polkadot() { wsl -d Ubuntu-22.04 -e polkadot "$@"; }
-openethereum() { wsl -d Ubuntu-22.04 -e openethereum "$@"; }
-parity() { wsl -d Ubuntu-22.04 -e openethereum "$@"; }
-substrate() { wsl -d Ubuntu-22.04 -e substrate "$@"; }
-
-# Export all functions for current and subshells
-export -f cargo-contract anchor solana lotus polkadot openethereum parity substrate
+if command -v wsl >/dev/null 2>&1; then
+  export PATH="/c/Users/kapil/.cargo/bin:$PATH"
+  cargo-contract() { /c/Users/kapil/.cargo/bin/cargo-contract.exe "$@"; }
+  anchor() { /c/Users/kapil/.cargo/bin/anchor.exe "$@"; }
+  solana() { /c/Users/kapil/.cargo/bin/solana.exe "$@"; }
+  lotus() { wsl -d Ubuntu-22.04 -e lotus "$@"; }
+  polkadot() { wsl -d Ubuntu-22.04 -e polkadot "$@"; }
+  openethereum() { wsl -d Ubuntu-22.04 -e openethereum "$@"; }
+  parity() { wsl -d Ubuntu-22.04 -e openethereum "$@"; }
+  substrate() { wsl -d Ubuntu-22.04 -e substrate "$@"; }
+else
+  cargo-contract() { command cargo-contract "$@"; }
+  anchor() { command anchor "$@"; }
+  solana() { command solana "$@"; }
+  lotus() { command lotus "$@"; }
+  forest() { command forest "$@"; }
+  ipfs() { command ipfs "$@"; }
+  polkadot() { command polkadot "$@"; }
+  openethereum() { command openethereum "$@"; }
+  parity() { command openethereum "$@"; }
+  substrate() { command substrate "$@"; }
+fi
+export -f cargo-contract anchor solana lotus forest ipfs polkadot openethereum parity substrate
 
 EOF
 
@@ -43,17 +46,19 @@ source ~/.all-blockchain-tools.sh
 echo ""
 echo "🎉 ALL BLOCKCHAIN TOOLS NOW AVAILABLE:"
 echo ""
-echo "=== WINDOWS TOOLS (Direct Access) ==="
-echo "✅ cargo-contract:" && cargo-contract --version
-echo "✅ anchor:" && anchor --version  
-echo "✅ solana:" && solana --version | head -1
+echo "=== WINDOWS TOOLS (Direct Access or WSL native) ==="
+echo "✅ cargo-contract:" && cargo-contract --version || echo "Not found"
+echo "✅ anchor:" && anchor --version  || echo "Not found"
+echo "✅ solana:" && solana --version | head -1 || echo "Not found"
 echo ""
 echo "=== WSL2 UBUNTU-22.04 TOOLS (via functions) ==="
-echo "✅ lotus:" && lotus --version
-echo "✅ polkadot:" && polkadot --version
-echo "✅ openethereum:" && openethereum --version | head -1
-echo "✅ parity:" && parity --version | head -1
-echo "✅ substrate:" && substrate --version | head -1
+echo "✅ lotus:" && lotus --version || echo "Not found"
+echo "✅ forest:" && forest --version || echo "Not found"
+echo "✅ ipfs:" && ipfs --version || echo "Not found"
+echo "✅ polkadot:" && polkadot --version || echo "Not found"
+echo "✅ openethereum:" && openethereum --version | head -1 || echo "Not found"
+echo "✅ parity:" && parity --version | head -1 || echo "Not found"
+echo "✅ substrate:" && substrate --version | head -1 || echo "Not found"
 echo ""
 echo "💥 COMPLETE! All tools accessible from anywhere!"
 echo "Run 'source ~/.bashrc' or restart terminal to use in new sessions"

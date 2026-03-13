@@ -13,30 +13,21 @@ This document provides precise instructions for extracting ONLY the Polkadot-spe
 
 ### Core Polkadot Integration Files
 ```
-src/utils/polkadot-client.ts                    # Main Polkadot client
-src/utils/polkadot-ai-bridge.ts              # AI bridge for Polkadot
-src/utils/polkadot-client-working.ts          # Working Polkadot implementation
+apps/web/src/utils/polkadot-bridge-client.ts    # Main Polkadot bridge client (new)
+apps/web/src/components/PolkadotInfo.tsx         # Polkadot info component
 ```
 
 ### Polkadot Runtime Modules
 ```
-src/polkadot-client/src/lib.rs               # Polkadot client library
-src/polkadot-client/src/emotional_bridge.rs   # Emotional bridge module
-src/polkadot-client/src/extrinsics.rs         # Extrinsics handling
-src/polkadot-client/src/soulbound.rs          # Soulbound NFT implementation
-src/polkadot-client/src/xcm_messaging.rs     # XCM cross-chain messaging
-```
-
-### Polkadot Deployments
-```
-polkadot-deployments/emotional_bridge/lib.rs # Emotional bridge deployment
-polkadot-deployments/emotional_bridge/Cargo.toml
+packages/polkadot-client/src/lib.rs               # Polkadot client library
+packages/polkadot-client/src/emotional_bridge.rs   # Emotional bridge module
+packages/polkadot-client/src/extrinsics.rs         # Extrinsics handling
+packages/polkadot-client/src/soulbound.rs          # Soulbound NFT implementation
 ```
 
 ### Supporting Files
 ```
-src/utils/unified-ai-ml-integration.js      # AI/ML bridge (shared dependency)
-src/utils/cross-chain-bridge.js            # Cross-chain bridge functionality
+apps/web/src/config/cross-chain-bridge-config.ts  # Cross-chain configuration
 ```
 
 ### Configuration Files
@@ -62,24 +53,22 @@ The package.json must include these Polkadot-specific packages:
 ## Directory Structure for Polkadot Grant Repository
 ```
 polkadot-creative-engine/
-├── src/
-│   ├── utils/
-│   │   ├── polkadot-client.ts
-│   │   ├── polkadot-ai-bridge.ts
-│   │   ├── polkadot-client-working.ts
-│   │   ├── unified-ai-ml-integration.js
-│   │   └── cross-chain-bridge.js
+├── apps/
+│   └── web/
+│       └── src/
+│           ├── utils/
+│           │   └── polkadot-bridge-client.ts
+│           ├── components/
+│           │   └── PolkadotInfo.tsx
+│           └── config/
+│               └── cross-chain-bridge-config.ts
+├── packages/
 │   └── polkadot-client/
 │       └── src/
 │           ├── lib.rs
 │           ├── emotional_bridge.rs
 │           ├── extrinsics.rs
-│           ├── soulbound.rs
-│           └── xcm_messaging.rs
-├── polkadot-deployments/
-│   └── emotional_bridge/
-│       ├── lib.rs
-│       └── Cargo.toml
+│           └── soulbound.rs
 ├── package.json
 ├── Cargo.toml
 └── README.md

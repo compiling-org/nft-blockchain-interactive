@@ -1,5 +1,134 @@
 import { NFTStorage, Blob } from 'nft.storage';
-declare const Web3Storage: any;
+import { Web3Storage } from 'web3.storage';
+
+// Get API key from environment variables (Vite compatible)
+// SECURITY: Only use environment variables - never localStorage in production
+const getStorageApiKey = (): string => {
+  // Check Vite environment variable first - using typed import.meta.env
+  const env = import.meta.env;
+  const viteKey = env.VITE_NFT_STORAGE_TOKEN;
+  if (viteKey) return viteKey;
+  
+  // Check React environment variable
+  const reactKey = (env as any)?.REACT_APP_NFT_STORAGE_TOKEN;
+  if (reactKey) return reactKey;
+  
+  // Return empty string if no API key found - will show warning when used
+  return '';
+};
+
+// Get Web3.Storage API key
+// SECURITY: Only use environment variables - localStorage is NOT used due to XSS vulnerability
+const getWeb3StorageApiKey = (): string => {
+  const env = import.meta.env;
+  const viteKey = env.VITE_WEB3_STORAGE_TOKEN;
+  if (viteKey) return viteKey;
+  
+  const reactKey = (env as any)?.REACT_APP_WEB3_STORAGE_TOKEN;
+  if (reactKey) return reactKey;
+  
+  // Return empty string if no API key found - will show warning when used
+  return '';
+};
+
+// ============================================================
+// ENCRYPTION UTILITIES FOR BIOMETRIC DATA (Web Crypto API)
+// ============================================================
+
+/**
+ * Generate a random AES-GCM encryption key
+ * @returns CryptoKey for AES-GCM encryption
+ */
+async function generateEncryptionKey(): Promise<CryptoKey> {
+  return await crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  );
+}
+
+/**
+ * Generate a random IV (Initialization Vector) for AES-GCM
+ * @returns 12-byte Uint8Array IV
+ */
+function generateIV(): Uint8Array {
+  return crypto.getRandomValues(new Uint8Array(12));
+}
+
+/**
+ * Encrypt data using AES-GCM
+ * @param data - String data to encrypt
+ * @param key - CryptoKey for encryption
+ * @param iv - Initialization vector (must be 12 bytes)
+ * @returns Base64-encoded encrypted data with IV prepended
+ */
+async function encryptData(data: string, key: CryptoKey, iv: Uint8Array): Promise<string> {
+  const encoder = new TextEncoder();
+  const encodedData = encoder.encode(data);
+  
+  const encryptedBuffer = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    encodedData
+  );
+  
+  // Prepend IV to encrypted data and convert to base64
+  const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encryptedBuffer), iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
+/**
+ * Decrypt AES-GCM encrypted data
+ * @param encryptedBase64 - Base64-encoded encrypted data with IV prepended
+ * @param key - CryptoKey for decryption
+ * @returns Decrypted string
+ */
+async function decryptData(encryptedBase64: string, key: CryptoKey): Promise<string> {
+  // Decode base64
+  const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+  
+  // Extract IV (first 12 bytes) and encrypted data
+  const iv = combined.slice(0, 12);
+  const encryptedData = combined.slice(12);
+  
+  const decryptedBuffer = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    encryptedData
+  );
+  
+  const decoder = new TextDecoder();
+  return decoder.decode(decryptedBuffer);
+}
+
+/**
+ * Export key to string for storage (JWK format)
+ */
+async function exportKey(key: CryptoKey): Promise<string> {
+  const exported = await crypto.subtle.exportKey('jwk', key);
+  return JSON.stringify(exported);
+}
+
+/**
+ * Import key from stored string
+ */
+async function importKey(keyJson: string): Promise<CryptoKey> {
+  const jwk = JSON.parse(keyJson);
+  return await crypto.subtle.importKey(
+    'jwk',
+    jwk,
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  );
+}
+
+// ============================================================
+// END ENCRYPTION UTILITIES
+// ============================================================
 
 // Web3.Storage client for Filecoin integration
 export class FilecoinStorageClient {
@@ -174,7 +303,7 @@ export class FilecoinStorageClient {
   }
 
   /**
-   * Store biometric data securely
+   * Store biometric data securely with AES-GCM encryption
    */
   async storeBiometricData(
     data: {
@@ -192,19 +321,43 @@ export class FilecoinStorageClient {
     cid: string;
     url: string;
     encrypted: boolean;
+    keyId?: string; // For later decryption
   }> {
     if (!this.web3Storage) {
       throw new Error('Web3.Storage client not initialized');
     }
 
     try {
-      // Create biometric data package
-      const biometricPackage = {
+      // Generate encryption key and IV
+      const encryptionKey = await generateEncryptionKey();
+      const iv = generateIV();
+      
+      // Create biometric data package with ONLY sensitive fields to encrypt
+      const sensitiveData = {
         eeg: data.eegData,
         heartRate: data.heartRateData,
+        // facialData is handled separately - store reference instead of raw data
+        facialDataRef: data.facialData ? `facial_${data.metadata.sessionId}` : undefined
+      };
+      
+      // Encrypt the sensitive biometric data
+      const encryptedSensitive = await encryptData(
+        JSON.stringify(sensitiveData),
+        encryptionKey,
+        iv
+      );
+      
+      // Export key for later decryption (in production, store securely)
+      const exportedKey = await exportKey(encryptionKey);
+      
+      // Create biometric data package with encrypted sensitive data
+      const biometricPackage = {
+        encrypted: true,
+        encryptionAlgorithm: 'AES-GCM-256',
+        keyData: exportedKey, // In production, encrypt this or use a key management service
+        sensitiveData: encryptedSensitive,
         metadata: data.metadata,
-        version: '1.0.0',
-        encrypted: true // In production, actually encrypt this data
+        version: '2.0.0'
       };
 
       // Convert to blob
@@ -214,7 +367,21 @@ export class FilecoinStorageClient {
         type: 'application/json'
       });
 
-      console.log('Storing biometric data on Filecoin via Web3.Storage...');
+      console.log('Storing ENCRYPTED biometric data on Filecoin via Web3.Storage...');
+      
+      // Handle facial data separately if present
+      let facialCid: string | undefined;
+      if (data.facialData) {
+        // In production, encrypt facial data too before storing
+        const facialFile = new File([data.facialData], `facial-${data.metadata.sessionId}.jpg`, {
+          type: 'image/jpeg'
+        });
+        facialCid = await this.web3Storage.put([facialFile], {
+          name: `facial-${data.metadata.sessionId}`,
+          wrapWithDirectory: false
+        });
+      }
+
       const cid = await this.web3Storage.put([file], {
         name: `biometric-${data.metadata.sessionId}`,
         wrapWithDirectory: false
@@ -225,10 +392,55 @@ export class FilecoinStorageClient {
       return {
         cid,
         url,
-        encrypted: true
+        encrypted: true,
+        keyId: data.metadata.sessionId // Use sessionId as key reference
       };
     } catch (error) {
       console.error('Failed to store biometric data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieve and decrypt stored biometric data
+   */
+  async retrieveBiometricData(
+    cid: string,
+    keyJson: string
+  ): Promise<{
+    eegData?: number[];
+    heartRateData?: number[];
+    metadata: {
+      userId: string;
+      sessionId: string;
+      timestamp: string;
+      deviceInfo: string;
+    };
+    decrypted: boolean;
+  }> {
+    try {
+      // Fetch the stored data
+      const data = await this.retrieveData(cid);
+      
+      if (!data.encrypted) {
+        throw new Error('Biometric data is not encrypted - cannot decrypt');
+      }
+      
+      // Import the encryption key
+      const encryptionKey = await importKey(keyJson);
+      
+      // Decrypt the sensitive data
+      const decryptedJson = await decryptData(data.sensitiveData, encryptionKey);
+      const sensitiveData = JSON.parse(decryptedJson);
+      
+      return {
+        eegData: sensitiveData.eeg,
+        heartRateData: sensitiveData.heartRate,
+        metadata: data.metadata,
+        decrypted: true
+      };
+    } catch (error) {
+      console.error('Failed to decrypt biometric data:', error);
       throw error;
     }
   }
@@ -349,8 +561,24 @@ export class FilecoinStorageClient {
 }
 
 // Utility functions for Filecoin integration
-export function createFilecoinStorageClient(apiKey: string): FilecoinStorageClient {
-  return new FilecoinStorageClient(apiKey);
+
+/**
+ * Create a Filecoin storage client
+ * If no API key is provided, tries to get it from environment variables
+ */
+export function createFilecoinStorageClient(apiKey?: string): FilecoinStorageClient {
+  const effectiveKey = apiKey || getStorageApiKey() || getWeb3StorageApiKey();
+  if (!effectiveKey) {
+    console.warn('No Filecoin storage API key provided. Set VITE_NFT_STORAGE_TOKEN or VITE_WEB3_STORAGE_TOKEN environment variable.');
+  }
+  return new FilecoinStorageClient(effectiveKey);
+}
+
+/**
+ * Get the configured API key (for display purposes)
+ */
+export function getConfiguredStorageKey(): string {
+  return getStorageApiKey() || getWeb3StorageApiKey() || '';
 }
 
 export function validateApiKey(apiKey: string): boolean {

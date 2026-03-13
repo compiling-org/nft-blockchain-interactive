@@ -1,0 +1,19 @@
+{
+  "name": "@blockchain-nft-interactive/api",
+  "version": "1.0.0",
+  "description": "Shared API utilities for Blockchain NFT Interactive platform",
+  "main": "dist/chat.js",
+  "types": "dist/chat.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.2"
+  }
+}

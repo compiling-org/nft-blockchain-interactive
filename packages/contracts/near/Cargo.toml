@@ -1,5 +1,5 @@
-[workspace]
-members = [
-    "soulbound-nft",
-    "cross-chain-ai",
-]
+[package]
+name = "near-contracts-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false

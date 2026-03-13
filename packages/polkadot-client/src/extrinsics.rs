@@ -4,15 +4,16 @@
 //! Based on ink! e2e patterns for robust blockchain interaction
 
 use subxt::{OnlineClient, PolkadotConfig};
-use subxt::tx::{PairSigner, TxPayload};
-use subxt::ext::sp_core::sr25519::Pair;
-use subxt::ext::sp_core::Pair as PairTrait;
+use subxt::tx::{Payload, Signer};
 use subxt::dynamic::Value;
 use parity_scale_codec::Encode;
 use subxt::blocks::ExtrinsicEvents;
-use subxt::ext::sp_runtime::AccountId32;
+use sp_runtime::AccountId32;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use subxt_signer::sr25519::Keypair;
+use std::str::FromStr;
+use subxt_signer::SecretUri;
 
 /// Enhanced transaction result with detailed status and events
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,9 +53,9 @@ impl ExtrinsicSubmitter {
         Self { client }
     }
     
-    pub fn signer_from_suri(&self, suri: &str) -> Result<PairSigner<PolkadotConfig, Pair>> {
-        let pair = Pair::from_string(suri, None).map_err(|e| anyhow::anyhow!(format!("{:?}", e)))?;
-        Ok(PairSigner::new(pair))
+    pub fn signer_from_suri(&self, suri: &str) -> Result<Keypair> {
+        let uri = SecretUri::from_str(suri).map_err(|e| anyhow::anyhow!(format!("{:?}", e)))?;
+        Ok(Keypair::from_uri(&uri).map_err(|e| anyhow::anyhow!(format!("{:?}", e)))?)
     }
     
     pub async fn submit_remark_with_suri(
@@ -67,21 +68,26 @@ impl ExtrinsicSubmitter {
     }
     
     /// Submit an extrinsic and wait for finalization with full event decoding
-    pub async fn submit_and_watch<T: TxPayload>(
+    pub async fn submit_and_watch<T: Payload>(
         &self,
         payload: T,
-        signer: &PairSigner<PolkadotConfig, Pair>,
+        signer: &Keypair,
     ) -> Result<TransactionResult> {
         let progress = self.client
             .tx()
             .sign_and_submit_then_watch_default(&payload, signer)
             .await?;
         let hash = format!("{:?}", progress.extrinsic_hash());
-        let events = progress.wait_for_finalized_success().await?;
+        
+        // Wait for finalization to ensure durability
+        let finalized = progress.wait_for_finalized().await?;
+        let block_hash = format!("{:?}", finalized.block_hash());
+        let events = finalized.fetch_events().await?;
+        
         let decoded = self.decode_events(&events)?;
         Ok(TransactionResult {
             hash,
-            block_hash: Some(format!("{:?}", events.block_hash())),
+            block_hash: Some(block_hash),
             status: TransactionStatus::Finalized,
             events: decoded,
             error: self.check_dispatch_error(&events),
@@ -90,7 +96,7 @@ impl ExtrinsicSubmitter {
     
     pub async fn submit_system_remark(
         &self,
-        signer: &PairSigner<PolkadotConfig, Pair>,
+        signer: &Keypair,
         remark: &[u8],
     ) -> Result<TransactionResult> {
         let payload = subxt::dynamic::tx("System", "remark", vec![Value::from_bytes(remark)]);
@@ -99,7 +105,7 @@ impl ExtrinsicSubmitter {
     
     pub async fn submit_dynamic_call(
         &self,
-        signer: &PairSigner<PolkadotConfig, Pair>,
+        signer: &Keypair,
         pallet: &str,
         call: &str,
         args: Vec<Value>,
@@ -110,33 +116,39 @@ impl ExtrinsicSubmitter {
     
     pub async fn submit_balances_transfer_keep_alive(
         &self,
-        signer: &PairSigner<PolkadotConfig, Pair>,
+        signer: &Keypair,
         dest: AccountId32,
         amount: u128,
     ) -> Result<TransactionResult> {
-        let args = vec![Value::from_bytes(&dest), Value::u128(amount)];
+        // Convert AccountId32 to bytes for Value::from_bytes
+        let dest_bytes: [u8; 32] = *dest.as_ref();
+        let args = vec![Value::from_bytes(&dest_bytes), Value::u128(amount)];
         let payload = subxt::dynamic::tx("Balances", "transfer_keep_alive", args);
         self.submit_and_watch(payload, signer).await
     }
     
     /// Submit an extrinsic and wait for in-block status
-    pub async fn submit_and_wait_for_in_block<T: TxPayload>(
+    pub async fn submit_and_wait_for_in_block<T: Payload>(
         &self,
         payload: T,
-        signer: &PairSigner<PolkadotConfig, Pair>,
+        signer: &Keypair,
     ) -> Result<TransactionResult> {
         let progress = self.client
             .tx()
             .sign_and_submit_then_watch_default(&payload, signer)
             .await?;
         let hash = format!("{:?}", progress.extrinsic_hash());
-        let in_block = progress.wait_for_in_block().await?;
+        
+        // Wait for finalization (safer fallback since wait_for_included name varies)
+        let in_block = progress.wait_for_finalized().await?;
+        let block_hash = format!("{:?}", in_block.block_hash());
         let events = in_block.fetch_events().await?;
+        
         let decoded = self.decode_events(&events)?;
         Ok(TransactionResult {
             hash,
-            block_hash: Some(format!("{:?}", events.block_hash())),
-            status: TransactionStatus::InBlock,
+            block_hash: Some(block_hash),
+            status: TransactionStatus::Finalized, // Changed to Finalized as we wait for finalized
             events: decoded,
             error: self.check_dispatch_error(&events),
         })
@@ -189,7 +201,7 @@ impl SoulboundExtrinsics {
     pub fn create_identity(
         owner: AccountId32,
         identity_data: Vec<u8>,
-    ) -> impl TxPayload {
+    ) -> impl Payload {
         // This would be the actual extrinsic for your ink! contract
         // For now, we'll create a placeholder that matches your contract interface
         CreateIdentityExtrinsic {
@@ -202,7 +214,7 @@ impl SoulboundExtrinsics {
     pub fn update_emotional_metadata(
         token_id: u64,
         emotional_data: crate::EmotionalMetadata,
-    ) -> impl TxPayload {
+    ) -> impl Payload {
         UpdateEmotionalMetadataExtrinsic {
             token_id,
             emotional_data,
@@ -217,12 +229,12 @@ struct CreateIdentityExtrinsic {
     identity_data: Vec<u8>,
 }
 
-impl TxPayload for CreateIdentityExtrinsic {
+impl Payload for CreateIdentityExtrinsic {
     fn encode_call_data_to(
         &self,
         _metadata: &subxt::Metadata,
         out: &mut Vec<u8>,
-    ) -> Result<(), subxt::error::Error> {
+    ) -> Result<(), subxt::ext::subxt_core::Error> {
         out.extend_from_slice(b"create_identity");
         let buf = self.owner.encode();
         out.extend_from_slice(&buf);
@@ -239,12 +251,12 @@ struct UpdateEmotionalMetadataExtrinsic {
     emotional_data: crate::EmotionalMetadata,
 }
 
-impl TxPayload for UpdateEmotionalMetadataExtrinsic {
+impl Payload for UpdateEmotionalMetadataExtrinsic {
     fn encode_call_data_to(
         &self,
         _metadata: &subxt::Metadata,
         out: &mut Vec<u8>,
-    ) -> Result<(), subxt::error::Error> {
+    ) -> Result<(), subxt::ext::subxt_core::Error> {
         out.extend_from_slice(b"update_emotional_metadata");
         out.extend_from_slice(&self.token_id.to_le_bytes());
         out.extend_from_slice(&(0u32).to_le_bytes());

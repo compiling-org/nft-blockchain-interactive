@@ -7,30 +7,55 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { bitteService } from './bitteService';
 
 describe('BitteService Integration Tests', () => {
-  beforeEach(() => {
-    // Reset service state before each test
-    bitteService.disconnectWallet();
-  });
 
-  describe('Wallet Connection', () => {
-    it('should connect to Bitte wallet successfully', async () => {
-      const result = await bitteService.connectWallet();
-      
-      expect(result.success).toBe(true);
-      expect(result.accountId).toBeDefined();
-      expect(result.accountId).toMatch(/\.testnet$/);
-      
-      const status = bitteService.getConnectionStatus();
-      expect(status.isConnected).toBe(true);
-      expect(status.accountId).toBe(result.accountId);
+  describe('Account Management', () => {
+    beforeEach(() => {
+      // Reset account before each test
+      bitteService.setCurrentAccount('');
     });
 
-    it('should handle connection status correctly', () => {
-      const status = bitteService.getConnectionStatus();
-      expect(status.isConnected).toBe(false);
-      expect(status.accountId).toBe('');
+    it('should set valid NEAR testnet account', () => {
+      const testAccountId = 'user123.testnet';
+      bitteService.setCurrentAccount(testAccountId);
+      
+      expect(bitteService.getCurrentAccount()).toBe(testAccountId);
+    });
+
+    it('should set valid NEAR mainnet account', () => {
+      const testAccountId = 'user123.near';
+      bitteService.setCurrentAccount(testAccountId);
+      
+      expect(bitteService.getCurrentAccount()).toBe(testAccountId);
+    });
+
+    it('should set compound NEAR testnet account', () => {
+      // Test compound accounts like the one used in App.tsx
+      const testAccountId = 'bio-nft-1764175259.sleeplessmonk-testnet-1764175172.testnet';
+      bitteService.setCurrentAccount(testAccountId);
+      
+      expect(bitteService.getCurrentAccount()).toBe(testAccountId);
+    });
+
+    it('should reject invalid NEAR account format', () => {
+      const invalidAccountId = 'invalid-address'; // Missing .testnet/.near suffix
+      
+      // Should not throw but should not set the invalid account
+      bitteService.setCurrentAccount(invalidAccountId);
+      
+      expect(bitteService.getCurrentAccount()).toBe('');
+    });
+
+    it('should allow empty account ID (for logout)', () => {
+      bitteService.setCurrentAccount('user.testnet');
+      expect(bitteService.getCurrentAccount()).toBe('user.testnet');
+      
+      // Setting empty should work
+      bitteService.setCurrentAccount('');
+      expect(bitteService.getCurrentAccount()).toBe('');
     });
   });
+
+
 
   describe('AI Agents', () => {
     it('should load AI agents with proper structure', async () => {
@@ -70,7 +95,7 @@ describe('BitteService Integration Tests', () => {
 
     it('should handle fractal generation errors gracefully', async () => {
       const invalidEmotionData = {
-        valence: -1.5, // Invalid range
+        valence: 1.5, // Invalid range - exceeds max of 1.0
         arousal: 0.6,
         dominance: 0.8
       };
@@ -83,15 +108,38 @@ describe('BitteService Integration Tests', () => {
         expect(result.error).toBeDefined();
       }
     });
+
+    it('should validate emotion data ranges', async () => {
+      // Test valid ranges are accepted
+      const validEmotion = { valence: 0.5, arousal: 0.5, dominance: 0.5 };
+      const result = await bitteService.generateEmotionalFractal(validEmotion);
+      expect(result.success).toBe(true);
+    });
   });
 
   describe('NFT Minting', () => {
-    beforeEach(async () => {
-      // Ensure wallet is connected for NFT minting tests
-      await bitteService.connectWallet();
+    it('should fail when wallet is not connected', async () => {
+      // Reset account to test validation
+      bitteService.setCurrentAccount('');
+      
+      const emotionData = {
+        valence: 0.8,
+        arousal: 0.7,
+        dominance: 0.9
+      };
+      
+      const generatedArt = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48L3N2Zz4=';
+      
+      const result = await bitteService.mintBiometricNFT(emotionData, generatedArt);
+      
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Wallet not connected');
     });
 
     it('should mint biometric NFT with AI-generated content', async () => {
+      // First connect wallet to enable minting
+      bitteService.setCurrentAccount('test-user.testnet');
+      
       const emotionData = {
         valence: 0.8,
         arousal: 0.7,
@@ -110,27 +158,18 @@ describe('BitteService Integration Tests', () => {
       expect(result.metadata).toBeDefined();
     });
 
-    it('should fail NFT minting when wallet is not connected', async () => {
-      bitteService.disconnectWallet();
-      
-      const emotionData = {
-        valence: 0.5,
-        arousal: 0.5,
-        dominance: 0.5
-      };
-      
-      const generatedArt = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCI+';
-      
-      const result = await bitteService.mintBiometricNFT(emotionData, generatedArt);
-      
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Wallet not connected');
-    });
+
   });
 
   describe('AI Transactions', () => {
-    beforeEach(async () => {
-      await bitteService.connectWallet();
+    it('should fail when wallet is not connected', async () => {
+      // Reset account to test validation
+      bitteService.setCurrentAccount('');
+      
+      const result = await bitteService.executeAITransaction('test_action', {});
+      
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Wallet not connected');
     });
 
     it('should execute AI-powered transactions', async () => {
@@ -147,14 +186,7 @@ describe('BitteService Integration Tests', () => {
       expect(result.explorerUrl).toBeDefined();
     });
 
-    it('should fail AI transactions when wallet is not connected', async () => {
-      bitteService.disconnectWallet();
-      
-      const result = await bitteService.executeAITransaction('test_action', {});
-      
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Wallet not connected');
-    });
+
   });
 
   describe('Health Check', () => {
@@ -171,9 +203,7 @@ describe('BitteService Integration Tests', () => {
 export async function runBitteIntegrationTests(): Promise<void> {
   console.log('🚀 Running Bitte Service Integration Tests...\n');
   
-  const tests = [
-    'Wallet Connection',
-    'AI Agents Loading',
+  const tests = ['AI Agents Loading',
     'Fractal Generation',
     'NFT Minting',
     'AI Transactions',

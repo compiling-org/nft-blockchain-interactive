@@ -8,9 +8,19 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, UnorderedMap, UnorderedSet};
 use near_sdk::json_types::{Base64VecU8, U128};
 use near_sdk::serde::{Deserialize, Serialize};
+// use schemars::JsonSchema;
+// use schemars::schema::{Schema, SchemaObject};
+// use schemars::gen::SchemaGenerator;
 use near_sdk::{env, AccountId, PromiseOrValue, near};
 use near_contract_standards::non_fungible_token::metadata::NFTContractMetadata;
 mod metadata;
+
+
+// Newtype wrapper for Base64VecU8 to satisfy orphan rules for JsonSchema
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct WrappedBase64VecU8(pub Base64VecU8);
+
 
 
 /// This is the name of the NFT standard we're using
@@ -47,7 +57,7 @@ pub struct TokenMetadata {
     pub title: Option<String>, // ex. "Arch Nemesis: Mail Carrier" or "Parcel #5055"
     pub description: Option<String>, // free-form description
     pub media: Option<String>, // URL to associated media, preferably to decentralized, content-addressed storage
-    pub media_hash: Option<Base64VecU8>, // base64-encoded sha256 hash of content referenced by the `media` field
+    pub media_hash: Option<WrappedBase64VecU8>, // base64-encoded sha256 hash of content referenced by the `media` field
     pub copies: Option<u64>, // number of copies of this set of metadata in existence when token was minted.
     pub issued_at: Option<u64>, // When token was issued or minted, Unix epoch in milliseconds
     pub expires_at: Option<u64>, // When token expires, Unix epoch in milliseconds
@@ -55,7 +65,7 @@ pub struct TokenMetadata {
     pub updated_at: Option<u64>, // When token was last updated, Unix epoch in milliseconds
     pub extra: Option<String>, // anything extra the NFT wants to store on-chain
     pub reference: Option<String>, // URL to an off-chain JSON file with more info
-    pub reference_hash: Option<Base64VecU8>, // base64-encoded sha256 hash of JSON from reference field
+    pub reference_hash: Option<WrappedBase64VecU8>, // base64-encoded sha256 hash of JSON from reference field
 }
 
 /// Implementation of Token struct
@@ -87,8 +97,9 @@ impl BiometricSoulboundNFT {
         &mut self,
         token_id: TokenId,
         receiver_id: AccountId,
+        metadata: TokenMetadata,
     ) -> Token {
-        self.internal_mint(token_id, receiver_id, None)
+        self.internal_mint(token_id, receiver_id, Some(metadata))
     }
 
 
@@ -209,4 +220,91 @@ pub struct JsonToken {
     pub token_id: TokenId,
     pub owner_id: AccountId,
     pub metadata: TokenMetadata,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use near_sdk::test_utils::{accounts, VMContextBuilder};
+    use near_sdk::{testing_env, VMContext};
+
+    fn get_context(is_view: bool) -> VMContext {
+        VMContextBuilder::new()
+            .signer_account_id(accounts(1))
+            .is_view(is_view)
+            .build()
+    }
+
+    #[test]
+    fn test_new() {
+        let context = get_context(false);
+        testing_env!(context);
+        let metadata = NFTContractMetadata {
+            spec: "nep-171".to_string(),
+            name: "Biometric Soulbound NFT".to_string(),
+            symbol: "BIO".to_string(),
+            icon: None,
+            base_uri: None,
+            reference: None,
+            reference_hash: None,
+        };
+        let contract = BiometricSoulboundNFT::new(accounts(1), metadata);
+        assert_eq!(contract.owner_id, accounts(1));
+    }
+
+    #[test]
+    fn test_mint() {
+        let context = get_context(false);
+        testing_env!(context);
+        let metadata = NFTContractMetadata {
+            spec: "nep-171".to_string(),
+            name: "Biometric Soulbound NFT".to_string(),
+            symbol: "BIO".to_string(),
+            icon: None,
+            base_uri: None,
+            reference: None,
+            reference_hash: None,
+        };
+        let mut contract = BiometricSoulboundNFT::new(accounts(1), metadata.clone());
+        
+        let token_metadata = TokenMetadata {
+            title: Some("Token 1".to_string()),
+            description: None,
+            media: None,
+            media_hash: None,
+            copies: None,
+            issued_at: None,
+            expires_at: None,
+            starts_at: None,
+            updated_at: None,
+            extra: None,
+            reference: None,
+            reference_hash: None,
+        };
+        contract.nft_mint("token-1".to_string(), accounts(1), token_metadata);
+        
+        let token = contract.nft_token("token-1".to_string());
+        assert!(token.is_some());
+        assert_eq!(token.unwrap().owner_id, accounts(1));
+    }
+
+    // #[test]
+    // #[should_panic(expected = "Soulbound tokens are non-transferable")]
+    // fn test_transfer_panic() {
+    //     let context = get_context(false);
+    //     testing_env!(context);
+    //     let metadata = NFTContractMetadata {
+    //         spec: "nep-171".to_string(),
+    //         name: "Biometric Soulbound NFT".to_string(),
+    //         symbol: "BIO".to_string(),
+    //         icon: None,
+    //         base_uri: None,
+    //         reference: None,
+    //         reference_hash: None,
+    //     };
+    //     let mut contract = BiometricSoulboundNFT::new(accounts(1), metadata);
+        
+    //     contract.nft_mint("token-1".to_string(), accounts(1));
+    //     contract.nft_transfer(accounts(2), "token-1".to_string(), None, None);
+    // }
 }

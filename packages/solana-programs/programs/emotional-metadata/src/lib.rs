@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Emot111111111111111111111111111111111111111");
+declare_id!("7obP43BgJtGLV1keD4Y6khJm68PNPfFNUQETRT3eWvg7");
 
 #[program]
 pub mod emotional_metadata {
@@ -141,6 +141,7 @@ pub struct InitializeRegistry<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(nft_mint: Pubkey)]
 pub struct StoreEmotionalMetadata<'info> {
     #[account(
         init,

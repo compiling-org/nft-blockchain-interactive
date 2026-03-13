@@ -4,6 +4,7 @@ import { web3Enable, web3Accounts, web3FromSource, web3FromAddress } from '@polk
 import { decodeAddress } from '@polkadot/util-crypto'
 import { Web3Storage } from 'web3.storage'
 import { Keyring } from '@polkadot/keyring'
+import { PolkadotBridgeClient } from '../utils/polkadot-bridge-client'
 
 function PolkadotInfo() {
   const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting')
@@ -50,6 +51,15 @@ function PolkadotInfo() {
   const [nftStatus, setNftStatus] = useState<string>('')
   const [nftCid, setNftCid] = useState<string>('')
   const [nftUrl, setNftUrl] = useState<string>('')
+  
+  // Bridge State
+  const [bridgeClient] = useState(new PolkadotBridgeClient())
+  const [evmAccount, setEvmAccount] = useState<string | null>(null)
+  const [streamId, setStreamId] = useState<string>('')
+  const [targetChain, setTargetChain] = useState<string>('filecoin')
+  const [ipfsHash, setIpfsHash] = useState<string>('')
+  const [bridgeStatus, setBridgeStatus] = useState<string>('')
+
   useEffect(() => {
     let unsub: any
     let unsubFinal: any
@@ -244,6 +254,44 @@ function PolkadotInfo() {
       alert(`Upload failed: ${e.message}`)
     }
   }
+
+  const connectEVM = async () => {
+    try {
+        setBridgeStatus('Connecting to MetaMask...')
+        const account = await bridgeClient.connect()
+        if (account) {
+            setEvmAccount(account)
+            setBridgeStatus('Connected to Moonbase Alpha')
+        } else {
+            setBridgeStatus('Failed to connect: No account returned')
+        }
+    } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e)
+        setBridgeStatus(`Error: ${errorMessage}`)
+        console.error('MetaMask connection error:', e)
+    }
+  }
+
+  const handleCreateDataStream = async () => {
+    if (!evmAccount || !streamId || !ipfsHash) {
+        setBridgeStatus('Please fill all fields and connect wallet')
+        return
+    }
+    try {
+        setBridgeStatus('Creating data stream on Moonbase Alpha...')
+        const tx = await bridgeClient.createDataStream(streamId, targetChain, ipfsHash)
+        if (tx) {
+            setBridgeStatus(`Stream Created! Tx: ${tx}`)
+        } else {
+            setBridgeStatus('Failed to create stream: No transaction returned. Check console for details.')
+        }
+    } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e)
+        setBridgeStatus(`Error creating stream: ${errorMessage}`)
+        console.error('Create stream error:', e)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-6">
       <div className="max-w-6xl mx-auto">
@@ -480,6 +528,72 @@ function PolkadotInfo() {
             </div>
           )}
         </div>
+
+        {/* Cross-Chain Bridge (Moonbeam) */}
+        <div className="bg-gray-800 rounded-lg p-6 mb-8 shadow-lg border border-purple-900">
+          <h2 className="text-2xl font-semibold mb-4 text-purple-300">Cross-Chain Data Stream (Moonbase Alpha)</h2>
+          <div className="mb-4">
+            {!evmAccount ? (
+                <button
+                    onClick={connectEVM}
+                    className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                >
+                    Connect MetaMask (EVM)
+                </button>
+            ) : (
+                <p className="text-green-400">Connected: {evmAccount}</p>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label className="block text-gray-400 text-sm mb-1">Stream ID</label>
+                <input
+                    type="text"
+                    value={streamId}
+                    onChange={(e) => setStreamId(e.target.value)}
+                    placeholder="e.g. bio-stream-001"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+            </div>
+            <div>
+                <label className="block text-gray-400 text-sm mb-1">Target Chain</label>
+                <select
+                    value={targetChain}
+                    onChange={(e) => setTargetChain(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                    <option value="filecoin">Filecoin (Calibration)</option>
+                    <option value="solana">Solana (Devnet)</option>
+                </select>
+            </div>
+          </div>
+          <div className="mt-4">
+            <label className="block text-gray-400 text-sm mb-1">IPFS Hash (Payload)</label>
+            <input
+                type="text"
+                value={ipfsHash}
+                onChange={(e) => setIpfsHash(e.target.value)}
+                placeholder="Qm..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <button
+            onClick={handleCreateDataStream}
+            disabled={!evmAccount || !streamId || !ipfsHash}
+            className="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Create Data Stream
+          </button>
+          
+          {bridgeStatus && (
+            <div className="mt-4 p-3 bg-black/30 rounded border border-gray-700 text-sm font-mono text-yellow-300">
+                {bridgeStatus}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   )

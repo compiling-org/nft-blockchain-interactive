@@ -4,7 +4,7 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, UnorderedMap};
 use near_sdk::json_types::U128;
-use near_sdk::{env, near, AccountId, Promise, Timestamp};
+use near_sdk::{env, near, AccountId, Promise, Timestamp, NearToken};
 use near_contract_standards::non_fungible_token::metadata::TokenMetadata;
 use near_contract_standards::non_fungible_token::{NonFungibleToken, Token, TokenId};
 use near_contract_standards::non_fungible_token::core::NonFungibleTokenCore;
@@ -14,7 +14,10 @@ use near_sdk::PromiseOrValue;
 
 // Expose emotional module
 mod emotional;
+mod interactive_advanced;
+
 use emotional::CompactEmotionalState;
+use interactive_advanced::{BiometricNFT, InteractiveMetadata, InteractionRules, DetailedEmotionalState, BiometricSnapshot, InteractionType};
 
 /// Simple NFT contract that actually works
 #[near(contract_state)]
@@ -25,6 +28,10 @@ pub struct SimpleNftContract {
     interaction_history: LookupMap<TokenId, Vec<String>>,
     // Added emotional history for space-efficient storage
     emotional_history: LookupMap<TokenId, Vec<CompactEmotionalState>>,
+    // Advanced Interactive State
+    biometric_nfts: LookupMap<TokenId, BiometricNFT>,
+    // Configurable minimum mint deposit (None = use default 0.01 NEAR)
+    min_mint_deposit: Option<NearToken>,
 }
 
 #[near]
@@ -44,7 +51,20 @@ impl SimpleNftContract {
             token_metadata: UnorderedMap::new(b"m".to_vec()),
             interaction_history: LookupMap::new(b"h".to_vec()),
             emotional_history: LookupMap::new(b"e".to_vec()),
+            biometric_nfts: LookupMap::new(b"b".to_vec()),
+            min_mint_deposit: None, // Use default 0.01 NEAR
         }
+    }
+
+    /// Set minimum mint deposit (only owner can call)
+    pub fn set_min_mint_deposit(&mut self, deposit: NearToken) {
+        assert_eq!(env::predecessor_account_id(), self.owner_id, "Only owner can set min deposit");
+        self.min_mint_deposit = Some(deposit);
+    }
+
+    /// Get current minimum mint deposit
+    pub fn get_min_mint_deposit(&self) -> NearToken {
+        self.min_mint_deposit.unwrap_or_else(|| NearToken::from_yoctonear(10_000_000_000_000_000_000_000))
     }
 
     /// Mint a new NFT - actually works!
@@ -67,6 +87,77 @@ impl SimpleNftContract {
         // Initialize interaction history
         self.interaction_history.insert(&token_id, &vec![]);
         self.emotional_history.insert(&token_id, &vec![]);
+        
+        token
+    }
+
+    /// Mint an interactive biometric NFT
+    #[payable]
+    pub fn mint_interactive_nft(
+        &mut self,
+        token_id: TokenId,
+        receiver_id: AccountId,
+        metadata: TokenMetadata,
+        initial_emotional_state: DetailedEmotionalState,
+    ) -> Token {
+        // Validate attached deposit - configurable minimum (default 0.01 NEAR)
+        let deposit = env::attached_deposit();
+        let min_deposit = self.min_mint_deposit.unwrap_or_else(|| NearToken::from_yoctonear(10_000_000_000_000_000_000_000));
+        assert!(deposit >= min_deposit, "Insufficient deposit: minimum {} required", min_deposit);
+        // 1. Mint standard NFT
+        let token = self.tokens.internal_mint(
+            token_id.clone(),
+            receiver_id.clone(),
+            Some(metadata.clone()),
+        );
+
+        // 2. Initialize interactive metadata
+        let interactive_metadata = InteractiveMetadata {
+            title: metadata.title.clone().unwrap_or_else(|| "Untitled Biometric NFT".to_string()),
+            description: metadata.description.clone().unwrap_or_else(|| "Interactive Biometric NFT".to_string()),
+            artist: env::predecessor_account_id(),
+            created_at: env::block_timestamp(),
+            base_ipfs_cid: metadata.media.clone().unwrap_or_default(),
+            interaction_rules: InteractionRules {
+                valence_affects_color: true,
+                arousal_affects_speed: true,
+                dominance_affects_detail: true,
+                meditation_affects_morphing: true,
+                stress_affects_complexity: true,
+                sensitivity: 1.0,
+            },
+        };
+
+        // 3. Create BiometricNFT state
+        let mut biometric_nft = BiometricNFT::new(
+            token_id.clone(),
+            receiver_id.clone(),
+            interactive_metadata,
+        );
+
+        // 4. Record initial interaction (minting event)
+        // Create a dummy biometric snapshot for minting
+        let initial_biometric = BiometricSnapshot {
+            eeg_data: None,
+            heart_rate: None,
+            gsr: None,
+            facial_data: None,
+            quality_score: 1.0,
+            data_cid: "minting_event".to_string(),
+        };
+
+        biometric_nft.interact_with_biometrics(
+            initial_emotional_state,
+            initial_biometric,
+            InteractionType::CreativeSession,
+        );
+
+        // 5. Store advanced state
+        self.biometric_nfts.insert(&token_id, &biometric_nft);
+
+        // 6. Update standard metadata and history
+        self.token_metadata.insert(&token_id, &metadata);
+        self.interaction_history.insert(&token_id, &vec![format!("Minted interactive NFT at {}", env::block_timestamp())]);
         
         token
     }
@@ -246,6 +337,7 @@ mod tests {
         builder.current_account_id("contract.testnet".parse().unwrap());
         builder.signer_account_id("user.testnet".parse().unwrap());
         builder.predecessor_account_id("user.testnet".parse().unwrap());
+        builder.account_balance(NearToken::from_yoctonear(10_000_000_000_000_000_000_000_000)); // 10 NEAR
         builder
     }
 
@@ -262,6 +354,7 @@ mod tests {
     fn test_mint_nft() {
         let mut context = get_context();
         context.predecessor_account_id("user.testnet".parse().unwrap());
+        context.attached_deposit(NearToken::from_yoctonear(10_000_000_000_000_000_000_000)); // 0.01 NEAR
         testing_env!(context.build());
         
         let mut contract = SimpleNftContract::new("owner.testnet".parse().unwrap());
@@ -284,7 +377,7 @@ mod tests {
         let token = contract.mint_nft("token1".to_string(), metadata.clone());
         
         assert_eq!(token.token_id, "token1");
-        assert_eq!(token.owner_id, "user.testnet".parse().unwrap());
+        assert_eq!(token.owner_id, "user.testnet".parse::<AccountId>().unwrap());
         
         // Check metadata
         let stored_metadata = contract.get_metadata("token1".to_string()).unwrap();
@@ -298,6 +391,7 @@ mod tests {
     fn test_record_interaction() {
         let mut context = get_context();
         context.predecessor_account_id("user.testnet".parse().unwrap());
+        context.attached_deposit(NearToken::from_yoctonear(10_000_000_000_000_000_000_000)); // 0.01 NEAR for minting
         testing_env!(context.build());
         
         let mut contract = SimpleNftContract::new("owner.testnet".parse().unwrap());

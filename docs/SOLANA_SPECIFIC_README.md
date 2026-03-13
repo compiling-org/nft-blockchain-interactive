@@ -253,8 +253,11 @@ graph TD
 - ✅ Creative session accounts
 - ✅ Emotional metadata storage
 - ✅ Stream diffusion integration
+- ✅ Client SDK Integration (BiometricNFTClient)
+- ✅ Devnet Deployment
 
 ### Phase 2 (In Progress)
+- 🔄 End-to-end testing
 - 🔄 Advanced compression algorithms
 - 🔄 Real-time stream processing
 - 🔄 Machine learning integration
@@ -267,8 +270,8 @@ graph TD
 ## 🔗 Resources
 
 ### Program Deployment
-- **Program ID**: `EmotionalMetadata111111111111111111111111`
-- **Devnet Explorer**: [Solana Explorer](https://explorer.solana.com/address/EmotionalMetadata111111111111111111111111?cluster=devnet)
+- **Program ID**: `6QcK89CQXA1GNGtGyYRq3ewCVpCn2omVfemvkbSW6CoT`
+- **Devnet Explorer**: [Solana Explorer](https://explorer.solana.com/address/6QcK89CQXA1GNGtGyYRq3ewCVpCn2omVfemvkbSW6CoT?cluster=devnet)
 
 ### Development
 - **Build**: `npm run build:solana`

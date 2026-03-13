@@ -3,14 +3,19 @@ resolver = "2"
 members = [
     "packages/rust-client-wasm",
     "packages/rust-client",
+    "packages/rust-foundation-audiovisual",
     "packages/near-wasm",
     "packages/ipfs-integration",
     "packages/marketplace",
-
-
+    "packages/contracts/near/soulbound-nft",
+    # NOTE: solana-client and polkadot-client are excluded from the workspace
+    # due to conflicting dependency versions (anchor-lang vs subxt/sp-core).
+    # They can be built independently when needed:
+    #   - To build solana-client: cd packages/solana-client && cargo build
+    #   - To build polkadot-client: cd packages/polkadot-client && cargo build
+    # "packages/solana-client",
+    # "packages/polkadot-client",
 ]
-
-    # "contracts/near/soulbound-nft", # Requires cargo-near, exclude for now
 
 [profile.release]
 overflow-checks = true
@@ -20,7 +25,6 @@ codegen-units = 1
 [profile.dev]
 overflow-checks = true
 
-
-
-
-
+# [patch.crates-io]
+# extism = { path = "D:/extism-main/extism-main/extism-main/runtime" }
+# extism-manifest = { path = "D:/extism-main/extism-main/extism-main/manifest" }

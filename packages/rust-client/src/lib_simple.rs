@@ -15,11 +15,13 @@ use wasm_bindgen::prelude::*;
 pub mod simple_webgpu;
 pub mod simple_blockchain;
 pub mod iron_learn_integration;
+pub mod audio_analysis;
 
 // Re-export simplified functionality
 pub use simple_webgpu::*;
 pub use simple_blockchain::*;
 pub use iron_learn_integration::*;
+pub use audio_analysis::*;
 
 /// Core metadata structure
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,6 +53,36 @@ impl MetadataGenerator {
             "fractal_type": fractal_type,
             "zoom": zoom,
             "iterations": iterations,
+        });
+        
+        serde_json::to_string_pretty(&metadata).unwrap_or_default()
+    }
+
+    #[wasm_bindgen]
+    pub fn generate_advanced_audio_metadata(&mut self, features_json: String) -> String {
+        let features: AudioFeatures = serde_json::from_str(&features_json).unwrap_or_default();
+        let metadata = serde_json::json!({
+            "type": "audio",
+            "version": "2.0",
+            "metrics": {
+                "rms": features.rms,
+                "peak": features.peak,
+                "spectral": {
+                    "centroid": features.centroid,
+                    "rolloff": features.rolloff,
+                    "flux": features.flux
+                },
+                "bands": {
+                    "sub_bass": features.sub_bass,
+                    "bass": features.bass,
+                    "mid": features.mid,
+                    "brilliance": features.brilliance
+                }
+            },
+            "emotional_mapping": {
+                "valance": (features.mid * 0.5 + features.brilliance * 0.5).clamp(0.0, 1.0),
+                "arousal": (features.bass * 0.7 + features.rms * 0.3).clamp(0.0, 1.0)
+            }
         });
         
         serde_json::to_string_pretty(&metadata).unwrap_or_default()

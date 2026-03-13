@@ -12,7 +12,7 @@ const bridgeConfig = {
         rpcUrl: 'https://api.devnet.solana.com',
         
         // Program Configuration
-        programId: 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS', // Replace with actual deployed program ID
+        programId: '6QcK89CQXA1GNGtGyYRq3ewCVpCn2omVfemvkbSW6CoT', // Match browser config program ID
         idlPath: path.join(__dirname, '../../contracts/solana/biometric-nft/target/idl/biometric_nft.json'),
         
         // Wallet Configuration

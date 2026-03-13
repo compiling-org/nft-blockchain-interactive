@@ -317,10 +317,8 @@ export const ComprehensiveNEARCreativeEngine: React.FC<NEARCreativeEngineProps> 
           <Button
             key={key}
             onClick={() => setCurrentView(key as any)}
-            className={`mr-2 ${currentView === key
-              ? `bg-${color}-600 hover:bg-${color}-700 text-white`
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
+            variant={currentView === key ? 'default' : 'secondary'}
+            className={`${currentView === key ? `bg-${color}-600 hover:bg-${color}-700` : ''}`}
           >
             {label}
           </Button>
@@ -332,19 +330,23 @@ export const ComprehensiveNEARCreativeEngine: React.FC<NEARCreativeEngineProps> 
   if (!isConnected) {
     return (
       <div className={`min-h-screen bg-gray-900 text-white p-8 ${className}`}>
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold mb-8 text-blue-400">NEAR Creative Engine</h1>
-          <p className="text-xl mb-8 text-gray-300">
-            Connect your NEAR wallet to access the comprehensive creative engine with real biometric NFT functionality,
-            AI-powered fractal generation, and blockchain integration.
-          </p>
-          <button
-            onClick={connectWallet}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
-          >
-            Connect NEAR Wallet
-          </button>
-        </div>
+        <Card className="max-w-4xl mx-auto text-center bg-gray-800 border-gray-700 p-8">
+          <CardHeader>
+            <CardTitle className="text-4xl font-bold text-blue-400 mb-4">NEAR Creative Engine</CardTitle>
+            <CardDescription className="text-xl text-gray-300">
+              Connect your NEAR wallet to access the comprehensive creative engine with real biometric NFT functionality,
+              AI-powered fractal generation, and blockchain integration.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={connectWallet}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
+            >
+              Connect NEAR Wallet
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -356,12 +358,12 @@ export const ComprehensiveNEARCreativeEngine: React.FC<NEARCreativeEngineProps> 
           <h1 className="text-4xl font-bold text-blue-400">NEAR Creative Engine</h1>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-300">{accountId}</span>
-            <button
+            <Button
               onClick={disconnectWallet}
-              className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              variant="destructive"
             >
               Disconnect
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -433,34 +435,42 @@ export const ComprehensiveNEARCreativeEngine: React.FC<NEARCreativeEngineProps> 
 
         {currentView === 'marketplace' && (
           <div className="space-y-6">
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-2xl font-semibold mb-4">Creative Assets Marketplace</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {creativeAssets.map((asset) => (
-                  <div key={asset.id} className="bg-gray-700 rounded-lg p-4">
-                    <h4 className="font-semibold text-lg mb-2 capitalize">{asset.type} Asset</h4>
-                    <p className="text-sm text-gray-300 mb-2">
-                      Emotion: {asset.emotionalState.primaryEmotion}
-                    </p>
-                    <p className="text-sm text-gray-300 mb-4">
-                      Created: {new Date(asset.timestamp).toLocaleDateString()}
-                    </p>
-                    {!asset.tokenId ? (
-                      <button
-                        onClick={() => mintCreativeAsset(asset)}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded transition-colors"
-                      >
-                        Mint as NFT
-                      </button>
-                    ) : (
-                      <div className="text-green-400 text-sm">
-                        ✅ Minted (Token: {asset.tokenId.slice(-6)})
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Card className="bg-gray-800 border-gray-700 p-6">
+              <CardHeader>
+                <CardTitle className="text-2xl font-semibold mb-4">Creative Assets Marketplace</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {creativeAssets.map((asset) => (
+                    <Card key={asset.id} className="bg-gray-700 rounded-lg p-4">
+                      <CardHeader>
+                        <CardTitle className="font-semibold text-lg mb-2 capitalize">{asset.type} Asset</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-300 mb-2">
+                          Emotion: {asset.emotionalState.primaryEmotion}
+                        </p>
+                        <p className="text-sm text-gray-300 mb-4">
+                          Created: {new Date(asset.timestamp).toLocaleDateString()}
+                        </p>
+                        {!asset.tokenId ? (
+                          <Button
+                            onClick={() => mintCreativeAsset(asset)}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded transition-colors"
+                          >
+                            Mint as NFT
+                          </Button>
+                        ) : (
+                          <div className="text-green-400 text-sm">
+                            ✅ Minted (Token: {asset.tokenId.slice(-6)})
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 

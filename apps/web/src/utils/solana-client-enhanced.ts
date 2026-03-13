@@ -5,11 +5,11 @@
  */
 
 import { Connection, PublicKey, SystemProgram, Keypair } from '@solana/web3.js';
-import { Program, AnchorProvider, web3, BN } from '@project-serum/anchor';
-import { createHash } from 'crypto';
+import { Program, AnchorProvider, web3, BN } from '@coral-xyz/anchor';
+import { sha256 } from 'js-sha256';
 import { RealEmotionDetector } from './hybrid-ai-architecture.js';
 import { WASMMLBridge } from './unified-ai-ml-integration.js';
-import { CrossChainBridge } from './cross-chain-bridge.js';
+import { CrossChainBridge } from './cross-chain-bridge';
 
 // Enhanced IDL with additional instructions for advanced biometric processing
 const enhancedIdl = {
@@ -744,7 +744,7 @@ export class EnhancedBiometricNFTClient {
   // Helper: Generate enhanced biometric hash
   private generateEnhancedBiometricHash(emotion: EmotionData, featureVector: number[]): string {
     const dataString = `${emotion.valence}-${emotion.arousal}-${emotion.dominance}-${featureVector.join(',')}-${Date.now()}`;
-    const hash = createHash('sha256').update(dataString).digest('hex');
+    const hash = sha256(dataString);
     return hash;
   }
 

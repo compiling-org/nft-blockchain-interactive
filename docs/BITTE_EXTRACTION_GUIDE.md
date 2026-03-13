@@ -13,26 +13,28 @@ This document provides precise instructions for extracting ONLY the Bitte Protoc
 
 ### Core Bitte Protocol Integration Files
 ```
-src/utils/mintbase-ai-integration.js          # Main Mintbase AI integration
-src/utils/bitte-protocol-ai-enhanced-v2.ts  # Enhanced Bitte Protocol features
-src/utils/bitte-protocol-integration.js     # Bitte Protocol integration
+apps/web/src/services/bitteService.ts              # Main Bitte service (replaces bitteWalletService)
+apps/web/src/services/myNearWalletService.ts     # NEAR wallet service
+apps/web/src/services/nearCreativeEngineService.ts # NEAR creative engine
 ```
 
-### Mintbase Integration Files
+### Marketplace Files
 ```
-src/mintbase/nuwe-ai-ml-integration.js      # Nuwe AI/ML integration
-src/utils/mintbase-ai                        # Mintbase AI utilities
+apps/web/src/pages/BitteAIMarketplace.tsx       # Bitte AI marketplace UI
+apps/web/src/pages/RealBitteMarketplace.tsx     # Real marketplace UI
+apps/web/src/pages/EnhancedBitteMarketplace.tsx # Enhanced marketplace
+apps/web/src/pages/ComprehensiveBitteMarketplace.tsx # Comprehensive marketplace
 ```
 
 ### Supporting Files
 ```
-src/utils/unified-ai-ml-integration.js      # AI/ML bridge (shared dependency)
-src/utils/cross-chain-bridge.js            # Cross-chain bridge functionality
+apps/web/src/services/realMarketplaceService.ts    # Marketplace service
+apps/web/src/components/NEARVisualizer.tsx          # NEAR visualizer
 ```
 
 ### Configuration Files
 ```
-package.json                                 # Bitte Protocol-specific dependencies
+apps/web/package.json                           # Frontend dependencies
 ```
 
 ## Bitte Protocol-Specific Dependencies
@@ -53,14 +55,15 @@ The package.json must include these Bitte Protocol-specific packages:
 ```
 bitte-creative-engine/
 ├── src/
-│   ├── utils/
-│   │   ├── mintbase-ai-integration.js
-│   │   ├── bitte-protocol-ai-enhanced-v2.ts
-│   │   ├── bitte-protocol-integration.js
-│   │   ├── unified-ai-ml-integration.js
-│   │   └── cross-chain-bridge.js
-│   └── mintbase/
-│       └── nuwe-ai-ml-integration.js
+│   ├── services/
+│   │   ├── bitteService.ts
+│   │   ├── myNearWalletService.ts
+│   │   ├── nearCreativeEngineService.ts
+│   │   └── realMarketplaceService.ts
+│   └── pages/
+│       ├── BitteAIMarketplace.tsx
+│       ├── RealBitteMarketplace.tsx
+│       └── EnhancedBitteMarketplace.tsx
 ├── package.json
 └── README.md
 ```

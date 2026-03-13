@@ -3,7 +3,12 @@
  * Handles real blockchain interactions for AI-powered NFT marketplace
  */
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// Use environment variable for API base URL, fallback to relative path for production
+const getApiBaseUrl = (): string => {
+  // Use relative API path - works in both browser and server environments
+  // The backend proxy will handle routing to the correct API endpoint
+  return '/api';
+};
 
 export interface BitteWalletConnection {
   success: boolean;
@@ -93,64 +98,82 @@ export interface TransactionResult {
 }
 
 class BitteService {
-  private isConnected: boolean = false;
   private currentAccountId: string = '';
 
   /**
-   * Connect to Bitte AI Wallet
+   * Set the current account ID for NFT minting operations
+   * Validates the account ID format for NEAR addresses
    */
-  async connectWallet(): Promise<BitteWalletConnection> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/wallet/connect`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          blockchain: 'near',
-          walletType: 'bitte-ai-wallet'
-        })
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        this.isConnected = true;
-        this.currentAccountId = result.accountId;
-        return {
-          success: true,
-          accountId: result.accountId,
-          publicKey: result.publicKey
-        };
-      } else {
-        return {
-          success: false,
-          error: result.error || 'Wallet connection failed'
-        };
-      }
-    } catch (error) {
-      console.error('Bitte wallet connection error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Connection failed'
-      };
+  setCurrentAccount(accountId: string): void {
+    // Validate NEAR account ID format if not empty
+    // Supports: xxx.testnet, xxx.near, and compound accounts like xxx.sub.testnet
+    // NEAR accounts: 2-64 characters, lowercase alphanumeric with dashes/underscores
+    // Can have multiple subdomains separated by dots, ending in .testnet, .mainnet, or .near
+    if (accountId && !/^[a-z0-9][a-z0-9_-]*(\.[a-z0-9][a-z0-9_-]*)*\.(testnet|mainnet|near)$/i.test(accountId)) {
+      console.warn('Invalid NEAR account ID format. Expected format: xxx.testnet or xxx.near (or compound like xxx.sub.testnet)');
+      return; // Don't set invalid account ID
     }
+    this.currentAccountId = accountId;
   }
 
   /**
-   * Disconnect wallet
+   * Get the current account ID
+   */
+  getCurrentAccount(): string {
+    return this.currentAccountId;
+  }
+
+  /**
+   * Connect to Bitte AI Wallet (DEPRECATED - kept for backward compatibility)
+   * @deprecated Use setCurrentAccount() instead for direct account management
+   * 
+   * For backward compatibility, this returns a mock connection in development mode.
+   * In production, users should use setCurrentAccount() to set their NEAR account.
+   */
+  async connectWallet(): Promise<BitteWalletConnection> {
+    console.warn('connectWallet() is deprecated. Use setCurrentAccount(accountId) instead.');
+    
+    // Check if we're in development mode (no real wallet available)
+    const isDevMode = (typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || 
+       window.location.hostname === '127.0.0.1'));
+    
+    if (isDevMode) {
+      // In development, auto-set a mock account for backward compatibility
+      const mockAccount = 'dev-user.testnet';
+      this.currentAccountId = mockAccount;
+      console.info('Development mode: Auto-connected with mock account:', mockAccount);
+      return {
+        success: true,
+        accountId: mockAccount,
+        publicKey: 'dev-public-key-placeholder'
+      };
+    }
+    
+    // In production, prompt user to use setCurrentAccount()
+    return {
+      success: false,
+      error: 'Wallet connection API changed. Please use setCurrentAccount(accountId) to set your NEAR account directly.'
+    };
+  }
+
+  /**
+   * Disconnect wallet (DEPRECATED - kept for backward compatibility)
+   * @deprecated Use setCurrentAccount(\'\') to clear the account
    */
   disconnectWallet(): void {
-    this.isConnected = false;
+    console.warn('disconnectWallet() is deprecated. Use setCurrentAccount(\'\') to clear the account.');
     this.currentAccountId = '';
   }
 
   /**
-   * Get current connection status
+   * Get current connection status (DEPRECATED - kept for backward compatibility)
+   * @deprecated Use getCurrentAccount() instead
    */
   getConnectionStatus(): { isConnected: boolean; accountId: string } {
+    console.warn('getConnectionStatus() is deprecated. Use getCurrentAccount() instead.');
     return {
-      isConnected: this.isConnected,
+      isConnected: !!this.currentAccountId,
       accountId: this.currentAccountId
     };
   }
@@ -213,7 +236,7 @@ class BitteService {
    */
   async generateEmotionalFractal(emotionData: EmotionData): Promise<FractalGenerationResult> {
     try {
-      const response = await fetch(`${API_BASE_URL}/fractal/generate`, {
+      const response = await fetch(`${getApiBaseUrl()}/fractal/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -258,15 +281,16 @@ class BitteService {
    * Mint biometric NFT with AI-generated content
    */
   async mintBiometricNFT(emotionData: EmotionData, generatedArt: string): Promise<NFTMintingResult> {
-    if (!this.isConnected) {
+    // Validate wallet connection before minting
+    if (!this.currentAccountId) {
       return {
         success: false,
-        error: 'Wallet not connected'
+        error: 'Wallet not connected. Please set account ID first using setCurrentAccount().'
       };
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/nft/mint-biometric`, {
+      const response = await fetch(`${getApiBaseUrl()}/nft/mint-biometric`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -316,10 +340,11 @@ class BitteService {
    * Execute AI-powered transaction
    */
   async executeAITransaction(action: string, params: any): Promise<TransactionResult> {
-    if (!this.isConnected) {
+    // Validate wallet connection before executing transaction
+    if (!this.currentAccountId) {
       return {
         success: false,
-        error: 'Wallet not connected'
+        error: 'Wallet not connected. Please set account ID first using setCurrentAccount().'
       };
     }
 
@@ -353,7 +378,7 @@ class BitteService {
    */
   async getHealthStatus(): Promise<any> {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`);
+      const response = await fetch(`${getApiBaseUrl()}/health`);
       return await response.json();
     } catch (error) {
       console.error('Health check error:', error);

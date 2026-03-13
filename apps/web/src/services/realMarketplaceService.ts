@@ -25,7 +25,7 @@ interface NetworkConfig {
 
 // Marketplace contract configuration - using proper testnet contracts
 const MARKETPLACE_CONTRACT_ID = 'marketplace.testnet';
-const NFT_CONTRACT_ID = 'nft.testnet';
+const NFT_CONTRACT_ID = 'bio-nft-1764175259.sleeplessmonk-testnet-1764175172.testnet';
 
 export interface RealNFTListing {
   listing_id: string;
@@ -368,8 +368,11 @@ class RealMarketplaceService {
     }
 
     try {
-      const result = await myNearWalletService.callMethod(NFT_CONTRACT_ID, 'nft_mint', {
-        token_id: `biometric_${Date.now()}`,
+      const tokenId = `biometric_${Date.now()}`;
+      
+      const result = await myNearWalletService.callMethod(NFT_CONTRACT_ID, 'mint_interactive_nft', {
+        token_id: tokenId,
+        receiver_id: this.getCurrentAccountId(),
         metadata: {
           title: metadata.title,
           description: metadata.description,
@@ -380,9 +383,15 @@ class RealMarketplaceService {
             ai_generated: true,
           }),
         },
-      }, '30000000000000', '1000000000000000000000000');
+        initial_emotional_state: {
+            valence: emotionData.valence,
+            arousal: emotionData.arousal,
+            dominance: emotionData.dominance,
+            confidence: 0.9,
+            complexity: 0.5
+        }
+      }, '30000000000000', '100000000000000000000000'); // 0.1 NEAR
       
-      const tokenId = `biometric_${Date.now()}`;
       return {
         success: true,
         tokenId,

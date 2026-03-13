@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
-import { AnchorProvider } from '@project-serum/anchor';
+import { AnchorProvider } from '@coral-xyz/anchor';
 import BiometricNFTClient from '../utils/solana-client';
 
 // Polyfill WebCrypto for Node test environment
